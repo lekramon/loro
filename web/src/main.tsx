@@ -4,6 +4,7 @@ import { api, type Settings, type SetupState } from './api';
 import { SetupWizard } from './SetupWizard';
 import { InterfacePreferences, UIProvider, useUI } from './ui';
 import './style.css';
+import { MetadataSettings } from './MetadataSettings';
 import { About } from './About';
 import { MockApp } from './MockApp';
 
@@ -14,6 +15,8 @@ function App() {
   const [error, setError] = useState('');
   const [path, setPath] = useState(window.location.pathname);
   const [editing, setEditing] = useState(false);
+  const [navigationOpen, setNavigationOpen] = useState(false);
+  useEffect(() => { const close = (event: KeyboardEvent) => { if (event.key === "Escape") setNavigationOpen(false); }; window.addEventListener("keydown", close); return () => window.removeEventListener("keydown", close); }, []);
   useEffect(() => {
     const controller = new AbortController();
     api<SetupState>('/setup', { signal: controller.signal })
@@ -31,7 +34,7 @@ function App() {
   };
   const audioName = (code: string) => languageName(code, setup?.languages.find(language => language.code === code)?.name);
   return <main className="app-shell">
-    <aside className="sidebar">
+    <aside className={"sidebar" + (navigationOpen ? " navigation-open" : "")}>
       <a className="brand" href="/"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><defs><linearGradient id="brand-gradient" x2="1" y2="1"><stop stopColor="#ac7dff"/><stop offset="1" stopColor="#39c5df"/></linearGradient></defs><path fill="url(#brand-gradient)" d="M7 4h10a8 8 0 0 1 0 16h-4v8H7V4Zm6 6v4h4a2 2 0 0 0 0-4h-4Z"/></svg><strong>Piratarr</strong></a>
       <p className="nav-caption">{t('Workspace')}</p>
       <nav className="workspace-nav" aria-label={t('Workspace')}>
@@ -40,7 +43,7 @@ function App() {
       </nav>
       <div className="sidebar-status"><span className="status-dot" aria-hidden="true"/>{t('Local workspace')}<small>{t('Your library, locally.')}</small></div>
     </aside>
-    <header className="topbar"><span className="local">{t(saved ? 'Settings' : 'Setup')}</span><InterfacePreferences /></header>
+    <header className="topbar"><button className="navigation-toggle" type="button" aria-label={t("Open navigation")} aria-expanded={navigationOpen} onClick={() => setNavigationOpen(value => !value)}>☰</button><a className="header-brand" href="/">Piratarr</a><span className="local">{t(saved ? 'Settings' : 'Setup')}</span><InterfacePreferences /></header>
     <div className="workspace">
     <section className="page-heading"><p className="eyebrow">{t('Your library, locally.')}</p><h1>{t(saved ? 'Settings' : 'Getting started')}</h1><p className="description">{t(saved ? 'Manage your folders and viewing preferences.' : 'A few preferences, then you are ready to build your library.')}</p></section>
     <section className="panel">
@@ -50,8 +53,8 @@ function App() {
         : saved ? <>
           <span className="badge">{t('Configured · revision {revision}', { revision: saved.revision })}</span><h2>{t("Your saved settings")}</h2>
           <dl className="summary"><dt>{t("Download directory")}</dt><dd>{saved.directories.downloadDirectory}</dd><dt>{t("Movie directory")}</dt><dd>{saved.directories.movieDirectory}</dd><dt>{t("Accepted resolutions")}</dt><dd>{saved.profile.acceptedResolutions.join(', ')}</dd><dt>{t("Preferred resolution")}</dt><dd>{saved.profile.preferredResolution}</dd><dt>{t("Release formats")}</dt><dd>{(saved.profile.acceptedFormats ?? []).join(", ")}</dd><dt>{t("File containers")}</dt><dd>{(saved.profile.acceptedContainers ?? []).join(", ")}</dd><dt>{t("Audio preference order")}</dt><dd>{saved.profile.audioPreferences.map(audioName).join(' → ')}</dd></dl>
-          <button type="button" onClick={() => setEditing(true)}>{t("Edit settings")}</button>
-          <p className="note">{t("Your choices are saved locally. Catalog, search, and downloads are not available yet.")}</p>
+          <MetadataSettings /><button type="button" onClick={() => setEditing(true)}>{t("Edit settings")}</button>
+          <p className="note">{t("Your choices are saved locally. Use the catalog API for real movie searches; the library preview uses mock data.")}</p>
         </> : path === '/setup' ? <SetupWizard setup={setup} onSaved={afterSetup} /> : <>
           <span className="badge">{t("Not configured yet")}</span><h2>{t("Make this space yours")}</h2>
           <p>{t("Start by choosing where your files live and how you prefer to watch.")}</p>

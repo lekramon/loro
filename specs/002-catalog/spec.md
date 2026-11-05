@@ -40,3 +40,8 @@ Primary verification uses public HTTP APIs, real temporary SQLite/databases/dire
 ## References
 
 [Search](https://developer.themoviedb.org/reference/search-movie), [details](https://developer.themoviedb.org/reference/movie-details), [images](https://developer.themoviedb.org/docs/image-basics), [rate limiting](https://developer.themoviedb.org/docs/rate-limiting), [attribution](https://developer.themoviedb.org/docs/faq).
+
+
+## Service credential configuration update — 2026-11-05
+
+By user instruction, setup/settings now allow explicit saving or replacement of a TMDB Read Access Token. This supersedes earlier statements that onboarding must not offer token configuration. The service-local write-only token takes precedence over bootstrap/private-file and bundled credentials; those remain fallbacks. Empty input preserves the credential. See [service configuration](../011-service-configuration/spec.md).

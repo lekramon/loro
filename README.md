@@ -20,10 +20,12 @@ The selected stack is Go, React/TypeScript/Vite, and SQLite. The first supported
 
 The first usable milestone is manual movie acquisition through import. TMDB, a user-configured Torznab endpoint, and qBittorrent are the initial integrations. Credentials are not needed to develop against simulators.
 
-TMDB access will use application credentials registered for Piratarr, supplied by release packaging. Normal users will not need a personal TMDB token. The development credential is privately provisioned and verified; the metadata adapter and private-file/BuildKit release provisioning hooks are implemented. Source-only builds need an available private credential file for new live provider queries. See [maintainer registration instructions](docs/tmdb-registration.md).
+TMDB access will use application credentials registered for Piratarr, supplied by release packaging. Setup/settings allow saving a TMDB Read Access Token locally; provisioned releases can still supply a fallback credential. The development credential is privately provisioned and verified; the metadata adapter and private-file/BuildKit release provisioning hooks are implemented. Source-only builds need an available private credential file for new live provider queries. See [maintainer registration instructions](docs/tmdb-registration.md).
 
 ## Development preparation verification
 
 Run `python scripts/verify_specs.py` to check local documentation links, tracker dependencies, acceptance references, and the foundation contract's local references. This is a repository consistency check, not an application test or a full OpenAPI validator.
 
 The real catalog API is described in the [catalog contract](specs/002-catalog/openapi.json) and [API examples](specs/002-catalog/api-examples.md). The `/preview` interface remains mock data while the new design is developed in v0. Provider credits are available at `/about`.
+
+Service configuration now includes a write-only TMDB token field in setup/settings. See [configuration and design update](specs/011-service-configuration/spec.md).

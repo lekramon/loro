@@ -5,9 +5,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -134,5 +136,41 @@ func TestStartupFailureAndGracefulShutdown(t *testing.T) {
 	}
 	if err := again.Shutdown(ctx); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestServiceCredentialSurvivesApplicationRestart(t *testing.T) {
+	directory := t.TempDir()
+	for pass := 0; pass < 2; pass++ {
+		app, err := Open(context.Background(), bootstrap.Config{DataDir: directory, Listen: "127.0.0.1:0", Workers: 4, TMDBTokenFile: filepath.Join(t.TempDir(), "missing")}, fstest.MapFS{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		func() {
+			defer app.Shutdown(context.Background())
+			if pass == 0 {
+				req := httptest.NewRequest("PUT", "http://"+app.Address()+"/api/v1/metadata/credential", strings.NewReader(`{"token":"dummy-restart"}`))
+				req.Header.Set("Content-Type", "application/json")
+				req.Header.Set("X-Piratarr-Request", "1")
+				result := httptest.NewRecorder()
+				app.Handler.ServeHTTP(result, req)
+				if result.Code != 200 {
+					t.Fatal(result.Code, result.Body.String())
+				}
+			}
+			req := httptest.NewRequest("GET", "http://"+app.Address()+"/api/v1/metadata/status", nil)
+			result := httptest.NewRecorder()
+			app.Handler.ServeHTTP(result, req)
+			if result.Code != 200 || !strings.Contains(result.Body.String(), `"configured":true`) || strings.Contains(result.Body.String(), "dummy-restart") {
+				t.Fatal(result.Code, result.Body.String())
+			}
+			info, err := os.Stat(filepath.Join(directory, "credentials", "tmdb-read-token"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if runtime.GOOS != "windows" && info.Mode().Perm() != 0600 {
+				t.Fatal("credential permissions", info.Mode())
+			}
+		}()
 	}
 }

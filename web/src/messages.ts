@@ -1,4 +1,16 @@
 export const english = {
+  "Movie metadata": "Movie metadata",
+  "Checking metadata configuration…": "Checking metadata configuration…",
+  "TMDB token configured": "TMDB token configured",
+  "TMDB token not configured": "TMDB token not configured",
+  "TMDB API Read Access Token": "TMDB API Read Access Token",
+  "Stored only on this service. Leave blank to keep the current token. Saving does not test TMDB authentication.": "Stored only on this service. Leave blank to keep the current token. Saving does not test TMDB authentication.",
+  "Save TMDB token": "Save TMDB token",
+  "Token saved. Movie search can now use it.": "Token saved. Movie search can now use it.",
+  "Unable to save token. Check the Read Access Token and try again.": "Unable to save token. Check the Read Access Token and try again.",
+  "Open TMDB API settings": "Open TMDB API settings",
+  "Your choices are saved locally. Use the catalog API for real movie searches; the library preview uses mock data.": "Your choices are saved locally. Use the catalog API for real movie searches; the library preview uses mock data.",
+
   "Your library, locally.": "Your library, locally.",
   "Interface preferences": "Interface preferences",
   "Theme": "Theme",
@@ -200,6 +212,18 @@ export const english = {
 } as const;
 export type MessageKey = keyof typeof english;
 export const portuguese: Record<MessageKey, string> = {
+  "Movie metadata": "Metadados dos filmes",
+  "Checking metadata configuration…": "Verificando configuração de metadados…",
+  "TMDB token configured": "Token TMDB configurado",
+  "TMDB token not configured": "Token TMDB não configurado",
+  "TMDB API Read Access Token": "Token de acesso de leitura da API TMDB",
+  "Stored only on this service. Leave blank to keep the current token. Saving does not test TMDB authentication.": "Armazenado apenas neste serviço. Deixe em branco para manter o token atual. Salvar não testa a autenticação no TMDB.",
+  "Save TMDB token": "Salvar token TMDB",
+  "Token saved. Movie search can now use it.": "Token salvo. A pesquisa de filmes já pode utilizá-lo.",
+  "Unable to save token. Check the Read Access Token and try again.": "Não foi possível salvar o token. Verifique o token de acesso de leitura e tente novamente.",
+  "Open TMDB API settings": "Abrir configurações da API TMDB",
+  "Your choices are saved locally. Use the catalog API for real movie searches; the library preview uses mock data.": "Suas escolhas são salvas localmente. Use a API do catálogo para pesquisas reais; a prévia da biblioteca usa dados simulados.",
+
   "Your library, locally.": "Sua biblioteca, no seu computador.",
   "Interface preferences": "Preferências da interface",
   "Theme": "Tema",

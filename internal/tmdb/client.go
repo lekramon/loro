@@ -26,10 +26,11 @@ import (
 var releaseCredential string
 
 type Config struct {
-	TokenFile string
-	Token     func() string
-	APIBase   string
-	ImageBase string
+	LocalTokenFile string
+	TokenFile      string
+	Token          func() string
+	APIBase        string
+	ImageBase      string
 }
 type Client struct {
 	config   Config
@@ -50,6 +51,11 @@ func New(config Config) *Client {
 	return &Client{config: config, http: &http.Client{Transport: transport, Timeout: 2 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}, gate: make(chan struct{}, 4)}
 }
 func (c *Client) credential() string {
+	if c.config.LocalTokenFile != "" {
+		if _, err := os.Lstat(c.config.LocalTokenFile); err == nil || !os.IsNotExist(err) {
+			return (&Client{config: Config{TokenFile: c.config.LocalTokenFile}}).credential()
+		}
+	}
 	value := releaseCredential
 	if c.config.Token != nil {
 		value = c.config.Token()

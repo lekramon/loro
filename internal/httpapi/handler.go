@@ -129,6 +129,10 @@ func methodNotAllowed(w http.ResponseWriter, allow string) {
 }
 
 func (h *Handler) api(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "/api/v1/metadata/credential" {
+		h.metadataCredential(w, r)
+		return
+	}
 	if h.catalogAPI(w, r) {
 		return
 	}

@@ -1,3 +1,4 @@
+import { MetadataSettings } from './MetadataSettings';
 import { useState } from 'react';
 import { FolderPicker } from './FolderPicker';
 import { useUI } from './ui';
@@ -81,6 +82,7 @@ export function SetupWizard({ setup, onSaved, initial, onCancel }: { setup: Setu
     <form onSubmit={event => { event.preventDefault(); if (step === 3) void save(); else proceed(); }}>
       <fieldset disabled={saving || conflict || creating}>
         {step === 0 && <>
+ <MetadataSettings />
  <button type="button" className="secondary" disabled={creating} onClick={async()=>{setCreating(true);setMessage('');try{const directories=await api<SettingsInput['directories']>('/directories/defaults',{method:'POST',headers:{'Content-Type':'application/json','X-Piratarr-Request':'1'},body:'{}'});setInput(current=>({...current,directories}));setFields([])}catch{setMessage('Folders are unavailable.')}finally{setCreating(false)}}}>{t('Create and use default folders')}</button>
           <p className="hint">{t("Enter absolute paths as seen by Piratarr. Both folders must already exist and be separate from each other and application data. Existing media stays in place.")}</p>
           <label htmlFor="download-directory">{t("Download directory")}</label><input id="download-directory" value={input.directories.downloadDirectory} onChange={event => updateDirectory('downloadDirectory', event.target.value)} autoComplete="off" spellCheck={false} aria-invalid={fieldErrors('directories.downloadDirectory').length > 0} />{feedback('directories.downloadDirectory')}<button type="button" className="secondary browse-button" onClick={()=>setBrowsing('downloadDirectory')}>{t('Browse folders')}</button>

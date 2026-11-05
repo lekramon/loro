@@ -32,3 +32,8 @@ One local database and application process simplify installation. SQLite write c
 ## Maintenance
 
 An explicit `piratarr backup --output <archive>` command acquires the same exclusive directory lock while the service is stopped, checkpoints/closes SQLite, and archives the database plus a versioned manifest containing app/schema versions and configuration. Exclude media and reconstructible caches. The archive contains credentials. `piratarr restore --input <archive> --data-dir <empty-directory>` requires an empty destination, rejects unsafe archive paths and unsupported newer schemas, and removes partial restoration on failure. Never overwrite existing data. Schema downgrades are unsupported; return to a previous release by restoring its matching backup.
+
+
+## Service credential configuration update — 2026-11-05
+
+By user instruction, setup/settings now allow explicit saving or replacement of a TMDB Read Access Token. This supersedes earlier statements that onboarding must not offer token configuration. The service-local write-only token takes precedence over bootstrap/private-file and bundled credentials; those remain fallbacks. Empty input preserves the credential. See [service configuration](../../specs/011-service-configuration/spec.md).

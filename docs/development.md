@@ -104,3 +104,9 @@ Schema migration 3 adds durable movies, bounded metadata query caches and observ
 The frontend design remains under development in v0. Do not interpret a mock movie or simulated download as an actual catalog/acquisition record. `/about` is the implemented attribution screen.
 
 Package verification commands: `python scripts/verify_metadata_package.py --image piratarr:catalog` and, for an image built with the known dummy verification token only, `python scripts/verify_metadata_package.py --image piratarr:catalog-test-release --dummy-provisioned`. These start and remove only temporary containers and do not contact TMDB. Never use the dummy-provisioned check to infer that a real application credential authenticates successfully.
+
+## Local service metadata configuration
+
+Open `/setup` (or `/settings` after onboarding), enter a TMDB API Read Access Token under Movie metadata, then select Save TMDB token. Saving is independent of folder/profile settings and applies without restart. Leave the input blank to preserve the saved credential. The service writes a private `credentials/tmdb-read-token` inside its data directory; include it in future secret-bearing configuration backups. It overrides the bootstrap file and bundled fallback. Status reports presence only; search verifies provider acceptance. No read-back or browser storage of tokens.
+
+For Windows testing when native Go is unavailable, set `PIRATARR_TEST_EXECUTABLE` to an absolute path of a freshly built Windows executable before `pnpm run test:browser`. The browser harness still creates disposable application storage.

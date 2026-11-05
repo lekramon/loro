@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"net"
 	"net/http"
+	"path/filepath"
 	"time"
 
 	"github.com/lekramon/piratarr/internal/bootstrap"
@@ -38,7 +39,7 @@ func Open(ctx context.Context, config bootstrap.Config, assets fs.FS) (*Applicat
 		_ = store.Close()
 		return nil, fmt.Errorf("open HTTP listener: %w", err)
 	}
-	handler := httpapi.New(store, assets, listener.Addr().String(), catalog.New(store, tmdb.New(tmdb.Config{TokenFile: config.TMDBTokenFile}), directory))
+	handler := httpapi.New(store, assets, listener.Addr().String(), catalog.New(store, tmdb.New(tmdb.Config{TokenFile: config.TMDBTokenFile, LocalTokenFile: filepath.Join(directory, "credentials", "tmdb-read-token")}), directory))
 	server := &http.Server{Handler: handler, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16384}
 	return &Application{Server: server, Handler: handler, listener: listener, store: store}, nil
 }

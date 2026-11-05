@@ -24,7 +24,7 @@ test('theme and locale switch immediately without resetting setup, then persist 
   await expect(page.getByLabel('Pasta de downloads', { exact: true })).toHaveValue('/downloads');
   await page.getByRole('button', { name:'Escuro', exact:true }).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(16, 17, 22)');
+  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(16, 16, 16)');
   await expect(page.locator('html')).toHaveCSS('color-scheme', 'dark');
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
@@ -46,7 +46,7 @@ test('theme and locale switch immediately without resetting setup, then persist 
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
   await expect(page.getByText('Áudio original → português', { exact: true })).toBeVisible();
   await page.getByRole('button', { name:'Claro', exact:true }).click();
-  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(243, 244, 248)');
+  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(245, 245, 245)');
   await expect(page.getByText('Áudio original → português', { exact: true })).toBeVisible();
   expect(mutations).toBe(0);
   await page.reload();

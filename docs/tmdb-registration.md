@@ -50,3 +50,8 @@ Sources: [application authentication](https://developer.themoviedb.org/docs/auth
 
 
 Environment note (2026-11-05): live catalog search/details/artwork verification passed with the registered private file before a host interruption. That file is currently unavailable at the documented location. Restore it through private maintainer provisioning before another live check; source-only/offline operation and simulator-based development continue without it.
+
+
+## Service credential configuration update — 2026-11-05
+
+By user instruction, setup/settings now allow explicit saving or replacement of a TMDB Read Access Token. This supersedes earlier statements that onboarding must not offer token configuration. The service-local write-only token takes precedence over bootstrap/private-file and bundled credentials; those remain fallbacks. Empty input preserves the credential. See [service configuration](../specs/011-service-configuration/spec.md).

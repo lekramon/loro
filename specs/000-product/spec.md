@@ -238,3 +238,8 @@ These criteria will be expanded into scenarios and tasks for each slice before i
 ## Mock interface exploration
 
 The user authorized a populated Jellyfin-style prototype with viewer profiles and additional screens. See [mock media prototype](../010-mock-media-prototype/spec.md). This frontend-only slice is independently accessible at `/preview`; it does not claim that real catalog, playback, downloads or authenticated accounts are implemented. Viewer profiles in this slice are local demonstration identities and do not replace the saved acquisition quality profile. A production multi-user persistence/authentication design remains outside this mock implementation.
+
+
+## Service credential configuration update — 2026-11-05
+
+By user instruction, setup/settings now allow explicit saving or replacement of a TMDB Read Access Token. This supersedes earlier statements that onboarding must not offer token configuration. The service-local write-only token takes precedence over bootstrap/private-file and bundled credentials; those remain fallbacks. Empty input preserves the credential. See [service configuration](../011-service-configuration/spec.md).

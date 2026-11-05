@@ -4,15 +4,15 @@ The catalog wire contract is [openapi.json](openapi.json). These operations are 
 
 ## Start an isolated native development instance
 
-From a PowerShell terminal, build in the checkout and use an explicit, separate data root. The registered credential file is already provisioned locally for this development account.
+From a PowerShell terminal, build in the checkout and use an explicit, separate data root. Configure the service token in setup/settings. A private bootstrap file remains optional.
 
 ```powershell
 Set-Location "C:\Users\ramon\OneDrive\Documentos\ChatGPT\piratarr"
 go build -o bin/piratarr-catalog.exe ./cmd/piratarr
-& .\bin\piratarr-catalog.exe --data-dir "$env:LOCALAPPDATA\PiratarrCatalogPreview\config" --listen 127.0.0.1:18084 --tmdb-token-file "$env:LOCALAPPDATA\Piratarr\credentials\tmdb-read-token"
+& .\bin\piratarr-catalog.exe --data-dir "$env:LOCALAPPDATA\PiratarrCatalogPreview\config" --listen 127.0.0.1:18084
 ```
 
-Keep that terminal open. Complete onboarding at `http://localhost:18084/setup` before adding movies. The normal setup does not request metadata credentials. Source-only builds without a private file or provisioned release credential expose offline catalog browsing and report new metadata queries as unconfigured.
+Keep that terminal open. Complete onboarding at `http://localhost:18084/setup` before adding movies. Setup/settings offer a password field for the TMDB API Read Access Token with an explicit Save TMDB token button. Source-only builds without a private file or provisioned release credential expose offline catalog browsing and report new metadata queries as unconfigured.
 
 In another PowerShell terminal:
 

@@ -14,7 +14,9 @@ test('unconfigured installation explains its state and opens setup', async ({ pa
   await expect(page.getByRole('heading', { name: 'Choose your local folders' })).toBeVisible();
   await expect(page.getByRole('heading', {level:1})).toHaveText('Getting started');
   await expect(page.locator('.wizard-progress [aria-current=step]')).toHaveText('1Folders');
+  await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
   await expect(page.locator('.workspace-nav [aria-current=page]')).toContainText('Setup');
+  await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await expect(page.getByText('Enter your existing download directory.')).toBeVisible();
   await page.reload();

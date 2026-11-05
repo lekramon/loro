@@ -121,7 +121,7 @@ func newCatalogFixture(t *testing.T, setup bool) *catalogFixture {
 		}
 	}))
 	t.Cleanup(f.provider.Close)
-	f.client = tmdb.New(tmdb.Config{TokenFile: f.tokenFile, APIBase: f.provider.URL + "/3", ImageBase: f.provider.URL + "/images"})
+	f.client = tmdb.New(tmdb.Config{TokenFile: f.tokenFile, LocalTokenFile: filepath.Join(f.data, "credentials", "tmdb-read-token"), APIBase: f.provider.URL + "/3", ImageBase: f.provider.URL + "/images"})
 	var err error
 	f.store, err = storage.Open(context.Background(), f.data)
 	if err != nil {
@@ -472,5 +472,83 @@ func TestCatalogDatabaseIdentityAcrossServiceInstances(t *testing.T) {
 	}
 	if created != 1 {
 		t.Fatal("database did not serialize registration", created)
+	}
+}
+
+func TestMetadataCredentialConfiguration(t *testing.T) {
+	f := newCatalogFixture(t, false)
+	if err := os.Remove(f.tokenFile); err != nil {
+		t.Fatal(err)
+	}
+	if f.client.Configured() {
+		t.Fatal("unexpected credential")
+	}
+	token := "dummy-service-token"
+	response := f.request(t, "PUT", "/api/v1/metadata/credential", `{"token":"`+token+`"}`)
+	if response.Code != 200 || strings.Contains(response.Body.String(), token) {
+		t.Fatal(response.Code, response.Body.String())
+	}
+	if !f.client.Configured() {
+		t.Fatal("save did not configure provider")
+	}
+	for _, body := range []string{`{}`, `{"token":""}`, `{"token":"bad token"}`, `{"token":123}`, `{"token":"x","token":"y"}`, `{"token":"x","extra":true}`, `{"token":"x"} {}`, `[]`} {
+		response = f.request(t, "PUT", "/api/v1/metadata/credential", body)
+		if response.Code != 400 && response.Code != 422 {
+			t.Fatal(response.Code, body)
+		}
+	}
+	response = f.request(t, "GET", "/api/v1/metadata/search?query=first-service-query", "")
+	if response.Code != 200 || f.seenToken.Load() != "Bearer "+token {
+		t.Fatal(response.Code, "saved token unused")
+	}
+	// A new provider/handler uses the stored file even with an absent bootstrap file.
+	f.client = tmdb.New(tmdb.Config{TokenFile: f.tokenFile, LocalTokenFile: filepath.Join(f.data, "credentials", "tmdb-read-token"), APIBase: f.provider.URL + "/3"})
+	f.rebind()
+	if !f.client.Configured() {
+		t.Fatal("credential lost on restart")
+	}
+	response = f.request(t, "PUT", "/api/v1/metadata/credential", `{"token":"dummy-replacement"}`)
+	if response.Code != 200 {
+		t.Fatal(response.Code)
+	}
+	response = f.request(t, "GET", "/api/v1/metadata/search?query=after-rotation", "")
+	if response.Code != 200 || f.seenToken.Load() != "Bearer dummy-replacement" {
+		t.Fatal("rotation failed")
+	}
+	// Existing secret survives a failed atomic replacement.
+	path := filepath.Join(f.data, "credentials", "tmdb-read-token")
+	if err := os.Remove(path); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Mkdir(path, 0700); err != nil {
+		t.Fatal(err)
+	}
+	response = f.request(t, "PUT", "/api/v1/metadata/credential", `{"token":"dummy-not-saved"}`)
+	if response.Code != 503 || strings.Contains(response.Body.String(), "dummy-not-saved") {
+		t.Fatal(response.Code)
+	}
+}
+
+func TestMetadataCredentialMutationGuards(t *testing.T) {
+	f := newCatalogFixture(t, false)
+	for _, origin := range []string{"", "http://evil.example"} {
+		req := httptest.NewRequest("PUT", "http://127.0.0.1:8080/api/v1/metadata/credential", strings.NewReader(`{"token":"dummy-guarded"}`))
+		req.Header.Set("Content-Type", "application/json")
+		if origin != "" {
+			req.Header.Set("Origin", origin)
+			req.Header.Set("X-Piratarr-Request", "1")
+		}
+		response := httptest.NewRecorder()
+		f.handler.ServeHTTP(response, req)
+		if response.Code != 403 {
+			t.Fatal(response.Code)
+		}
+	}
+	if _, err := os.Stat(filepath.Join(f.data, "credentials", "tmdb-read-token")); !os.IsNotExist(err) {
+		t.Fatal("rejected mutation wrote credential")
+	}
+	response := f.request(t, "PUT", "/api/v1/metadata/credential", `{"token":"`+strings.Repeat("x", 65537)+`"}`)
+	if response.Code != 413 {
+		t.Fatal(response.Code)
 	}
 }
