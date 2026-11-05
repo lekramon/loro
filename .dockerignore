@@ -1,3 +1,19 @@
+# Allow only build inputs; runtime data and local credentials never enter context.
+**
+!Dockerfile
+!.dockerignore
+!go.mod
+!go.sum
+!package.json
+!pnpm-lock.yaml
+!tsconfig.json
+!cmd/
+!cmd/**
+!internal/
+!internal/**
+!web/
+!web/**
+
 .git
 node_modules
 **/dist
@@ -27,3 +43,13 @@ secrets
 coverage
 playwright-report
 test-results
+
+**/.env
+**/.env.*
+**/secrets
+**/credentials
+**/*.token
+**/*.test
+
+**/node_modules
+**/.git

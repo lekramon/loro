@@ -1,7 +1,7 @@
 # 04 — Run the foundation in Linux Docker Compose
 
 Label: ready-for-agent
-State: open
+State: in-progress
 Blocked by: specs/001-foundation/issues/03-edit-persistent-settings.md
 
 ## Outcome
@@ -22,8 +22,10 @@ Cover FND-014 and FND-015, and recheck FND-005/FND-007 in Linux. Prove assets wo
 
 ## Verification
 
-Pending implementation.
+Implementation prepared. Native healthcheck tests, full Go tests/vet, standalone Compose configuration validation and native readiness smoke check passed. Linux image build/runtime checks remain pending because Docker Desktop exits with an error before its engine responds. See [preparation evidence](../verification.md).
 
 ## Comments
 
 Backup commands belong to the later operations feature. No real metadata/source/client credentials are needed for foundation release checks.
+
+Claimed by Codex on 2026-11-05. UI design is proceeding independently in v0; this ticket changes distribution and healthcheck only.

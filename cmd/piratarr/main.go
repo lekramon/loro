@@ -12,6 +12,7 @@ import (
 
 	"github.com/lekramon/piratarr/internal/application"
 	"github.com/lekramon/piratarr/internal/bootstrap"
+	"github.com/lekramon/piratarr/internal/healthcheck"
 	"github.com/lekramon/piratarr/internal/webui"
 )
 
@@ -24,6 +25,9 @@ func main() {
 }
 
 func run(logger *slog.Logger) error {
+	if len(os.Args) > 1 && os.Args[1] == "healthcheck" {
+		return healthcheck.Run(context.Background(), os.Args[2:], os.Getenv)
+	}
 	config, err := bootstrap.Parse(os.Args[1:], os.Getenv)
 	if err != nil {
 		return err

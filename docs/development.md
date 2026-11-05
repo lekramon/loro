@@ -86,3 +86,8 @@ Preview navigation uses hash routes, for example `/preview#/movies`. All catalog
 Viewer names, active viewer, favorites and watched flags persist under the browser-local key `piratarr.demo.viewers.v1`. Delete only that key in browser developer tools to reset the sample profiles. Download pause/resume state and the simulated player's controls are in-memory demonstrations and reset on reload. Blocked storage falls back to in-memory profiles.
 
 Real setup and settings remain at `/setup` and `/settings`. The prototype never saves configuration, scans files or submits downloads. Viewer profiles are distinct from acquisition quality preferences and provide no access control.
+
+
+## Container distribution
+
+See [Linux deployment](deployment.md) for pinned builds, local mounts, healthcheck and disposable container verification. Packaging verification remains pending until the Docker Linux engine is available.

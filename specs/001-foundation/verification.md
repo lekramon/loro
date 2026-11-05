@@ -53,3 +53,18 @@ Documentation preparation is separately checked by `python scripts/verify_specs.
 - API tests verify persisted updates after storage restart, profile normalization, directory changes without moving existing files, strict update JSON, blocked bootstrap-only settings, and stale updates without overwrites.
 - The Chromium journey verifies prefilled editing, changed quality/audio ranking and directory roots, validation errors without revision changes, second-tab conflict, explicit reload, cancellation, and preserved media. All three browser tests passed.
 - Go tests, static analysis, frontend build/typecheck, OpenAPI validation, and Windows/Linux builds passed. The Docker Linux engine remained unavailable; Linux runtime/distribution verification is still required by ticket 04.
+
+
+## Ticket 04 preparation evidence — 2026-11-05
+
+State: implementation prepared; Linux acceptance verification pending.
+
+- Added a non-root multi-stage Dockerfile with pinned Go/Node/Debian manifest digests, pnpm version, exact ffmpeg/CA package versions and immutable Debian snapshot indexes. Actual image build has not completed because the Linux engine is unavailable.
+- Added Compose with host-loopback-only publishing, explicit existing bind mounts, a common `/data` tree, bounded readiness healthcheck, graceful shutdown and restart policy. Standalone Docker Compose v2.38.2 validated `compose.yaml` successfully without a running engine.
+- Added `piratarr healthcheck`: bounded loopback-only HTTP readiness check, no database/instance lock, no proxy or redirect following. New tests cover ready/unavailable/malformed/redirect responses, option validation, non-local rejection and context deadlines.
+- `go test ./...`, `go vet ./...`, native executable build, specification consistency and diff whitespace checks passed. The new executable successfully probed the running native mock preview on port 8081 while its database remained locked by that service.
+- Prepared `scripts/verify_container.py` for real Compose API/volume verification using only fresh temporary directories. Python syntax validation passed; the container acceptance script has not run.
+- Resolved image digests from the official registry and ffmpeg/CA package pins from Debian-security's 2026-11-04 snapshot. The main snapshot index request timed out during preparation; apt resolution/install remains part of the pending actual image build.
+- Docker Desktop was started through its CLI and application executable, then exited before its Linux engine could answer. The user confirmed that Docker Desktop displays an error; its exact text is pending. WSL status reports version 2.5.9.0 and WSL 2 as default. No WSL reset, distribution deletion, system feature changes or Docker data cleanup was attempted.
+
+FND-014/FND-015 and Linux rechecks of FND-005/FND-007 are not marked passed. Keep this work on its feature branch until the image build and runtime acceptance checks succeed. See [deployment instructions](../../docs/deployment.md).

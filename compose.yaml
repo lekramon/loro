@@ -1,0 +1,37 @@
+name: piratarr
+services:
+  piratarr:
+    image: piratarr:local
+    platform: linux/amd64
+    build:
+      context: .
+    user: "${PIRATARR_UID:-10001}:${PIRATARR_GID:-10001}"
+    environment:
+      PIRATARR_CONTAINER: "true"
+      PIRATARR_LISTEN: "0.0.0.0:8080"
+      PIRATARR_DATA_DIR: "/config"
+      PIRATARR_WORKERS: "${PIRATARR_WORKERS:-4}"
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - type: bind
+        source: "${PIRATARR_CONFIG_DIR:?Set PIRATARR_CONFIG_DIR to an existing absolute private directory}"
+        target: /config
+        bind:
+          create_host_path: false
+      - type: bind
+        source: "${PIRATARR_STORAGE_DIR:?Set PIRATARR_STORAGE_DIR to an existing absolute media storage directory}"
+        target: /data
+        bind:
+          create_host_path: false
+    restart: unless-stopped
+    stop_grace_period: 20s
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/piratarr", "healthcheck"]
+      interval: 15s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
