@@ -419,6 +419,189 @@
           }
         }
       }
+    },
+    "/api/v1/directories": {
+      "get": {
+        "operationId": "listDirectories",
+        "summary": "Browse existing directories on the server",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One page of directories; nextOffset -1 means the last page.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "path",
+                    "parent",
+                    "directories",
+                    "nextOffset"
+                  ],
+                  "properties": {
+                    "path": {
+                      "type": "string"
+                    },
+                    "parent": {
+                      "type": "string"
+                    },
+                    "directories": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "nextOffset": {
+                      "type": "integer",
+                      "minimum": -1
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Directory operation failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Language"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Directory operation failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Language"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Directory operation failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Language"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/directories/defaults": {
+      "post": {
+        "operationId": "createDefaultDirectories",
+        "summary": "Explicitly create and select default media folders",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MutationHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Existing or newly created default directories.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DirectorySettings"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Directory operation failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Language"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Directory operation failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Language"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Directory operation failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Language"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Directory operation failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Language"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Directory operation failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Language"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Directory operation failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Language"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -469,6 +652,40 @@
               "type": "string",
               "pattern": "^(original|[a-z]{2})$"
             }
+          },
+          "acceptedFormats": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "remux",
+                "bluray",
+                "web-dl",
+                "webrip",
+                "hdtv",
+                "dvd"
+              ]
+            },
+            "description": "Omitted on initial setup accepts all; omitted on update preserves saved values."
+          },
+          "acceptedContainers": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "mkv",
+                "mp4",
+                "avi",
+                "mov",
+                "m4v",
+                "ts"
+              ]
+            },
+            "description": "Omitted on initial setup accepts all; omitted on update preserves saved values."
           }
         },
         "required": [

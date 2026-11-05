@@ -32,7 +32,7 @@ Follow ADR-0001. Go packages separate HTTP handlers, foundation application serv
 - Native listen default is `127.0.0.1:8080`. Reject non-loopback native binding unless explicit container mode `PIRATARR_CONTAINER=true`; Compose sets this and uses `0.0.0.0:8080` internally with host-loopback publishing.
 - Create only the data directory automatically. Acquire its exclusive OS lock before opening the database; fail a second instance without changing data. Graceful shutdown stops requests and closes storage/lock. Handle OS termination and a 15-second shutdown deadline.
 - Bootstrap database file is `piratarr.db` within the data directory. Migration 1 creates singleton application settings with revision, profile, directories, and UTC creation/update timestamps; no external credentials are part of this feature.
-- Keep settings in normalized SQL tables: singleton settings record, accepted resolution rows, ordered audio rows, and foreign-key constraints. All settings edits are one transaction. SQL constraints plus service validation enforce singleton and uniqueness rules.
+- Keep settings in normalized SQL tables: singleton settings record, accepted resolution rows, ordered audio rows, and foreign-key constraints. Release format and container lists are stored as JSON columns on the singleton settings row. All settings edits are one transaction. SQL constraints plus service validation enforce singleton and uniqueness rules.
 - Verify migration history against embedded migrations before applying new ones, rejecting unknown/newer applied versions. No automatic downgrade. Test failed migrations with a disposable database.
 - No HTTP listener starts on startup failure. Liveness indicates a running process. Readiness checks database availability and completed initialization, not onboarding or external connectivity; an unconfigured installation is ready.
 
@@ -44,7 +44,7 @@ The authoritative wire contract is [openapi.json](openapi.json), versioned as `/
 |---|---|
 | GET /api/v1/health/live | 200 while the HTTP process is running. |
 | GET /api/v1/health/ready | 200 if database initialization and availability checks pass; otherwise 503. |
-| GET /api/v1/setup | Return completion state, supported resolutions, and language codes/names for the wizard; no profile is selected by default. |
+| GET /api/v1/setup | Return completion state, supported resolutions, and language codes/names for the wizard; all resolution/format/container options are initially accepted; preferred resolution and audio are explicit. |
 | POST /api/v1/setup | Validate paths/profile and commit configuration once; return settings revision 1 with 201. Repeating after completion returns 409. |
 | GET /api/v1/settings | Return full current non-secret settings and revision; return 409 setup-required before initial setup. |
 | PUT /api/v1/settings | Replace mutable settings only if request revision matches current revision; validate and commit atomically, increment revision by one. |
@@ -65,7 +65,7 @@ State-changing requests require `X-Piratarr-Request: 1`, JSON content type, and 
 
 ### UI and distribution
 
-- Wizard: directory selection by text inputs; accepted/preferred resolution choices; searchable language choices plus original audio; ranking controls; review/save. No native directory picker is required.
+- Wizard: server directory explorer, optional explicit default-folder creation, and absolute-path entry; preferred resolution first with all resolution/release-format/container options initially accepted and removable; searchable language choices plus original audio; ranking controls; review/save. See [cinematic setup](../008-cinematic-setup/spec.md).
 - First-run page reads setup state. Settings page loads persisted revision and handles 409 by asking the user to reload; it never silently resubmits over newer data.
 - After setup, show a foundation home with saved settings and a message that catalog/acquisition features are not implemented. Never show simulated success as real downloads.
 - React/Vite development server proxies `/api` to the native backend. Production assets are embedded and served at `/`; unknown API routes return JSON 404 rather than the SPA. Pin build tools and dependencies with Go sums and a frontend lockfile.

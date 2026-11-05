@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"path/filepath"
 	"time"
@@ -61,6 +62,9 @@ func (s *Store) CreateSettings(ctx context.Context, input settings.Input) (setti
 		if _, err = tx.ExecContext(ctx, "INSERT INTO audio_preferences(settings_id,position,choice) VALUES(1,?,?)", position, choice); err != nil {
 			return settings.Settings{}, databaseError(err)
 		}
+	}
+	if err = saveQuality(ctx, tx, input.Profile); err != nil {
+		return settings.Settings{}, databaseError(err)
 	}
 	if err = tx.Commit(); err != nil {
 		return settings.Settings{}, databaseError(err)
@@ -121,6 +125,16 @@ func (s *Store) GetSettings(ctx context.Context) (settings.Settings, error) {
 	if err != nil {
 		return result, databaseError(err)
 	}
+	var formats, containers string
+	if err = tx.QueryRowContext(ctx, "SELECT accepted_formats,accepted_containers FROM settings WHERE id=1").Scan(&formats, &containers); err != nil {
+		return result, databaseError(err)
+	}
+	if err = json.Unmarshal([]byte(formats), &result.Profile.AcceptedFormats); err != nil {
+		return result, err
+	}
+	if err = json.Unmarshal([]byte(containers), &result.Profile.AcceptedContainers); err != nil {
+		return result, err
+	}
 	if err = tx.Commit(); err != nil {
 		return result, databaseError(err)
 	}
@@ -171,8 +185,24 @@ func (s *Store) UpdateSettings(ctx context.Context, revision int, input settings
 			return settings.Settings{}, databaseError(err)
 		}
 	}
+	if err = saveQuality(ctx, tx, input.Profile); err != nil {
+		return settings.Settings{}, databaseError(err)
+	}
 	if err = tx.Commit(); err != nil {
 		return settings.Settings{}, databaseError(err)
 	}
 	return settings.Settings{Revision: revision + 1, Directories: input.Directories, Profile: input.Profile, UpdatedAt: timestamp}, nil
+}
+
+func saveQuality(ctx context.Context, tx *sql.Tx, profile settings.Profile) error {
+	if profile.AcceptedFormats == nil {
+		profile.AcceptedFormats = settings.Formats()
+	}
+	if profile.AcceptedContainers == nil {
+		profile.AcceptedContainers = settings.Containers()
+	}
+	formats, _ := json.Marshal(profile.AcceptedFormats)
+	containers, _ := json.Marshal(profile.AcceptedContainers)
+	_, err := tx.ExecContext(ctx, "UPDATE settings SET accepted_formats=?,accepted_containers=? WHERE id=1", string(formats), string(containers))
+	return err
 }

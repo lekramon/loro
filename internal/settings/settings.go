@@ -12,6 +12,8 @@ type Directories struct {
 }
 
 type Profile struct {
+	AcceptedFormats     []string `json:"acceptedFormats"`
+	AcceptedContainers  []string `json:"acceptedContainers"`
 	AcceptedResolutions []string `json:"acceptedResolutions"`
 	PreferredResolution string   `json:"preferredResolution"`
 	AudioPreferences    []string `json:"audioPreferences"`
@@ -87,6 +89,12 @@ func (s Service) Update(ctx context.Context, input UpdateInput) (Settings, error
 	}
 	if current.Revision != input.Revision {
 		return Settings{}, ErrRevisionConflict
+	}
+	if input.Profile.AcceptedFormats == nil {
+		input.Profile.AcceptedFormats = current.Profile.AcceptedFormats
+	}
+	if input.Profile.AcceptedContainers == nil {
+		input.Profile.AcceptedContainers = current.Profile.AcceptedContainers
 	}
 	validated, err := Validate(ctx, input.Input, s.DataDirectory)
 	if err != nil {

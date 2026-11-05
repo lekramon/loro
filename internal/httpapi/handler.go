@@ -26,11 +26,12 @@ type Storage interface {
 }
 
 type Handler struct {
-	storage  Storage
-	assets   fs.FS
-	port     string
-	stopping atomic.Bool
-	settings settings.Service
+	defaultRoot string
+	storage     Storage
+	assets      fs.FS
+	port        string
+	stopping    atomic.Bool
+	settings    settings.Service
 }
 
 type apiError struct {
@@ -122,6 +123,10 @@ func methodNotAllowed(w http.ResponseWriter, allow string) {
 }
 
 func (h *Handler) api(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "/api/v1/directories" || r.URL.Path == "/api/v1/directories/defaults" {
+		h.directoryAPI(w, r)
+		return
+	}
 	switch r.URL.Path {
 	case "/api/v1/setup":
 		if r.Method != http.MethodGet && r.Method != http.MethodPost {

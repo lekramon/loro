@@ -41,7 +41,7 @@ function App() {
         : saved && editing ? <SetupWizard setup={setup} initial={saved} onSaved={afterSetup} onCancel={() => setEditing(false)} />
         : saved ? <>
           <span className="badge">{t('Configured · revision {revision}', { revision: saved.revision })}</span><h2>{t("Your saved settings")}</h2>
-          <dl className="summary"><dt>{t("Download directory")}</dt><dd>{saved.directories.downloadDirectory}</dd><dt>{t("Movie directory")}</dt><dd>{saved.directories.movieDirectory}</dd><dt>{t("Accepted resolutions")}</dt><dd>{saved.profile.acceptedResolutions.join(', ')}</dd><dt>{t("Preferred resolution")}</dt><dd>{saved.profile.preferredResolution}</dd><dt>{t("Audio preference order")}</dt><dd>{saved.profile.audioPreferences.map(audioName).join(' → ')}</dd></dl>
+          <dl className="summary"><dt>{t("Download directory")}</dt><dd>{saved.directories.downloadDirectory}</dd><dt>{t("Movie directory")}</dt><dd>{saved.directories.movieDirectory}</dd><dt>{t("Accepted resolutions")}</dt><dd>{saved.profile.acceptedResolutions.join(', ')}</dd><dt>{t("Preferred resolution")}</dt><dd>{saved.profile.preferredResolution}</dd><dt>{t("Release formats")}</dt><dd>{(saved.profile.acceptedFormats ?? []).join(", ")}</dd><dt>{t("File containers")}</dt><dd>{(saved.profile.acceptedContainers ?? []).join(", ")}</dd><dt>{t("Audio preference order")}</dt><dd>{saved.profile.audioPreferences.map(audioName).join(' → ')}</dd></dl>
           <button type="button" onClick={() => setEditing(true)}>{t("Edit settings")}</button>
           <p className="note">{t("Your choices are saved locally. Catalog, search, and downloads are not available yet.")}</p>
         </> : path === '/setup' ? <SetupWizard setup={setup} onSaved={afterSetup} /> : <>

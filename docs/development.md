@@ -66,3 +66,12 @@ Remove-Item Env:GOOS, Env:GOARCH, Env:CGO_ENABLED
 ```
 
 Cross-compilation does not substitute for Linux runtime and filesystem tests. Run those when the Docker Linux daemon is available; the initial development environment has Docker installed but its daemon stopped.
+
+
+## Setup folders and quality
+
+Setup includes an in-app directory explorer that lists folders on the server, including mounted container paths. It does not open the browser client's native OS dialog. Absolute paths remain editable. Application-private data and files are excluded from browsing.
+
+The explicit **Create and use default folders** action creates `~/Videos/Piratarr/downloads` and `~/Videos/Piratarr/movies` on native installations; in containers it uses `/data/downloads` and `/data/movies`. Mount `/data` to durable host storage when using this option. This action does not save settings or complete onboarding. Existing folders and files are preserved; if creation fails after creating one directory, that empty directory may remain for retry.
+
+New setups accept every supported resolution, release format and container. Select a preferred resolution and remove unwanted options. Remux is a release format, while MKV and MP4 are containers. Existing saved resolution choices remain unchanged during migration. Format/container preferences are persisted now; candidate filtering will use these fields when manual search is implemented.

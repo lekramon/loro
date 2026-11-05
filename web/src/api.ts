@@ -1,4 +1,4 @@
-export type Profile = { acceptedResolutions: string[]; preferredResolution: string; audioPreferences: string[] };
+export type Profile = { acceptedFormats: string[]; acceptedContainers: string[]; acceptedResolutions: string[]; preferredResolution: string; audioPreferences: string[] };
 export type Directories = { downloadDirectory: string; movieDirectory: string };
 export type SettingsInput = { directories: Directories; profile: Profile };
 export type Settings = SettingsInput & { revision: number; updatedAt: string };

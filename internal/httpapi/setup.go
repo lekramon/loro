@@ -70,7 +70,7 @@ func uniqueJSON(decoder *json.Decoder, location string, depth int, allowRevision
 		allowed := map[string]map[string]bool{
 			"":            {"directories": true, "profile": true},
 			"directories": {"downloadDirectory": true, "movieDirectory": true},
-			"profile":     {"acceptedResolutions": true, "preferredResolution": true, "audioPreferences": true},
+			"profile":     {"acceptedFormats": true, "acceptedContainers": true, "acceptedResolutions": true, "preferredResolution": true, "audioPreferences": true},
 		}[location]
 		if location == "" && allowRevision {
 			allowed["revision"] = true

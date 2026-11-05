@@ -102,11 +102,25 @@ export const english = {
   "JSON content type is required.": "JSON content type is required.",
   "Only the configured loopback host and port are allowed.": "Only the configured loopback host and port are allowed.",
   "Origin is not allowed.": "Origin is not allowed.",
-  "Local storage is unavailable or the service is stopping.": "Local storage is unavailable or the service is stopping."
+  "Local storage is unavailable or the service is stopping.": "Local storage is unavailable or the service is stopping.",
+  "Choose a folder": "Choose a folder",
+  "Browse folders on the machine running Piratarr.": "Browse folders on the machine running Piratarr.",
+  "Folder path": "Folder path",
+  "Open": "Open",
+  "Folders are unavailable.": "Folders are unavailable.",
+  "Parent folder": "Parent folder",
+  "More folders": "More folders",
+  "Use this folder": "Use this folder",
+  "Cancel": "Cancel",
+  "Create and use default folders": "Create and use default folders",
+  "Browse folders": "Browse folders",
+  "All options are accepted. Remove anything you do not want.": "All options are accepted. Remove anything you do not want.",
+  "Release formats": "Release formats",
+  "File containers": "File containers",
+  "Remux is a release format; MKV and MP4 are file containers.": "Remux is a release format; MKV and MP4 are file containers.",
+  "Choose at least one distinct supported format or container.": "Choose at least one distinct supported format or container."
 } as const;
-
 export type MessageKey = keyof typeof english;
-
 export const portuguese: Record<MessageKey, string> = {
   "Your library, locally.": "Sua biblioteca, no seu computador.",
   "Interface preferences": "Preferências da interface",
@@ -211,5 +225,21 @@ export const portuguese: Record<MessageKey, string> = {
   "JSON content type is required.": "O tipo de conteúdo JSON é obrigatório.",
   "Only the configured loopback host and port are allowed.": "Somente o endereço local e a porta configurados são permitidos.",
   "Origin is not allowed.": "A origem da solicitação não é permitida.",
-  "Local storage is unavailable or the service is stopping.": "O armazenamento local está indisponível ou o serviço está sendo encerrado."
+  "Local storage is unavailable or the service is stopping.": "O armazenamento local está indisponível ou o serviço está sendo encerrado.",
+  "Choose a folder": "Escolha uma pasta",
+  "Browse folders on the machine running Piratarr.": "Explore as pastas na máquina que executa o Piratarr.",
+  "Folder path": "Caminho da pasta",
+  "Open": "Abrir",
+  "Folders are unavailable.": "As pastas estão indisponíveis.",
+  "Parent folder": "Pasta superior",
+  "More folders": "Mais pastas",
+  "Use this folder": "Usar esta pasta",
+  "Cancel": "Cancelar",
+  "Create and use default folders": "Criar e usar pastas padrão",
+  "Browse folders": "Explorar pastas",
+  "All options are accepted. Remove anything you do not want.": "Todas as opções são aceitas. Remova o que você não quer.",
+  "Release formats": "Formatos de lançamento",
+  "File containers": "Contêineres de arquivo",
+  "Remux is a release format; MKV and MP4 are file containers.": "Remux é um formato de lançamento; MKV e MP4 são contêineres de arquivo.",
+  "Choose at least one distinct supported format or container.": "Escolha pelo menos um formato ou contêiner compatível, sem repetições."
 };

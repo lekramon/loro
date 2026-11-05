@@ -15,8 +15,36 @@ var resolutions = []string{"480p", "576p", "720p", "1080p", "2160p"}
 func Resolutions() []string { return append([]string(nil), resolutions...) }
 
 func Validate(ctx context.Context, input Input, dataDirectory string) (Input, error) {
+	if input.Profile.AcceptedFormats == nil {
+		input.Profile.AcceptedFormats = Formats()
+	}
+	if input.Profile.AcceptedContainers == nil {
+		input.Profile.AcceptedContainers = Containers()
+	}
 	var fields []FieldError
 	add := func(field, message string) { fields = append(fields, FieldError{field, message}) }
+	for _, group := range []struct {
+		field             string
+		values, supported []string
+	}{{"profile.acceptedFormats", input.Profile.AcceptedFormats, Formats()}, {"profile.acceptedContainers", input.Profile.AcceptedContainers, Containers()}} {
+		seen := map[string]bool{}
+		valid := len(group.values) > 0
+		for _, value := range group.values {
+			found := false
+			for _, allowed := range group.supported {
+				if value == allowed {
+					found = true
+				}
+			}
+			if !found || seen[value] {
+				valid = false
+			}
+			seen[value] = true
+		}
+		if !valid {
+			add(group.field, "Choose at least one distinct supported format or container.")
+		}
+	}
 	accepted := map[string]bool{}
 	for _, value := range input.Profile.AcceptedResolutions {
 		supported := false
@@ -148,3 +176,6 @@ func probeDirectory(path string) error {
 	removeErr := os.Remove(probe.Name())
 	return errors.Join(writeErr, closeErr, removeErr)
 }
+
+func Formats() []string    { return []string{"remux", "bluray", "web-dl", "webrip", "hdtv", "dvd"} }
+func Containers() []string { return []string{"mkv", "mp4", "avi", "mov", "m4v", "ts"} }

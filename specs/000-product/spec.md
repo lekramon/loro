@@ -131,7 +131,8 @@ Automatic monitoring, upgrades, TV series, and additional integrations follow in
 - One editable default profile applies to all movies; multiple profiles and per-movie overrides are deferred.
 - First-run setup requires a nonempty accepted resolution set and a preferred resolution within that set. Supported initial values are 480p, 576p, 720p, 1080p, and 2160p.
 - Audio preferences are a nonempty ranked list of language choices and/or original audio. Unknown audio remains unknown; original audio is evaluated against the movie's metadata language when available.
-- Preferences are chosen by the user during onboarding, not silently preselected. They remain editable later.
+- Onboarding accepts all supported resolutions, release formats (including Remux), and file containers initially. Users choose a preferred resolution and may exclude unwanted options. Audio ranking remains an explicit choice. All preferences remain editable.
+- Folder selection includes an in-app server directory explorer, absolute-path entry, and an explicit option to create and use default folders.
 - Manual search shows candidates with mismatch explanations and unknown attributes. Selecting a conflicting or unknown candidate requires explicit confirmation without changing the profile.
 
 ### File and review behavior

@@ -68,8 +68,8 @@ for api_path, methods in contract["paths"].items():
         if method in {"post", "put", "patch", "delete"}:
             check(bool(operation.get("requestBody")), f"Mutation lacks body: {api_path}")
             check({"$ref": "#/components/parameters/MutationHeader"} in operation.get("parameters", []), f"Mutation lacks header: {api_path}")
-            check({"400", "403", "409", "413", "415", "422", "503"} <= set(operation["responses"]), f"Missing mutation failure contracts: {api_path}")
-check(len(operations) == len(set(operations)) == 6, "Expected six uniquely named operations")
+            check(({"400", "403", "413", "415", "422", "503"} | ({"409"} if api_path in {"/api/v1/setup", "/api/v1/settings"} else set())) <= set(operation["responses"]), f"Missing mutation failure contracts: {api_path}")
+check(len(operations) == len(set(operations)) == 8, "Expected eight uniquely named operations")
 
 tickets = sorted((ROOT / "specs/001-foundation/issues").glob("*.md"))
 check(len(tickets) == 4, "Expected four foundation tickets")

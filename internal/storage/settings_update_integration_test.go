@@ -41,7 +41,7 @@ func TestSettingsUpdateFailureRollsBackRevisionAndProfileThroughAPI(t *testing.T
 	if err != nil {
 		t.Fatal(err)
 	}
-	update := settings.UpdateInput{Revision: 1, Input: settings.Input{Directories: settings.Directories{DownloadDirectory: t.TempDir(), MovieDirectory: t.TempDir()}, Profile: settings.Profile{AcceptedResolutions: []string{"2160p"}, PreferredResolution: "2160p", AudioPreferences: []string{"en"}}}}
+	update := settings.UpdateInput{Revision: 1, Input: settings.Input{Directories: settings.Directories{DownloadDirectory: t.TempDir(), MovieDirectory: t.TempDir()}, Profile: settings.Profile{AcceptedFormats: settings.Formats(), AcceptedContainers: settings.Containers(), AcceptedResolutions: []string{"2160p"}, PreferredResolution: "2160p", AudioPreferences: []string{"en"}}}}
 	if _, err := store.write.Exec("CREATE TRIGGER update_failure BEFORE INSERT ON audio_preferences BEGIN SELECT RAISE(ABORT,'controlled update failure'); END;"); err != nil {
 		t.Fatal(err)
 	}

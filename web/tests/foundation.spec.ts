@@ -23,11 +23,15 @@ async function fillWizard(page: Page, downloads: string, movies: string) {
   await page.getByLabel('Download directory', { exact: true }).fill(downloads);
   await page.getByLabel('Movie directory', { exact: true }).fill(movies);
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
-  await expect(page.getByLabel('1080p', { exact: true })).not.toBeChecked();
+  await expect(page.getByLabel('1080p', { exact: true })).toBeChecked();
+  for (const resolution of ['480p', '576p', '2160p']) { await expect(page.getByLabel(resolution, {exact:true})).toBeChecked(); await page.getByLabel(resolution, {exact:true}).uncheck(); }
+  await expect(page.getByLabel('REMUX', {exact:true})).toBeChecked();
+  await page.getByLabel('REMUX', {exact:true}).uncheck();
   await expect(page.getByLabel('Preferred resolution', { exact: true })).toHaveValue('');
   await page.getByLabel('720p', { exact: true }).check();
   await page.getByLabel('1080p', { exact: true }).check();
   await page.getByLabel('Preferred resolution', { exact: true }).selectOption('1080p');
+  await page.screenshot({path:'test-results/cinematic-quality-desktop.png',fullPage:true});
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await expect(page.getByRole('checkbox', { name: 'Original audio', exact: true })).not.toBeChecked();
   await page.getByLabel('Search audio languages').fill('Portuguese');
@@ -64,6 +68,8 @@ test('onboarding and editing preserve preferences and require reload for conflic
     const settings = await (await request.get('/api/v1/settings')).json();
     expect(settings.profile.acceptedResolutions).toEqual(['720p', '1080p']);
     expect(settings.profile.audioPreferences).toEqual(['original', 'pt']);
+    expect(settings.profile.acceptedFormats).not.toContain('remux');
+    expect(settings.profile.acceptedContainers).toContain('mkv');
     await secondPage.getByRole('button', { name: 'Save setup', exact: true }).click();
     await expect(secondPage.getByRole('alert')).toContainText('Setup has already been completed');
     await secondPage.getByRole('button', { name: 'Reload saved settings' }).click();
