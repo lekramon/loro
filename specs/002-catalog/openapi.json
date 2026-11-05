@@ -1324,7 +1324,8 @@
           },
           "hasMedia": {
             "type": "boolean",
-            "const": false
+            "const": false,
+            "description": "True when a present, verified association exists in the currently configured library root, based on the last scan/review observation. It is not continuous filesystem monitoring."
           }
         }
       },

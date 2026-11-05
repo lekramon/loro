@@ -68,19 +68,33 @@ func (h *Handler) libraryAPI(w http.ResponseWriter, r *http.Request) {
 		result, err = h.library.List(ctx, limit, offset, status)
 	}
 	if err != nil {
-		switch {
-		case errors.Is(err, settings.ErrSetupRequired):
-			fail(w, 409, "setup-required", "Complete setup before scanning movie files.")
-		case errors.Is(err, library.ErrBusy):
-			fail(w, 409, "scan-in-progress", "A library scan is already running.")
-		case errors.Is(err, library.ErrChanged):
-			fail(w, 409, "settings-changed", "Settings changed during the scan. Scan the current folder again.")
-		case errors.Is(err, library.ErrLimit):
-			fail(w, 422, "scan-limit", "The scan exceeded its supported file, entry or depth limit.")
-		default:
-			fail(w, 503, "scan-unavailable", "Unable to complete library inventory. Refresh saved inventory before retrying.")
-		}
+		libraryFailure(w, err)
 		return
 	}
 	writeJSON(w, 200, result)
+}
+
+func libraryFailure(w http.ResponseWriter, err error) {
+	switch {
+	case errors.Is(err, library.ErrNotFound):
+		fail(w, 404, "not-found", "The file or selected catalog movie was not found.")
+	case errors.Is(err, library.ErrConflict):
+		fail(w, 409, "file-changed", "The file or review changed. Refresh inventory before trying again.")
+	case errors.Is(err, library.ErrInvalidVideo):
+		fail(w, 422, "invalid-video", "A nonzero file with a readable video stream is required.")
+	case errors.Is(err, library.ErrProbeUnavailable):
+		fail(w, 503, "video-probe-unavailable", "ffprobe is unavailable. Install ffmpeg on the service host or use the container image.")
+	case errors.Is(err, library.ErrProbeTimeout):
+		fail(w, 504, "video-probe-timeout", "Video verification timed out.")
+	case errors.Is(err, settings.ErrSetupRequired):
+		fail(w, 409, "setup-required", "Complete setup before scanning movie files.")
+	case errors.Is(err, library.ErrBusy):
+		fail(w, 409, "scan-in-progress", "A library scan is already running.")
+	case errors.Is(err, library.ErrChanged):
+		fail(w, 409, "settings-changed", "Settings changed during the scan. Scan the current folder again.")
+	case errors.Is(err, library.ErrLimit):
+		fail(w, 422, "scan-limit", "The scan exceeded its supported file, entry or depth limit.")
+	default:
+		fail(w, 503, "scan-unavailable", "Unable to complete library inventory. Refresh saved inventory before retrying.")
+	}
 }

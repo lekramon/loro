@@ -229,6 +229,197 @@
           }
         }
       }
+    },
+    "/api/v1/library/files/{id}/review": {
+      "post": {
+        "operationId": "reviewLibraryFile",
+        "summary": "Associate, ignore or reopen an observed file",
+        "tags": [
+          "Library"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "X-Piratarr-Request",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "1"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "revision",
+                      "action",
+                      "movieId",
+                      "confirmIdentity"
+                    ],
+                    "properties": {
+                      "revision": {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      "action": {
+                        "const": "associate",
+                        "type": "string"
+                      },
+                      "movieId": {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      "confirmIdentity": {
+                        "const": true,
+                        "type": "boolean"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "revision",
+                      "action"
+                    ],
+                    "properties": {
+                      "revision": {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      "action": {
+                        "type": "string",
+                        "enum": [
+                          "ignore",
+                          "reopen"
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "Sanitized error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Last successfully committed inventory snapshot.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryEntry"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Sanitized error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -275,7 +466,14 @@
           "modifiedAt",
           "status",
           "firstSeenAt",
-          "lastSeenAt"
+          "lastSeenAt",
+          "revision",
+          "reviewState",
+          "movieId",
+          "movieTitle",
+          "verifiedAt",
+          "suggestedTitle",
+          "suggestedYear"
         ],
         "properties": {
           "id": {
@@ -306,6 +504,43 @@
           "lastSeenAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "reviewState": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "associated",
+              "ignored"
+            ]
+          },
+          "movieId": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "movieTitle": {
+            "type": "string"
+          },
+          "verifiedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "suggestedTitle": {
+            "type": "string"
+          },
+          "suggestedYear": {
+            "type": [
+              "integer",
+              "null"
+            ]
           }
         }
       },

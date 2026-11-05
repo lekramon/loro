@@ -138,6 +138,10 @@ func (h *Handler) api(w http.ResponseWriter, r *http.Request) {
 		h.metadataCredential(w, r)
 		return
 	}
+	if strings.HasPrefix(r.URL.Path, "/api/v1/library/files/") {
+		h.reviewAPI(w, r)
+		return
+	}
 	if r.URL.Path == "/api/v1/library/scan" || r.URL.Path == "/api/v1/library/files" {
 		h.libraryAPI(w, r)
 		return

@@ -35,3 +35,5 @@ Open `/search` for real TMDB movie metadata search. Setup/settings include Test 
 The library and settings now share one header/sidebar. Real metadata search lives inside Library (`/preview#/search`). Start with one viewer, add more explicitly, and edit viewer names/photos using the pencil overlay or Manage profiles. Viewer photos/preferences remain browser-local.
 
 Library → Files now scans the configured movie folder into a persistent inventory. Repeat scans retain IDs, distinguish present/missing paths and preserve existing media. Movie identification and video verification follow in the next catalog ticket. See [inventory evidence](specs/002-catalog/inventory-verification.md).
+
+Files review now supports explicit movie association, ffprobe video checks, Ignore and Reopen. Associate from registered metadata or choose/register a TMDB result, confirm identity, then verify. Changed or missing observed files lose verification on scan. Docker includes ffprobe; native development requires ffprobe on PATH.

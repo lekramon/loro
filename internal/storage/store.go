@@ -25,6 +25,7 @@ var migrations embed.FS
 type Store struct {
 	catalogSchema   bool
 	inventorySchema bool
+	reviewSchema    bool
 	write           *sql.DB
 	read            *sql.DB
 	lock            *flock.Flock
@@ -47,6 +48,9 @@ func open(ctx context.Context, directory string, source fs.FS) (_ *Store, result
 		return nil, errors.New("another instance is using this data directory")
 	}
 	s := &Store{lock: lock, path: filepath.Join(directory, "piratarr.db")}
+	if _, err := fs.Stat(source, "migrations/00005_file_review.sql"); err == nil {
+		s.reviewSchema = true
+	}
 	if _, err := fs.Stat(source, "migrations/00004_library_inventory.sql"); err == nil {
 		s.inventorySchema = true
 	}
@@ -172,6 +176,9 @@ func (s *Store) Ready(ctx context.Context) error {
 	}
 	if s.inventorySchema {
 		query += " + (SELECT count(*) FROM library_files) + (SELECT count(*) FROM library_scan_summary)"
+	}
+	if s.reviewSchema {
+		query += " + (SELECT count(review_state) FROM library_files)"
 	}
 	return s.read.QueryRowContext(ctx, query).Scan(&value)
 }

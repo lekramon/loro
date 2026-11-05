@@ -55,3 +55,16 @@ Invoke-RestMethod "$catalogBase/library/files?status=missing"
 ```
 
 Only a successful scan marks previously observed paths missing. A repeat scan is safe; the last committed inventory survives failures and restart. Wire shapes and limits are in [inventory contract](library-openapi.json).
+
+## Review one observed file
+
+Fetch current inventory to obtain id and revision. Register/select an actual catalog movie ID first. Association requires explicit identity confirmation and an available ffprobe executable.
+
+```powershell
+$files = Invoke-RestMethod "$catalogBase/library/files"
+$file = $files.items[0]
+$reviewBody = @{ revision = $file.revision; action = 'associate'; movieId = $registration.movie.id; confirmIdentity = $true } | ConvertTo-Json
+Invoke-RestMethod "$catalogBase/library/files/$($file.id)/review" -Method Post -ContentType 'application/json' -Headers @{'X-Piratarr-Request'='1'} -Body $reviewBody
+```
+
+Use action ignore or reopen with only the current revision and action fields. Refresh inventory after any successful mutation or scan before sending another action. A stale revision returns 409; no blind retry is required.

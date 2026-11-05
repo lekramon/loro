@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/lekramon/piratarr/internal/catalog"
+	"github.com/lekramon/piratarr/internal/library"
 	"github.com/lekramon/piratarr/internal/settings"
 )
 
@@ -24,7 +25,7 @@ type scanner interface{ Scan(...any) error }
 func scanMovie(row scanner) (catalog.Movie, error) {
 	var movie catalog.Movie
 	var data []byte
-	err := row.Scan(&movie.ID, &data, &movie.AddedAt)
+	err := row.Scan(&movie.ID, &data, &movie.AddedAt, &movie.HasMedia)
 	if errors.Is(err, sql.ErrNoRows) {
 		return movie, catalog.ErrNotFound
 	}
@@ -37,10 +38,18 @@ func scanMovie(row scanner) (catalog.Movie, error) {
 	return movie, nil
 }
 func (s *Store) MovieByTMDB(ctx context.Context, id int64) (catalog.Movie, error) {
-	return scanMovie(s.read.QueryRowContext(ctx, "SELECT id,metadata,added_at FROM movies WHERE tmdb_id=?", id))
+	root, err := movieRoot(ctx, s.read)
+	if err != nil {
+		return catalog.Movie{}, err
+	}
+	return scanMovie(s.read.QueryRowContext(ctx, "SELECT "+s.movieColumns()+" FROM movies WHERE tmdb_id=?", root, id))
 }
 func (s *Store) MovieByID(ctx context.Context, id int64) (catalog.Movie, error) {
-	return scanMovie(s.read.QueryRowContext(ctx, "SELECT id,metadata,added_at FROM movies WHERE id=?", id))
+	root, err := movieRoot(ctx, s.read)
+	if err != nil {
+		return catalog.Movie{}, err
+	}
+	return scanMovie(s.read.QueryRowContext(ctx, "SELECT "+s.movieColumns()+" FROM movies WHERE id=?", root, id))
 }
 func (s *Store) RegisterMovie(ctx context.Context, metadata catalog.Metadata) (catalog.Movie, bool, error) {
 	payload, err := json.Marshal(metadata)
@@ -60,7 +69,11 @@ func (s *Store) RegisterMovie(ctx context.Context, metadata catalog.Metadata) (c
 	if err != nil {
 		return catalog.Movie{}, false, catalogError(err)
 	}
-	movie, err := scanMovie(tx.QueryRowContext(ctx, "SELECT id,metadata,added_at FROM movies WHERE tmdb_id=?", metadata.TMDBID))
+	root, err := movieRoot(ctx, tx)
+	if err != nil {
+		return catalog.Movie{}, false, err
+	}
+	movie, err := scanMovie(tx.QueryRowContext(ctx, "SELECT "+s.movieColumns()+" FROM movies WHERE tmdb_id=?", root, metadata.TMDBID))
 	if err != nil {
 		return movie, false, err
 	}
@@ -81,7 +94,11 @@ func (s *Store) ListMovies(ctx context.Context, limit, offset int, query string)
 	if err = tx.QueryRowContext(ctx, "SELECT count(*) FROM movies"+filter, pattern, pattern).Scan(&result.Total); err != nil {
 		return result, catalogError(err)
 	}
-	rows, err := tx.QueryContext(ctx, "SELECT id,metadata,added_at FROM movies"+filter+" ORDER BY title COLLATE NOCASE,id LIMIT ? OFFSET ?", pattern, pattern, limit, offset)
+	root, err := movieRoot(ctx, tx)
+	if err != nil {
+		return result, err
+	}
+	rows, err := tx.QueryContext(ctx, "SELECT "+s.movieColumns()+" FROM movies"+filter+" ORDER BY title COLLATE NOCASE,id LIMIT ? OFFSET ?", root, pattern, pattern, limit, offset)
 	if err != nil {
 		return result, catalogError(err)
 	}
@@ -139,4 +156,28 @@ func (s *Store) KnownArtwork(ctx context.Context, path string) (bool, error) {
 	var count int
 	err := s.read.QueryRowContext(ctx, "SELECT count(*) FROM metadata_artwork WHERE local_url=?", path).Scan(&count)
 	return count > 0, catalogError(err)
+}
+
+func (s *Store) movieColumns() string {
+	base := "id,metadata,added_at"
+	if !s.reviewSchema {
+		return base + ",0*length(?)"
+	}
+	return base + ",EXISTS(SELECT 1 FROM library_files WHERE library_files.movie_id=movies.id AND present=1 AND review_state='associated' AND root_key=?)"
+}
+
+type movieQueryer interface {
+	QueryRowContext(context.Context, string, ...any) *sql.Row
+}
+
+func movieRoot(ctx context.Context, db movieQueryer) (string, error) {
+	var root string
+	err := db.QueryRowContext(ctx, "SELECT movie_directory FROM settings WHERE id=1").Scan(&root)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", nil
+	}
+	if err != nil {
+		return "", catalogError(err)
+	}
+	return library.PathKey(root), nil
 }

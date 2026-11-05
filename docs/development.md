@@ -124,3 +124,13 @@ Open `/preview#/files`, then Scan folder. Setup must configure a movie directory
 Scans are manual and synchronous, with one concurrent scan, a cooperative 10-second deadline, depth 64, 100,000 directory entries and 10,000 supported files. Failed/interrupted scans retain the last committed snapshot. After an uncertain response, refresh inventory or repeat the scan safely. Missing paths remain in history; successful rescans restore their IDs when present again. Changing folders keeps previous-root records and lists only the current folder.
 
 Schema 4 adds library inventory/summary tables and preserves catalog/settings. Startup applies it automatically. Older binaries refuse the newer database; return to an older build by restoring its matching pre-upgrade stopped-service data directory copy. Do not invoke destructive SQL Down migrations. Runtime data and backup copies belong outside this checkout.
+
+## Existing-file association and review
+
+In Library → Files, select Associate for a present file. Search Registered movies, or switch to TMDB and explicitly choose a result to register its metadata. Confirm that the selected movie matches this file, then Verify and associate. Metadata registration and file association are separate actions; canceling after choosing a TMDB result leaves its registered metadata but does not link the file.
+
+The service opens the file under the configured root and feeds that handle to ffprobe with pipe-only protocols, an eight-second timeout and bounded JSON output. Docker supplies ffprobe; native Windows development must install ffmpeg and make ffprobe available on the service process PATH. If missing, review returns video-probe-unavailable without changing records. Video-stream detection proves technical validity, not movie identity.
+
+Ignore clears any existing link and persists across scans; Reopen returns ignored entries to pending. Unchanged links survive scans/restart; changed size/mtime or an observed missing file clears verification. Rescanning also advances file revisions, so stale review forms must refresh. API catalog hasMedia reflects associated present files in the current root, based on last observations. This is not continuous integrity monitoring or content hashing.
+
+Schema 5 adds review fields to inventory while preserving existing records. Older binaries reject it; rollback requires restoring a matching pre-upgrade stopped-service data copy. No media file is moved, renamed or deleted by review.

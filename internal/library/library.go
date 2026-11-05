@@ -28,13 +28,20 @@ type Observation struct {
 	ModifiedAt   string
 }
 type Entry struct {
-	ID           int64  `json:"id"`
-	RelativePath string `json:"relativePath"`
-	Size         int64  `json:"size"`
-	ModifiedAt   string `json:"modifiedAt"`
-	Status       string `json:"status"`
-	FirstSeenAt  string `json:"firstSeenAt"`
-	LastSeenAt   string `json:"lastSeenAt"`
+	ID             int64   `json:"id"`
+	RelativePath   string  `json:"relativePath"`
+	Size           int64   `json:"size"`
+	ModifiedAt     string  `json:"modifiedAt"`
+	Status         string  `json:"status"`
+	FirstSeenAt    string  `json:"firstSeenAt"`
+	LastSeenAt     string  `json:"lastSeenAt"`
+	Revision       int     `json:"revision"`
+	ReviewState    string  `json:"reviewState"`
+	MovieID        *int64  `json:"movieId"`
+	MovieTitle     string  `json:"movieTitle"`
+	VerifiedAt     *string `json:"verifiedAt"`
+	SuggestedTitle string  `json:"suggestedTitle"`
+	SuggestedYear  *int    `json:"suggestedYear"`
 }
 type Summary struct {
 	ScannedAt      string `json:"scannedAt"`
@@ -56,13 +63,18 @@ type Repository interface {
 }
 type Service struct {
 	repo                           Repository
+	prober                         Prober
 	data                           string
 	gate                           chan struct{}
 	maxEntries, maxFiles, maxDepth int
 }
 
-func New(repo Repository, data string) *Service {
-	return &Service{repo: repo, data: data, gate: make(chan struct{}, 1), maxEntries: 100000, maxFiles: 10000, maxDepth: 64}
+func New(repo Repository, data string, probers ...Prober) *Service {
+	prober := NewProber("ffprobe")
+	if len(probers) > 0 {
+		prober = probers[0]
+	}
+	return &Service{prober: prober, repo: repo, data: data, gate: make(chan struct{}, 1), maxEntries: 100000, maxFiles: 10000, maxDepth: 64}
 }
 func PathKey(value string) string {
 	value = filepath.Clean(value)

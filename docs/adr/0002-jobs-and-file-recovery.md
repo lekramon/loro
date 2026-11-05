@@ -25,3 +25,7 @@ Journal the source, expected size, destination, staging and backup paths, user c
 Conflicts pause for skip, keep both, or explicitly confirmed replacement. Replacement stages and verifies the new file first, preserves the old path under a private backup name, then publishes the replacement and commits its library record. Delete the old library backup path only after success is recorded. A crash before commit restores or resumes from the journal; after commit, retry cleanup without rolling back a valid new import. Cleanup failures remain visible and retryable. Never delete the original download as part of replacement.
 
 Ignored imports remain in history and can reopen when the downloaded file exists. Failed downloads are reported for manual retry or another selection; there is no automatic alternative acquisition in the first milestone.
+
+## Existing-file review implementation
+
+Existing-file association is a bounded synchronous local operation, distinct from downloaded-file import. It does not require a download-client completion record. Its ffprobe step has an eight-second budget inside the HTTP deadline and reads only an opened local handle with pipe-only protocols. Identity confirmation, filesystem checks and probing precede the short revision-checked SQL commit. Scan/review operations exclude each other in-process. A lost response is reconciled by reading inventory; no physical mutation journal is needed for this metadata-only step.
