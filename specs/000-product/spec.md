@@ -88,6 +88,11 @@ Automatic monitoring, upgrades, TV series, and additional integrations follow in
 47. As an administrator, I want consistent database and configuration backups and restores, so that I can recover an installation.
 48. As an administrator, I want to update an existing installation without losing data, so that I can adopt new versions.
 
+### Interface preferences
+
+49. As a user, I want light and dark themes saved in my browser, so that the interface suits my viewing environment.
+50. As a user, I want Brazilian Portuguese and US English interface languages, so that I can use the application in my preferred language without changing audio preferences.
+
 ## Implementation Decisions
 
 ### Confirmed decisions
@@ -120,6 +125,8 @@ Automatic monitoring, upgrades, TV series, and additional integrations follow in
 - Detailed architecture and recovery contracts are authoritative in ADR-0001 and ADR-0002.
 
 ### Profile and onboarding behavior
+
+- Interface preferences are separate from media profiles: light/dark and pt-BR/en-US apply immediately and persist per browser. Default to the browser's color preference and Portuguese when its primary language is Portuguese, otherwise English. They do not update the shared settings revision or reset an open form. See the interface-preferences feature specification.
 
 - One editable default profile applies to all movies; multiple profiles and per-movie overrides are deferred.
 - First-run setup requires a nonempty accepted resolution set and a preferred resolution within that set. Supported initial values are 480p, 576p, 720p, 1080p, and 2160p.

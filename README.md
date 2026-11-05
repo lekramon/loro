@@ -6,6 +6,8 @@ A local, self-hosted movie and TV library manager with original catalog, search,
 
 The foundation implements a local Go service, persistent SQLite startup, health endpoints, and a first-run setup wizard. Users can choose and edit directories, accepted/preferred resolutions, and ranked audio preferences. Saves persist across restart, and revision conflicts prevent one tab from overwriting another. Container packaging, catalog, search, and acquisition are subsequent tickets.
 
+The interface supports light/dark themes and English (US)/Português (Brasil), selectable in the header. Display preferences are saved in the browser and do not change movie audio preferences. On first visit, language and theme follow browser defaults.
+
 - [Product and milestone scope](specs/000-product/spec.md)
 - [Foundation specification](specs/001-foundation/spec.md)
 - [Foundation API contract](specs/001-foundation/openapi.json)

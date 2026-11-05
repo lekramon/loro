@@ -24,6 +24,8 @@ go run ./cmd/piratarr
 
 Open `http://127.0.0.1:8080` and follow **Start setup**. Supply separate existing absolute download/movie directories, choose accepted/preferred resolutions, and rank audio languages or original audio. Saving validates paths and persists one profile. Use **Edit settings** to change it; every save carries the loaded revision, and a stale tab must explicitly reload before editing again. Folder changes update configuration only and never relocate existing media. Catalog, search, and downloads belong to subsequent tickets and are unavailable.
 
+Header controls switch between light/dark and en-US/pt-BR without resetting forms. Browser-local keys `piratarr.interface.theme` and `piratarr.interface.locale` store explicit selections; clearing site storage restores browser-based defaults. UI messages are paired and type-checked in `web/src/messages.ts`; backend protocol messages remain English and are localized when displayed. Interface language is independent of ISO audio-language tokens.
+
 Default native data roots are `%LOCALAPPDATA%/Piratarr` on Windows and `/var/lib/piratarr` on Linux. Prefer an explicit private writable directory on Linux when not running as a service. Never use the synchronized repository for runtime data.
 
 Bootstrap flags override environment variables:

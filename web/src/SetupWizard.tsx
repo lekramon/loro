@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useUI } from './ui';
 import { api, ApiError, type FieldError, type Settings, type SettingsInput, type SetupState } from './api';
 
 export function SetupWizard({ setup, onSaved, initial, onCancel }: { setup: SetupState; onSaved: (settings: Settings) => void; initial?: Settings; onCancel?: () => void }) {
+  const { t, errorText, languageName } = useUI();
   const [step, setStep] = useState(0);
   const [input, setInput] = useState<SettingsInput>(() => initial ? {
     directories: { ...initial.directories },
@@ -12,10 +14,11 @@ export function SetupWizard({ setup, onSaved, initial, onCancel }: { setup: Setu
   const [message, setMessage] = useState('');
   const [saving, setSaving] = useState(false);
   const [conflict, setConflict] = useState(false);
-  const choices = [{ code: 'original', name: 'Original audio' }, ...setup.languages];
+  const normalize = (value: string) => value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+  const choices = [{ code: 'original', name: languageName('original') }, ...setup.languages.map(choice => ({ ...choice, name: languageName(choice.code, choice.name) }))];
   const audioName = (code: string) => choices.find(choice => choice.code === code)?.name ?? code;
   const fieldErrors = (field: string) => fields.filter(item => item.field === field);
-  const feedback = (field: string) => <>{fieldErrors(field).map((error, index) => <p className="field-error" key={index}>{error.message}</p>)}</>;
+  const feedback = (field: string) => <>{fieldErrors(field).map((error, index) => <p className="field-error" key={index}>{errorText(error.message)}</p>)}</>;
   const updateDirectory = (field: 'downloadDirectory' | 'movieDirectory', value: string) => {
     setInput(current => ({ ...current, directories: { ...current.directories, [field]: value } }));
     setFields(current => current.filter(item => item.field !== `directories.${field}`));
@@ -64,34 +67,34 @@ export function SetupWizard({ setup, onSaved, initial, onCancel }: { setup: Setu
       }
     } finally { setSaving(false); }
   };
-  const headings = initial ? ['Edit your local folders', 'Edit your picture quality', 'Edit and rank your audio', 'Review your changes'] : ['Choose your local folders', 'Choose your picture quality', 'Choose and rank your audio', 'Review your setup'];
+  const headings = initial ? ['Edit your local folders', 'Edit your picture quality', 'Edit and rank your audio', 'Review your changes'] as const : ['Choose your local folders', 'Choose your picture quality', 'Choose and rank your audio', 'Review your setup'] as const;
   return <>
-    <span className="badge">{initial ? `Edit settings · revision ${initial.revision}` : 'First-run setup'} · {step + 1} of 4</span><h2>{headings[step]}</h2>
-    <p>Your choices stay on this machine and apply to all movies.</p>
-    {message && <div className="error-summary" role="alert">{message}{conflict && <p><button type="button" onClick={() => window.location.reload()}>Reload saved settings</button></p>}</div>}
+    <span className="badge">{initial ? t('Edit settings · revision {revision}', { revision: initial.revision }) : t('First-run setup')} · {t('Step {step} of 4', { step: step + 1 })}</span><h2>{t(headings[step])}</h2>
+    <p>{t("Your choices stay on this machine and apply to all movies.")}</p>
+    {message && <div className="error-summary" role="alert">{errorText(message)}{conflict && <p><button type="button" onClick={() => window.location.reload()}>{t("Reload saved settings")}</button></p>}</div>}
     <form onSubmit={event => { event.preventDefault(); if (step === 3) void save(); else proceed(); }}>
       <fieldset disabled={saving || conflict}>
         {step === 0 && <>
-          <p className="hint">Enter absolute paths as seen by Piratarr. Both folders must already exist and be separate from each other and application data. Existing media stays in place.</p>
-          <label htmlFor="download-directory">Download directory</label><input id="download-directory" value={input.directories.downloadDirectory} onChange={event => updateDirectory('downloadDirectory', event.target.value)} autoComplete="off" spellCheck={false} aria-invalid={fieldErrors('directories.downloadDirectory').length > 0} />{feedback('directories.downloadDirectory')}
-          <label htmlFor="movie-directory">Movie directory</label><input id="movie-directory" value={input.directories.movieDirectory} onChange={event => updateDirectory('movieDirectory', event.target.value)} autoComplete="off" spellCheck={false} aria-invalid={fieldErrors('directories.movieDirectory').length > 0} />{feedback('directories.movieDirectory')}
-          <p className="hint">Folders are checked when you save. Validation creates and removes only a temporary probe file.</p>
-          {initial && <p className="hint">Changing a folder updates its configured location only. Existing files are not moved or renamed.</p>}
+          <p className="hint">{t("Enter absolute paths as seen by Piratarr. Both folders must already exist and be separate from each other and application data. Existing media stays in place.")}</p>
+          <label htmlFor="download-directory">{t("Download directory")}</label><input id="download-directory" value={input.directories.downloadDirectory} onChange={event => updateDirectory('downloadDirectory', event.target.value)} autoComplete="off" spellCheck={false} aria-invalid={fieldErrors('directories.downloadDirectory').length > 0} />{feedback('directories.downloadDirectory')}
+          <label htmlFor="movie-directory">{t("Movie directory")}</label><input id="movie-directory" value={input.directories.movieDirectory} onChange={event => updateDirectory('movieDirectory', event.target.value)} autoComplete="off" spellCheck={false} aria-invalid={fieldErrors('directories.movieDirectory').length > 0} />{feedback('directories.movieDirectory')}
+          <p className="hint">{t("Folders are checked when you save. Validation creates and removes only a temporary probe file.")}</p>
+          {initial && <p className="hint">{t("Changing a folder updates its configured location only. Existing files are not moved or renamed.")}</p>}
         </>}
         {step === 1 && <>
-          <fieldset><legend>Accepted resolutions</legend><div className="choice-grid">{setup.supportedResolutions.map(value => <label className="choice" key={value}><input type="checkbox" checked={input.profile.acceptedResolutions.includes(value)} onChange={() => toggleResolution(value)} />{value}</label>)}</div></fieldset>{feedback('profile.acceptedResolutions')}
-          <label htmlFor="preferred-resolution">Preferred resolution</label><select id="preferred-resolution" value={input.profile.preferredResolution} onChange={event => setInput(current => ({ ...current, profile: { ...current.profile, preferredResolution: event.target.value } }))}><option value="">Choose a resolution</option>{input.profile.acceptedResolutions.map(value => <option key={value} value={value}>{value}</option>)}</select>{feedback('profile.preferredResolution')}
-          <p className="hint">Other resolutions will remain visible with explanations during manual search.</p>
+          <fieldset><legend>{t("Accepted resolutions")}</legend><div className="choice-grid">{setup.supportedResolutions.map(value => <label className="choice" key={value}><input type="checkbox" checked={input.profile.acceptedResolutions.includes(value)} onChange={() => toggleResolution(value)} />{value}</label>)}</div></fieldset>{feedback('profile.acceptedResolutions')}
+          <label htmlFor="preferred-resolution">{t("Preferred resolution")}</label><select id="preferred-resolution" value={input.profile.preferredResolution} onChange={event => setInput(current => ({ ...current, profile: { ...current.profile, preferredResolution: event.target.value } }))}><option value="">{t("Choose a resolution")}</option>{input.profile.acceptedResolutions.map(value => <option key={value} value={value}>{value}</option>)}</select>{feedback('profile.preferredResolution')}
+          <p className="hint">{t("Other resolutions will remain visible with explanations during manual search.")}</p>
         </>}
         {step === 2 && <>
-          <label htmlFor="language-search">Search audio languages</label><input id="language-search" value={search} onChange={event => setSearch(event.target.value)} type="search" />
-          <div className="language-list" role="group" aria-label="Available audio choices">{choices.filter(choice => `${choice.name} ${choice.code}`.toLowerCase().includes(search.toLowerCase())).map(choice => <label className="choice" key={choice.code}><input type="checkbox" checked={input.profile.audioPreferences.includes(choice.code)} onChange={() => toggleAudio(choice.code)} />{choice.name}</label>)}</div>{feedback('profile.audioPreferences')}
-          <h3>Preference order</h3>
-          {input.profile.audioPreferences.length === 0 ? <p className="hint">Select audio choices above. Nothing is preselected.</p> : <ol className="ranking">{input.profile.audioPreferences.map((code, index) => <li key={code}><span>{audioName(code)}</span><div><button type="button" className="secondary" disabled={index === 0} onClick={() => moveAudio(index, -1)} aria-label={`Move ${audioName(code)} up`}>Up</button><button type="button" className="secondary" disabled={index === input.profile.audioPreferences.length - 1} onClick={() => moveAudio(index, 1)} aria-label={`Move ${audioName(code)} down`}>Down</button><button type="button" className="secondary" onClick={() => toggleAudio(code)} aria-label={`Remove ${audioName(code)}`}>Remove</button></div></li>)}</ol>}
-          <p className="hint">Original audio follows each movie’s original language. Unspecified audio stays unknown.</p>
+          <label htmlFor="language-search">{t("Search audio languages")}</label><input id="language-search" value={search} onChange={event => setSearch(event.target.value)} type="search" />
+          <div className="language-list" role="group" aria-label={t('Available audio choices')}>{choices.filter(choice => normalize(`${choice.name} ${choice.code}`).includes(normalize(search))).map(choice => <label className="choice" key={choice.code}><input type="checkbox" checked={input.profile.audioPreferences.includes(choice.code)} onChange={() => toggleAudio(choice.code)} />{choice.name}</label>)}</div>{feedback('profile.audioPreferences')}
+          <h3>{t("Preference order")}</h3>
+          {input.profile.audioPreferences.length === 0 ? <p className="hint">{t("Select audio choices above. Nothing is preselected.")}</p> : <ol className="ranking">{input.profile.audioPreferences.map((code, index) => <li key={code}><span>{audioName(code)}</span><div><button type="button" className="secondary" disabled={index === 0} onClick={() => moveAudio(index, -1)} aria-label={t('Move {language} up', { language: audioName(code) })}>{t("Up")}</button><button type="button" className="secondary" disabled={index === input.profile.audioPreferences.length - 1} onClick={() => moveAudio(index, 1)} aria-label={t('Move {language} down', { language: audioName(code) })}>{t("Down")}</button><button type="button" className="secondary" onClick={() => toggleAudio(code)} aria-label={t('Remove {language}', { language: audioName(code) })}>{t("Remove")}</button></div></li>)}</ol>}
+          <p className="hint">{t("Original audio follows each movie’s original language. Unspecified audio stays unknown.")}</p>
         </>}
-        {step === 3 && <dl className="summary"><dt>Download directory</dt><dd>{input.directories.downloadDirectory}</dd><dt>Movie directory</dt><dd>{input.directories.movieDirectory}</dd><dt>Accepted resolutions</dt><dd>{input.profile.acceptedResolutions.join(', ')}</dd><dt>Preferred resolution</dt><dd>{input.profile.preferredResolution}</dd><dt>Audio preference order</dt><dd>{input.profile.audioPreferences.map(audioName).join(' → ')}</dd></dl>}
-        <div className="actions">{step > 0 && <button type="button" className="secondary" onClick={() => { setStep(step - 1); setFields([]); }}>Back</button>}<button type="submit">{saving ? 'Saving…' : step === 3 ? initial ? 'Save changes' : 'Save setup' : 'Continue'}</button>{onCancel && <button type="button" className="secondary" onClick={onCancel}>Cancel editing</button>}</div>
+        {step === 3 && <dl className="summary"><dt>{t("Download directory")}</dt><dd>{input.directories.downloadDirectory}</dd><dt>{t("Movie directory")}</dt><dd>{input.directories.movieDirectory}</dd><dt>{t("Accepted resolutions")}</dt><dd>{input.profile.acceptedResolutions.join(', ')}</dd><dt>{t("Preferred resolution")}</dt><dd>{input.profile.preferredResolution}</dd><dt>{t("Audio preference order")}</dt><dd>{input.profile.audioPreferences.map(audioName).join(' → ')}</dd></dl>}
+        <div className="actions">{step > 0 && <button type="button" className="secondary" onClick={() => { setStep(step - 1); setFields([]); }}>{t("Back")}</button>}<button type="submit">{saving ? t('Saving…') : step === 3 ? initial ? t('Save changes') : t('Save setup') : t('Continue')}</button>{onCancel && <button type="button" className="secondary" onClick={onCancel}>{t("Cancel editing")}</button>}</div>
       </fieldset>
     </form>
   </>;
