@@ -70,8 +70,8 @@ func TestFoundationAPIWithRealDatabase(t *testing.T) {
 	if w := request("POST", "/api/v1/setup", "localhost:8080", "", map[string]string{"X-Piratarr-Request": "1"}); w.Code != 415 {
 		t.Fatal("non-JSON accepted")
 	}
-	if w := request("POST", "/api/v1/setup", "localhost:8080", "", map[string]string{"X-Piratarr-Request": "1", "Content-Type": "application/json"}); w.Code != 405 || w.Header().Get("Allow") != "GET" {
-		t.Fatalf("setup saving is unavailable in the startup slice: %d", w.Code)
+	if w := request("POST", "/api/v1/setup", "localhost:8080", "", map[string]string{"X-Piratarr-Request": "1", "Content-Type": "application/json"}); w.Code != 422 {
+		t.Fatalf("empty setup should require explicit choices: %d", w.Code)
 	}
 	handler.Stop()
 	if w := request("GET", "/api/v1/health/ready", "localhost:8080", "", nil); w.Code != 503 {

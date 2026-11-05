@@ -4,7 +4,7 @@ A local, self-hosted movie and TV library manager with original catalog, search,
 
 ## Current state
 
-The first foundation slice implements persistent local startup, health/setup-status endpoints, and an embedded React preview. Setup saving and media workflows are subsequent tickets.
+The foundation implements a local Go service, persistent SQLite startup, health endpoints, and a first-run setup wizard. Users can choose directories, accepted/preferred resolutions, and ranked audio preferences, save them locally, and view them after restart. Settings editing, catalog, search, and acquisition are subsequent tickets.
 
 - [Product and milestone scope](specs/000-product/spec.md)
 - [Foundation specification](specs/001-foundation/spec.md)

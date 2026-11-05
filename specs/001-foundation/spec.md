@@ -100,4 +100,4 @@ Catalog, scanning, credential configuration, metadata fetching, Torznab, downloa
 
 ## Further Notes
 
-Startup is implemented. Onboarding, settings editing, and Docker distribution remain open tickets. Individual tickets carry execution state and evidence. A checksum-verified portable Go 1.27.3 toolchain is installed under the development account's local application data; see development documentation for PATH setup. Docker is installed but its Linux daemon was unavailable during native verification. Reading or validating specifications does not require running the application.
+Startup and onboarding are implemented. Settings editing and Docker distribution remain open tickets. Individual tickets carry execution state and evidence. A checksum-verified portable Go 1.27.3 toolchain is installed under the development account's local application data; see development documentation for PATH setup. Docker is installed but its Linux daemon was unavailable during native verification. Reading or validating specifications does not require running the application.

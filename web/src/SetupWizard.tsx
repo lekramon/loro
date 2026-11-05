@@ -1,0 +1,91 @@
+import { useState } from 'react';
+import { api, ApiError, type FieldError, type Settings, type SettingsInput, type SetupState } from './api';
+
+export function SetupWizard({ setup, onSaved }: { setup: SetupState; onSaved: (settings: Settings) => void }) {
+  const [step, setStep] = useState(0);
+  const [input, setInput] = useState<SettingsInput>({ directories: { downloadDirectory: '', movieDirectory: '' }, profile: { acceptedResolutions: [], preferredResolution: '', audioPreferences: [] } });
+  const [search, setSearch] = useState('');
+  const [fields, setFields] = useState<FieldError[]>([]);
+  const [message, setMessage] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [conflict, setConflict] = useState(false);
+  const choices = [{ code: 'original', name: 'Original audio' }, ...setup.languages];
+  const audioName = (code: string) => choices.find(choice => choice.code === code)?.name ?? code;
+  const fieldErrors = (field: string) => fields.filter(item => item.field === field);
+  const feedback = (field: string) => <>{fieldErrors(field).map((error, index) => <p className="field-error" key={index}>{error.message}</p>)}</>;
+  const updateDirectory = (field: 'downloadDirectory' | 'movieDirectory', value: string) => {
+    setInput(current => ({ ...current, directories: { ...current.directories, [field]: value } }));
+    setFields(current => current.filter(item => item.field !== `directories.${field}`));
+  };
+  const toggleResolution = (value: string) => setInput(current => {
+    const accepted = current.profile.acceptedResolutions.includes(value) ? current.profile.acceptedResolutions.filter(item => item !== value) : setup.supportedResolutions.filter(item => item === value || current.profile.acceptedResolutions.includes(item));
+    return { ...current, profile: { ...current.profile, acceptedResolutions: accepted, preferredResolution: accepted.includes(current.profile.preferredResolution) ? current.profile.preferredResolution : '' } };
+  });
+  const toggleAudio = (code: string) => setInput(current => ({ ...current, profile: { ...current.profile, audioPreferences: current.profile.audioPreferences.includes(code) ? current.profile.audioPreferences.filter(item => item !== code) : [...current.profile.audioPreferences, code] } }));
+  const moveAudio = (index: number, delta: number) => setInput(current => {
+    const ranked = [...current.profile.audioPreferences];
+    [ranked[index], ranked[index + delta]] = [ranked[index + delta], ranked[index]];
+    return { ...current, profile: { ...current.profile, audioPreferences: ranked } };
+  });
+  const proceed = () => {
+    const errors: FieldError[] = [];
+    if (step === 0) {
+      if (!input.directories.downloadDirectory.trim()) errors.push({ field: 'directories.downloadDirectory', message: 'Enter your existing download directory.' });
+      if (!input.directories.movieDirectory.trim()) errors.push({ field: 'directories.movieDirectory', message: 'Enter your existing movie directory.' });
+    }
+    if (step === 1) {
+      if (input.profile.acceptedResolutions.length === 0) errors.push({ field: 'profile.acceptedResolutions', message: 'Choose at least one accepted resolution.' });
+      if (!input.profile.preferredResolution) errors.push({ field: 'profile.preferredResolution', message: 'Choose a preferred resolution.' });
+    }
+    if (step === 2 && input.profile.audioPreferences.length === 0) errors.push({ field: 'profile.audioPreferences', message: 'Choose at least one language or original audio.' });
+    setFields(errors);
+    if (errors.length === 0) { setStep(step + 1); setMessage(''); }
+  };
+  const save = async () => {
+    if (saving || conflict) return;
+    setSaving(true); setMessage(''); setFields([]);
+    try {
+      const saved = await api<Settings>('/setup', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Piratarr-Request': '1' }, body: JSON.stringify(input) });
+      onSaved(saved);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setMessage(error.message); setFields(error.fieldErrors);
+        if (error.status === 409) setConflict(true);
+        if (error.status === 422) {
+          const first = error.fieldErrors[0]?.field ?? '';
+          setStep(first.startsWith('directories.') ? 0 : first === 'profile.audioPreferences' ? 2 : 1);
+        }
+      } else setMessage('Unable to confirm whether setup was saved. Reload to check its status before trying again.');
+    } finally { setSaving(false); }
+  };
+  const headings = ['Choose your local folders', 'Choose your picture quality', 'Choose and rank your audio', 'Review your setup'];
+  return <>
+    <span className="badge">First-run setup · {step + 1} of 4</span><h2>{headings[step]}</h2>
+    <p>Your choices stay on this machine and apply to all movies.</p>
+    {message && <div className="error-summary" role="alert">{message}{conflict && <p><button type="button" onClick={() => window.location.reload()}>Reload saved settings</button></p>}</div>}
+    <form onSubmit={event => { event.preventDefault(); if (step === 3) void save(); else proceed(); }}>
+      <fieldset disabled={saving || conflict}>
+        {step === 0 && <>
+          <p className="hint">Enter absolute paths as seen by Piratarr. Both folders must already exist and be separate from each other and application data. Existing media stays in place.</p>
+          <label htmlFor="download-directory">Download directory</label><input id="download-directory" value={input.directories.downloadDirectory} onChange={event => updateDirectory('downloadDirectory', event.target.value)} autoComplete="off" spellCheck={false} aria-invalid={fieldErrors('directories.downloadDirectory').length > 0} />{feedback('directories.downloadDirectory')}
+          <label htmlFor="movie-directory">Movie directory</label><input id="movie-directory" value={input.directories.movieDirectory} onChange={event => updateDirectory('movieDirectory', event.target.value)} autoComplete="off" spellCheck={false} aria-invalid={fieldErrors('directories.movieDirectory').length > 0} />{feedback('directories.movieDirectory')}
+          <p className="hint">Folders are checked when you save. Validation creates and removes only a temporary probe file.</p>
+        </>}
+        {step === 1 && <>
+          <fieldset><legend>Accepted resolutions</legend><div className="choice-grid">{setup.supportedResolutions.map(value => <label className="choice" key={value}><input type="checkbox" checked={input.profile.acceptedResolutions.includes(value)} onChange={() => toggleResolution(value)} />{value}</label>)}</div></fieldset>{feedback('profile.acceptedResolutions')}
+          <label htmlFor="preferred-resolution">Preferred resolution</label><select id="preferred-resolution" value={input.profile.preferredResolution} onChange={event => setInput(current => ({ ...current, profile: { ...current.profile, preferredResolution: event.target.value } }))}><option value="">Choose a resolution</option>{input.profile.acceptedResolutions.map(value => <option key={value} value={value}>{value}</option>)}</select>{feedback('profile.preferredResolution')}
+          <p className="hint">Other resolutions will remain visible with explanations during manual search.</p>
+        </>}
+        {step === 2 && <>
+          <label htmlFor="language-search">Search audio languages</label><input id="language-search" value={search} onChange={event => setSearch(event.target.value)} type="search" />
+          <div className="language-list" role="group" aria-label="Available audio choices">{choices.filter(choice => `${choice.name} ${choice.code}`.toLowerCase().includes(search.toLowerCase())).map(choice => <label className="choice" key={choice.code}><input type="checkbox" checked={input.profile.audioPreferences.includes(choice.code)} onChange={() => toggleAudio(choice.code)} />{choice.name}</label>)}</div>{feedback('profile.audioPreferences')}
+          <h3>Preference order</h3>
+          {input.profile.audioPreferences.length === 0 ? <p className="hint">Select audio choices above. Nothing is preselected.</p> : <ol className="ranking">{input.profile.audioPreferences.map((code, index) => <li key={code}><span>{audioName(code)}</span><div><button type="button" className="secondary" disabled={index === 0} onClick={() => moveAudio(index, -1)} aria-label={`Move ${audioName(code)} up`}>Up</button><button type="button" className="secondary" disabled={index === input.profile.audioPreferences.length - 1} onClick={() => moveAudio(index, 1)} aria-label={`Move ${audioName(code)} down`}>Down</button><button type="button" className="secondary" onClick={() => toggleAudio(code)} aria-label={`Remove ${audioName(code)}`}>Remove</button></div></li>)}</ol>}
+          <p className="hint">Original audio follows each movie’s original language. Unspecified audio stays unknown.</p>
+        </>}
+        {step === 3 && <dl className="summary"><dt>Download directory</dt><dd>{input.directories.downloadDirectory}</dd><dt>Movie directory</dt><dd>{input.directories.movieDirectory}</dd><dt>Accepted resolutions</dt><dd>{input.profile.acceptedResolutions.join(', ')}</dd><dt>Preferred resolution</dt><dd>{input.profile.preferredResolution}</dd><dt>Audio preference order</dt><dd>{input.profile.audioPreferences.map(audioName).join(' → ')}</dd></dl>}
+        <div className="actions">{step > 0 && <button type="button" className="secondary" onClick={() => { setStep(step - 1); setFields([]); }}>Back</button>}<button type="submit">{saving ? 'Saving…' : step === 3 ? 'Save setup' : 'Continue'}</button></div>
+      </fieldset>
+    </form>
+  </>;
+}

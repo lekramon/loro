@@ -12,11 +12,16 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
+
+	"github.com/lekramon/piratarr/internal/settings"
 )
 
 type Storage interface {
 	Ready(context.Context) error
 	SetupCompleted(context.Context) (bool, error)
+	CreateSettings(context.Context, settings.Input) (settings.Settings, error)
+	GetSettings(context.Context) (settings.Settings, error)
+	DataDirectory() string
 }
 
 type Handler struct {
@@ -24,16 +29,18 @@ type Handler struct {
 	assets   fs.FS
 	port     string
 	stopping atomic.Bool
+	settings settings.Service
 }
 
 type apiError struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
+	Code        string                `json:"code"`
+	Message     string                `json:"message"`
+	FieldErrors []settings.FieldError `json:"fieldErrors,omitempty"`
 }
 
 func New(storage Storage, assets fs.FS, listen string) *Handler {
 	_, port, _ := net.SplitHostPort(listen)
-	return &Handler{storage: storage, assets: assets, port: port}
+	return &Handler{storage: storage, assets: assets, port: port, settings: settings.Service{Repository: storage, DataDirectory: storage.DataDirectory()}}
 }
 
 func (h *Handler) Stop() { h.stopping.Store(true) }
@@ -115,7 +122,12 @@ func methodNotAllowed(w http.ResponseWriter, allow string) {
 
 func (h *Handler) api(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
-	case "/api/v1/health/live", "/api/v1/health/ready", "/api/v1/setup", "/api/v1/settings":
+	case "/api/v1/setup":
+		if r.Method != http.MethodGet && r.Method != http.MethodPost {
+			methodNotAllowed(w, "GET, POST")
+			return
+		}
+	case "/api/v1/health/live", "/api/v1/health/ready", "/api/v1/settings":
 		if r.Method != http.MethodGet {
 			methodNotAllowed(w, "GET")
 			return
@@ -124,8 +136,29 @@ func (h *Handler) api(w http.ResponseWriter, r *http.Request) {
 		fail(w, 404, "not-found", "API resource does not exist.")
 		return
 	}
-	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+	timeout := 2 * time.Second
+	if r.Method == http.MethodPost {
+		timeout = 15 * time.Second
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), timeout)
 	defer cancel()
+	if r.Method == http.MethodPost && r.URL.Path == "/api/v1/setup" {
+		if h.stopping.Load() {
+			fail(w, 503, "not-ready", "The service is stopping.")
+			return
+		}
+		input, ok := decodeSetup(w, r)
+		if !ok {
+			return
+		}
+		result, err := h.settings.CompleteSetup(ctx, input)
+		if err != nil {
+			settingsFailure(w, err)
+			return
+		}
+		writeJSON(w, 201, result)
+		return
+	}
 	switch r.URL.Path {
 	case "/api/v1/health/live":
 		writeJSON(w, 200, map[string]string{"status": "alive"})
@@ -135,25 +168,24 @@ func (h *Handler) api(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		writeJSON(w, 200, map[string]string{"status": "ready"})
-	case "/api/v1/setup", "/api/v1/settings":
+	case "/api/v1/settings":
+		result, err := h.storage.GetSettings(ctx)
+		if err != nil {
+			settingsFailure(w, err)
+			return
+		}
+		writeJSON(w, 200, result)
+	case "/api/v1/setup":
 		completed, err := h.storage.SetupCompleted(ctx)
 		if err != nil {
 			fail(w, 503, "storage-unavailable", "Local settings are unavailable.")
-			return
-		}
-		if r.URL.Path == "/api/v1/settings" {
-			if !completed {
-				fail(w, 409, "setup-required", "Complete first-run setup before reading settings.")
-				return
-			}
-			fail(w, 503, "storage-unavailable", "Settings reading is unavailable in the startup preview.")
 			return
 		}
 		writeJSON(w, 200, struct {
 			Completed   bool       `json:"completed"`
 			Resolutions []string   `json:"supportedResolutions"`
 			Languages   []language `json:"languages"`
-		}{completed, []string{"480p", "576p", "720p", "1080p", "2160p"}, languages})
+		}{completed, settings.Resolutions(), languages})
 	}
 }
 

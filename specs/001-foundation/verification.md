@@ -2,17 +2,17 @@
 
 State: partially implemented
 
-Ticket 01 is implemented and verified on Windows, including a Linux cross-build. Setup, settings editing, and container distribution remain unimplemented. The following table distinguishes delivered behavior from future acceptance work.
+Tickets 01 and 02 are implemented and verified on Windows, including Linux cross-builds. Settings editing and container distribution remain unimplemented. The following table distinguishes delivered behavior from future acceptance work.
 
 | Criteria | Primary ticket | Evidence |
 |---|---|---|
 | FND-001–FND-004 | 01 | Passed native/API/real storage/process tests; Linux runtime pending ticket 04 |
-| FND-005–FND-008 | 02 | Pending implementation |
+| FND-005–FND-008 | 02 | Passed real API/storage restart, profile/path, repetition, alias, and Windows ACL tests |
 | FND-009 | 03 | Pending implementation |
-| FND-010 | 02–03 | Pending implementation |
+| FND-010 | 02–03 | Initial setup rollback/read-only faults pass; settings-update fault handling pending 03 |
 | FND-011 | 01 | Passed readiness/storage-loss/shutdown and liveness checks |
-| FND-012 | 01–03 | Host/Origin, header/content-type, and known-length body limits pass; JSON decoding pending 02 |
-| FND-013 | 02–03 | Startup preview/navigation/reload pass; onboarding and editing pending |
+| FND-012 | 01–03 | Host/Origin, header/content-type, duplicate/unknown/malformed/trailing JSON, and body limits pass; update-specific checks pending 03 |
+| FND-013 | 02–03 | Browser onboarding, ranking, invalid-path feedback, reload, and setup-conflict recovery pass; editing pending 03 |
 | FND-014 | 04 | Pending implementation |
 | FND-015 | 01–04 | Preview is explicit; runtime data/build outputs ignored; distribution checks pending |
 
@@ -36,3 +36,12 @@ Documentation preparation is separately checked by `python scripts/verify_specs.
 - Damaged required schema is refused at startup even when its migration version is recognized. Startup/shutdown failure paths release the lock and listener.
 - Linux runtime/container checks were not run: Docker is installed, but its Linux engine pipe was unavailable. No external credentials were required or accessed.
 - Full acceptance and commands are recorded in ticket 01; build/run instructions are in `docs/development.md`.
+
+## Ticket 02 implementation evidence — 2026-11-04
+
+- Go API integration tests passed with actual SQLite transactions and filesystem validation. Saved profile values and revision survive closing and reopening storage. Concurrent setup requests cannot create mixed or duplicate profiles.
+- Strict JSON validation rejects duplicate/unknown keys (including incorrect casing), malformed data, trailing values, invalid types, and oversized known-length/chunked bodies. Semantic errors return field-specific 422 responses without persistence.
+- Windows read-only ACL and directory symlink tests passed, including alias-overlap rejection. Existing media and roots remain unchanged; temporary validation probes are removed.
+- A trigger failing the last table write proves full rollback through the public API; a read-only writer produces 503, and recovery succeeds after clearing the fault.
+- Three Chromium tests passed against the built frontend and real Go service: setup entry/required fields, complete onboarding and another tab's conflict, and API JSON 404 behavior. Saved audio order and directory contents were verified.
+- Frontend build/typecheck, pinned OpenAPI validation, Go static analysis, Windows build, and CGO-free Linux x64 cross-build passed. Linux runtime checks remain pending ticket 04; the Unix mode-bit permission test is prepared but was not executed on this Windows host.
