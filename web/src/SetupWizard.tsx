@@ -74,6 +74,7 @@ export function SetupWizard({ setup, onSaved, initial, onCancel }: { setup: Setu
   const headings = initial ? ['Edit your local folders', 'Edit your picture quality', 'Edit and rank your audio', 'Review your changes'] as const : ['Choose your local folders', 'Choose your picture quality', 'Choose and rank your audio', 'Review your setup'] as const;
   return <>
  {browsing && <FolderPicker value={input.directories[browsing]} onClose={()=>setBrowsing(undefined)} onChoose={path=>{updateDirectory(browsing,path);setBrowsing(undefined)}}/>}
+    <ol className="wizard-progress" aria-label={t('Setup progress')}>{(['Folders', 'Quality', 'Audio', 'Review'] as const).map((label,index)=><li key={label} className={index===step?'current':index<step?'complete':''} aria-current={index===step?'step':undefined}><span>{index<step?'✓':index+1}</span>{t(label)}</li>)}</ol>
     <span className="badge">{initial ? t('Edit settings · revision {revision}', { revision: initial.revision }) : t('First-run setup')} · {t('Step {step} of 4', { step: step + 1 })}</span><h2>{t(headings[step])}</h2>
     <p>{t("Your choices stay on this machine and apply to all movies.")}</p>
     {message && <div className="error-summary" role="alert">{errorText(message)}{conflict && <p><button type="button" onClick={() => window.location.reload()}>{t("Reload saved settings")}</button></p>}</div>}

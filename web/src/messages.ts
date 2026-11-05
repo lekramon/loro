@@ -118,7 +118,21 @@ export const english = {
   "Release formats": "Release formats",
   "File containers": "File containers",
   "Remux is a release format; MKV and MP4 are file containers.": "Remux is a release format; MKV and MP4 are file containers.",
-  "Choose at least one distinct supported format or container.": "Choose at least one distinct supported format or container."
+  "Choose at least one distinct supported format or container.": "Choose at least one distinct supported format or container.",
+  "Workspace": "Workspace",
+  "Library": "Library",
+  "Soon": "Soon",
+  "Settings": "Settings",
+  "Setup": "Setup",
+  "Local workspace": "Local workspace",
+  "Getting started": "Getting started",
+  "Manage your folders and viewing preferences.": "Manage your folders and viewing preferences.",
+  "A few preferences, then you are ready to build your library.": "A few preferences, then you are ready to build your library.",
+  "Setup progress": "Setup progress",
+  "Folders": "Folders",
+  "Quality": "Quality",
+  "Audio": "Audio",
+  "Review": "Review"
 } as const;
 export type MessageKey = keyof typeof english;
 export const portuguese: Record<MessageKey, string> = {
@@ -241,5 +255,19 @@ export const portuguese: Record<MessageKey, string> = {
   "Release formats": "Formatos de lançamento",
   "File containers": "Contêineres de arquivo",
   "Remux is a release format; MKV and MP4 are file containers.": "Remux é um formato de lançamento; MKV e MP4 são contêineres de arquivo.",
-  "Choose at least one distinct supported format or container.": "Escolha pelo menos um formato ou contêiner compatível, sem repetições."
+  "Choose at least one distinct supported format or container.": "Escolha pelo menos um formato ou contêiner compatível, sem repetições.",
+  "Workspace": "Área de trabalho",
+  "Library": "Biblioteca",
+  "Soon": "Em breve",
+  "Settings": "Configurações",
+  "Setup": "Configuração inicial",
+  "Local workspace": "Armazenamento local",
+  "Getting started": "Vamos começar",
+  "Manage your folders and viewing preferences.": "Gerencie suas pastas e preferências de exibição.",
+  "A few preferences, then you are ready to build your library.": "Defina suas preferências para começar a organizar sua biblioteca.",
+  "Setup progress": "Progresso da configuração",
+  "Folders": "Pastas",
+  "Quality": "Qualidade",
+  "Audio": "Áudio",
+  "Review": "Revisão"
 };

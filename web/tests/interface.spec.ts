@@ -24,7 +24,7 @@ test('theme and locale switch immediately without resetting setup, then persist 
   await expect(page.getByLabel('Pasta de downloads', { exact: true })).toHaveValue('/downloads');
   await page.getByRole('button', { name:'Escuro', exact:true }).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(16, 16, 16)');
+  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(16, 17, 22)');
   await expect(page.locator('html')).toHaveCSS('color-scheme', 'dark');
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
@@ -42,11 +42,11 @@ test('theme and locale switch immediately without resetting setup, then persist 
   await page.getByRole('button', { name: 'Mover Áudio original para cima', exact: true }).click();
   await page.getByLabel('Buscar idiomas de áudio').fill('portugues');
   await expect(page.getByRole('checkbox', { name: 'português', exact: true })).toBeVisible();
-  await page.screenshot({ path: 'test-results/interface-dark-pt-BR.png', fullPage: true });
+  await page.evaluate(()=>window.scrollTo(0,0)); await page.screenshot({ path: 'test-results/interface-dark-pt-BR.png', fullPage: true });
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
   await expect(page.getByText('Áudio original → português', { exact: true })).toBeVisible();
   await page.getByRole('button', { name:'Claro', exact:true }).click();
-  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(245, 244, 242)');
+  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(243, 244, 248)');
   await expect(page.getByText('Áudio original → português', { exact: true })).toBeVisible();
   expect(mutations).toBe(0);
   await page.reload();
@@ -57,7 +57,7 @@ test('theme and locale switch immediately without resetting setup, then persist 
   await expect(page.getByRole('heading', { name: 'Deixe este espaço do seu jeito' })).toBeVisible();
   await page.setViewportSize({ width: 375, height: 812 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  await page.screenshot({ path: 'test-results/interface-light-pt-BR-mobile.png', fullPage: true });
+  await page.evaluate(()=>window.scrollTo(0,0)); await page.screenshot({ path: 'test-results/interface-light-pt-BR-mobile.png', fullPage: true });
 });
 
 test('interface preferences do not mutate audio settings and conflict messages follow the current locale', async ({ page, context }) => {

@@ -28,13 +28,19 @@ function App() {
     window.history.replaceState(null, '', '/settings'); setPath('/settings');
   };
   const audioName = (code: string) => languageName(code, setup?.languages.find(language => language.code === code)?.name);
-  return <main>
-    <header><a className="brand" href="/"><span className="mark" aria-hidden="true">P</span><strong>Piratarr</strong></a><span className="local">{t("Your library, locally.")}</span><InterfacePreferences /></header>
-    <section className="intro">
-      <p className="eyebrow">{t("A place for your collection")}</p>
-      <h1>{saved ? <>{t("Your library.")}<br />{t("Your preferences.")}</> : <>{t("Your next movie")}<br />{t("starts here.")}</>}</h1>
-      <p className="description">{t("One home for your movies, your preferences, and the files you keep. Everything stored on your own machine.")}</p>
-    </section>
+  return <main className="app-shell">
+    <aside className="sidebar">
+      <a className="brand" href="/"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><defs><linearGradient id="brand-gradient" x2="1" y2="1"><stop stopColor="#ac7dff"/><stop offset="1" stopColor="#39c5df"/></linearGradient></defs><path fill="url(#brand-gradient)" d="M7 4h10a8 8 0 0 1 0 16h-4v8H7V4Zm6 6v4h4a2 2 0 0 0 0-4h-4Z"/></svg><strong>Piratarr</strong></a>
+      <p className="nav-caption">{t('Workspace')}</p>
+      <nav className="workspace-nav" aria-label={t('Workspace')}>
+        <span className="nav-item unavailable" aria-disabled="true"><span aria-hidden="true">▦</span>{t('Library')}<small>{t('Soon')}</small></span>
+        <a className="nav-item selected" href={saved ? '/settings' : '/setup'} aria-current="page"><span aria-hidden="true">⚙</span>{t(saved ? 'Settings' : 'Setup')}</a>
+      </nav>
+      <div className="sidebar-status"><span className="status-dot" aria-hidden="true"/>{t('Local workspace')}<small>{t('Your library, locally.')}</small></div>
+    </aside>
+    <header className="topbar"><span className="local">{t(saved ? 'Settings' : 'Setup')}</span><InterfacePreferences /></header>
+    <div className="workspace">
+    <section className="page-heading"><p className="eyebrow">{t('Your library, locally.')}</p><h1>{t(saved ? 'Settings' : 'Getting started')}</h1><p className="description">{t(saved ? 'Manage your folders and viewing preferences.' : 'A few preferences, then you are ready to build your library.')}</p></section>
     <section className="panel">
       {error ? <><h2>{t("Unable to read settings")}</h2><p role="alert">{errorText(error)}</p><button onClick={() => window.location.reload()}>{t("Try again")}</button></>
         : !setup ? <p role="status">{t("Checking your installation…")}</p>
@@ -53,6 +59,7 @@ function App() {
         </>}
     </section>
     <footer>{t("Stored locally. No Piratarr cloud account.")}</footer>
+    </div>
   </main>;
 }
 

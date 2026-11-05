@@ -12,6 +12,9 @@ test('unconfigured installation explains its state and opens setup', async ({ pa
   await page.getByRole('link', { name: 'Start setup' }).click();
   await expect(page).toHaveURL(/\/setup$/);
   await expect(page.getByRole('heading', { name: 'Choose your local folders' })).toBeVisible();
+  await expect(page.getByRole('heading', {level:1})).toHaveText('Getting started');
+  await expect(page.locator('.wizard-progress [aria-current=step]')).toHaveText('1Folders');
+  await expect(page.locator('.workspace-nav [aria-current=page]')).toContainText('Setup');
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await expect(page.getByText('Enter your existing download directory.')).toBeVisible();
   await page.reload();
@@ -31,7 +34,7 @@ async function fillWizard(page: Page, downloads: string, movies: string) {
   await page.getByLabel('720p', { exact: true }).check();
   await page.getByLabel('1080p', { exact: true }).check();
   await page.getByLabel('Preferred resolution', { exact: true }).selectOption('1080p');
-  await page.screenshot({path:'test-results/cinematic-quality-desktop.png',fullPage:true});
+  await page.evaluate(()=>window.scrollTo(0,0)); await page.screenshot({path:'test-results/cinematic-quality-desktop.png',fullPage:true});
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await expect(page.getByRole('checkbox', { name: 'Original audio', exact: true })).not.toBeChecked();
   await page.getByLabel('Search audio languages').fill('Portuguese');
@@ -125,7 +128,7 @@ test('onboarding and editing preserve preferences and require reload for conflic
     expect(await readdir(downloads)).toEqual([]);
     expect(await readdir(movies)).toEqual(['existing.mkv']);
     expect(await readdir(alternateMovies)).toEqual([]);
-    await page.screenshot({ path: 'test-results/settings-updated.png', fullPage: true });
+    await page.evaluate(()=>window.scrollTo(0,0)); await page.screenshot({ path: 'test-results/settings-updated.png', fullPage: true });
   } finally {
     await other.close();
     // Delete only the temporary tree created by this test.

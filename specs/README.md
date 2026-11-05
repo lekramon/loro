@@ -16,3 +16,5 @@ Specifications and tickets are the local tracker. Foundation startup, onboarding
 The first usable milestone requires 001–006. Subsequent milestones add automatic movie acquisition/upgrades, series, and broader integrations. Write each feature's concrete contracts and tickets before implementation; the table is not a substitute for those specifications. Implement the foundation first, then specify each next feature using the resulting code and contracts.
 
 - [Cinematic setup and quality preferences](008-cinematic-setup/spec.md).
+
+- [Jellyfin-inspired interface](009-jellyfin-interface/spec.md).
