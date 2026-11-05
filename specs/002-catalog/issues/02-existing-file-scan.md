@@ -1,17 +1,17 @@
-# Existing-file scanning and association
+# Specify existing-file inventory and association boundaries
 
-Label: needs-triage
-State: open
+Label: ready-for-agent
+State: done
 Blocked by: specs/002-catalog/issues/01-metadata-registration.md
 
 ## Outcome
 
-Catalog existing media in place, repeat scans without duplicate files, distinguish unavailable files from desired titles and review ambiguous identity without moving or deleting originals.
-
-## Work
-
-Specify concrete scan scheduling/restart, identity matching, review and path/symlink contracts against the completed catalog before implementation. This ticket is intentionally not executable yet.
+Publish manual scan scheduling/restart, bounded rooted traversal, inventory identity, review boundary and additive migration contracts before implementation.
 
 ## Verification
 
-Pending specification.
+Concrete SCN-001 through SCN-007 contracts are recorded in [specification](../spec.md) and [wire contract](../library-openapi.json). Association is explicitly deferred to ticket 04 with no automatic identity claims. OpenAPI and repository link/dependency checks pass. These are intended behaviors, not implementation evidence.
+
+## Comments
+
+Completed by Codex on 2026-11-05 after the user requested the next phase. Implementation follows on its own branch in ticket 03.
