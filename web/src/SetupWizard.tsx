@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { api, ApiError, type FieldError, type Settings, type SettingsInput, type SetupState } from './api';
 
-export function SetupWizard({ setup, onSaved }: { setup: SetupState; onSaved: (settings: Settings) => void }) {
+export function SetupWizard({ setup, onSaved, initial, onCancel }: { setup: SetupState; onSaved: (settings: Settings) => void; initial?: Settings; onCancel?: () => void }) {
   const [step, setStep] = useState(0);
-  const [input, setInput] = useState<SettingsInput>({ directories: { downloadDirectory: '', movieDirectory: '' }, profile: { acceptedResolutions: [], preferredResolution: '', audioPreferences: [] } });
+  const [input, setInput] = useState<SettingsInput>(() => initial ? {
+    directories: { ...initial.directories },
+    profile: { ...initial.profile, acceptedResolutions: [...initial.profile.acceptedResolutions], audioPreferences: [...initial.profile.audioPreferences] },
+  } : { directories: { downloadDirectory: '', movieDirectory: '' }, profile: { acceptedResolutions: [], preferredResolution: '', audioPreferences: [] } });
   const [search, setSearch] = useState('');
   const [fields, setFields] = useState<FieldError[]>([]);
   const [message, setMessage] = useState('');
@@ -45,7 +48,7 @@ export function SetupWizard({ setup, onSaved }: { setup: SetupState; onSaved: (s
     if (saving || conflict) return;
     setSaving(true); setMessage(''); setFields([]);
     try {
-      const saved = await api<Settings>('/setup', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Piratarr-Request': '1' }, body: JSON.stringify(input) });
+      const saved = await api<Settings>(initial ? '/settings' : '/setup', { method: initial ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json', 'X-Piratarr-Request': '1' }, body: JSON.stringify(initial ? { ...input, revision: initial.revision } : input) });
       onSaved(saved);
     } catch (error) {
       if (error instanceof ApiError) {
@@ -55,12 +58,15 @@ export function SetupWizard({ setup, onSaved }: { setup: SetupState; onSaved: (s
           const first = error.fieldErrors[0]?.field ?? '';
           setStep(first.startsWith('directories.') ? 0 : first === 'profile.audioPreferences' ? 2 : 1);
         }
-      } else setMessage('Unable to confirm whether setup was saved. Reload to check its status before trying again.');
+      } else {
+        setMessage('Unable to confirm whether your choices were saved. Reload the saved settings before trying again.');
+        setConflict(true);
+      }
     } finally { setSaving(false); }
   };
-  const headings = ['Choose your local folders', 'Choose your picture quality', 'Choose and rank your audio', 'Review your setup'];
+  const headings = initial ? ['Edit your local folders', 'Edit your picture quality', 'Edit and rank your audio', 'Review your changes'] : ['Choose your local folders', 'Choose your picture quality', 'Choose and rank your audio', 'Review your setup'];
   return <>
-    <span className="badge">First-run setup · {step + 1} of 4</span><h2>{headings[step]}</h2>
+    <span className="badge">{initial ? `Edit settings · revision ${initial.revision}` : 'First-run setup'} · {step + 1} of 4</span><h2>{headings[step]}</h2>
     <p>Your choices stay on this machine and apply to all movies.</p>
     {message && <div className="error-summary" role="alert">{message}{conflict && <p><button type="button" onClick={() => window.location.reload()}>Reload saved settings</button></p>}</div>}
     <form onSubmit={event => { event.preventDefault(); if (step === 3) void save(); else proceed(); }}>
@@ -70,6 +76,7 @@ export function SetupWizard({ setup, onSaved }: { setup: SetupState; onSaved: (s
           <label htmlFor="download-directory">Download directory</label><input id="download-directory" value={input.directories.downloadDirectory} onChange={event => updateDirectory('downloadDirectory', event.target.value)} autoComplete="off" spellCheck={false} aria-invalid={fieldErrors('directories.downloadDirectory').length > 0} />{feedback('directories.downloadDirectory')}
           <label htmlFor="movie-directory">Movie directory</label><input id="movie-directory" value={input.directories.movieDirectory} onChange={event => updateDirectory('movieDirectory', event.target.value)} autoComplete="off" spellCheck={false} aria-invalid={fieldErrors('directories.movieDirectory').length > 0} />{feedback('directories.movieDirectory')}
           <p className="hint">Folders are checked when you save. Validation creates and removes only a temporary probe file.</p>
+          {initial && <p className="hint">Changing a folder updates its configured location only. Existing files are not moved or renamed.</p>}
         </>}
         {step === 1 && <>
           <fieldset><legend>Accepted resolutions</legend><div className="choice-grid">{setup.supportedResolutions.map(value => <label className="choice" key={value}><input type="checkbox" checked={input.profile.acceptedResolutions.includes(value)} onChange={() => toggleResolution(value)} />{value}</label>)}</div></fieldset>{feedback('profile.acceptedResolutions')}
@@ -84,7 +91,7 @@ export function SetupWizard({ setup, onSaved }: { setup: SetupState; onSaved: (s
           <p className="hint">Original audio follows each movie’s original language. Unspecified audio stays unknown.</p>
         </>}
         {step === 3 && <dl className="summary"><dt>Download directory</dt><dd>{input.directories.downloadDirectory}</dd><dt>Movie directory</dt><dd>{input.directories.movieDirectory}</dd><dt>Accepted resolutions</dt><dd>{input.profile.acceptedResolutions.join(', ')}</dd><dt>Preferred resolution</dt><dd>{input.profile.preferredResolution}</dd><dt>Audio preference order</dt><dd>{input.profile.audioPreferences.map(audioName).join(' → ')}</dd></dl>}
-        <div className="actions">{step > 0 && <button type="button" className="secondary" onClick={() => { setStep(step - 1); setFields([]); }}>Back</button>}<button type="submit">{saving ? 'Saving…' : step === 3 ? 'Save setup' : 'Continue'}</button></div>
+        <div className="actions">{step > 0 && <button type="button" className="secondary" onClick={() => { setStep(step - 1); setFields([]); }}>Back</button>}<button type="submit">{saving ? 'Saving…' : step === 3 ? initial ? 'Save changes' : 'Save setup' : 'Continue'}</button>{onCancel && <button type="button" className="secondary" onClick={onCancel}>Cancel editing</button>}</div>
       </fieldset>
     </form>
   </>;

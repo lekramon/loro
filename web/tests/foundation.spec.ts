@@ -40,7 +40,7 @@ async function fillWizard(page: Page, downloads: string, movies: string) {
   await expect(page.getByText('Original audio → Portuguese', { exact: true })).toBeVisible();
 }
 
-test('onboarding validates paths, saves ranked choices, and handles another tab completing setup', async ({ page, browser, request }) => {
+test('onboarding and editing preserve preferences and require reload for conflicting tabs', async ({ page, browser, request }) => {
   const root = await mkdtemp(join(tmpdir(), 'piratarr-setup-browser-'));
   const downloads = join(root, 'downloads');
   const movies = join(root, 'movies');
@@ -68,10 +68,58 @@ test('onboarding validates paths, saves ranked choices, and handles another tab 
     await expect(secondPage.getByRole('alert')).toContainText('Setup has already been completed');
     await secondPage.getByRole('button', { name: 'Reload saved settings' }).click();
     await expect(secondPage.getByRole('heading', { name: 'Your saved settings' })).toBeVisible();
+
+    // Both editors start from revision 1. Failed validation must keep the
+    // server revision intact, while successful saving must stale the other tab.
+    const alternateMovies = join(root, 'alternate-movies');
+    await mkdir(alternateMovies);
+    await page.getByRole('button', { name: 'Edit settings', exact: true }).click();
+    await expect(page.getByLabel('Download directory', { exact: true })).toHaveValue(settings.directories.downloadDirectory);
+    await expect(page.getByLabel('Movie directory', { exact: true })).toHaveValue(settings.directories.movieDirectory);
+    await page.getByLabel('Movie directory', { exact: true }).fill(join(root, 'missing-edit'));
+    await page.getByRole('button', { name: 'Continue', exact: true }).click();
+    await expect(page.getByLabel('1080p', { exact: true })).toBeChecked();
+    await page.getByLabel('2160p', { exact: true }).check();
+    await page.getByLabel('Preferred resolution', { exact: true }).selectOption('2160p');
+    await page.getByRole('button', { name: 'Continue', exact: true }).click();
+    await page.getByRole('button', { name: 'Move Portuguese up', exact: true }).click();
+    await page.getByLabel('Search audio languages').fill('English');
+    await page.getByRole('checkbox', { name: 'English', exact: true }).check();
+    await page.getByRole('button', { name: 'Continue', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Review your changes' })).toBeVisible();
+    await page.getByRole('button', { name: 'Save changes', exact: true }).click();
+    await expect(page.getByText('Directory does not exist or is inaccessible.')).toBeVisible();
+    expect((await (await request.get('/api/v1/settings')).json()).revision).toBe(1);
+    await page.getByLabel('Movie directory', { exact: true }).fill(alternateMovies);
+    for (let index = 0; index < 3; index++) await page.getByRole('button', { name: 'Continue', exact: true }).click();
+
+    await secondPage.getByRole('button', { name: 'Edit settings', exact: true }).click();
+    for (let index = 0; index < 3; index++) await secondPage.getByRole('button', { name: 'Continue', exact: true }).click();
+    await page.getByRole('button', { name: 'Save changes', exact: true }).click();
+    await expect(page.getByText('Configured · revision 2', { exact: true })).toBeVisible();
+    await expect(page.getByText('Portuguese → Original audio → English', { exact: true })).toBeVisible();
+    await secondPage.getByRole('button', { name: 'Save changes', exact: true }).click();
+    await expect(secondPage.getByRole('alert')).toContainText('Settings changed in another tab');
+    await expect(secondPage.getByRole('button', { name: 'Save changes', exact: true })).toBeDisabled();
+    expect((await (await request.get('/api/v1/settings')).json()).revision).toBe(2);
+    await secondPage.getByRole('button', { name: 'Reload saved settings' }).click();
+    await expect(secondPage.getByText('Configured · revision 2', { exact: true })).toBeVisible();
+    await expect(secondPage.getByText('Portuguese → Original audio → English', { exact: true })).toBeVisible();
+    await page.reload();
+    await expect(page.getByText('Configured · revision 2', { exact: true })).toBeVisible();
+    const updated = await (await request.get('/api/v1/settings')).json();
+    expect(updated.profile.preferredResolution).toBe('2160p');
+    expect(updated.profile.audioPreferences).toEqual(['pt', 'original', 'en']);
+    await page.getByRole('button', { name: 'Edit settings', exact: true }).click();
+    await page.getByLabel('Movie directory', { exact: true }).fill(movies);
+    await page.getByRole('button', { name: 'Cancel editing', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Your saved settings' })).toBeVisible();
+    expect((await (await request.get('/api/v1/settings')).json()).directories.movieDirectory).toBe(updated.directories.movieDirectory);
     expect(await readFile(join(movies, 'existing.mkv'), 'utf8')).toBe('existing media');
     expect(await readdir(downloads)).toEqual([]);
     expect(await readdir(movies)).toEqual(['existing.mkv']);
-    await page.screenshot({ path: 'test-results/setup-saved.png', fullPage: true });
+    expect(await readdir(alternateMovies)).toEqual([]);
+    await page.screenshot({ path: 'test-results/settings-updated.png', fullPage: true });
   } finally {
     await other.close();
     // Delete only the temporary tree created by this test.

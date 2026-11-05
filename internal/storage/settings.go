@@ -126,3 +126,53 @@ func (s *Store) GetSettings(ctx context.Context) (settings.Settings, error) {
 	}
 	return result, nil
 }
+
+func (s *Store) UpdateSettings(ctx context.Context, revision int, input settings.Input) (settings.Settings, error) {
+	if s.Ready(ctx) != nil {
+		return settings.Settings{}, settings.ErrUnavailable
+	}
+	tx, err := s.write.BeginTx(ctx, nil)
+	if err != nil {
+		return settings.Settings{}, databaseError(err)
+	}
+	defer tx.Rollback()
+	timestamp := time.Now().UTC().Format(time.RFC3339Nano)
+	result, err := tx.ExecContext(ctx, "UPDATE settings SET revision=revision+1, download_directory=?, movie_directory=?, preferred_resolution=?, updated_at=? WHERE id=1 AND revision=?", input.Directories.DownloadDirectory, input.Directories.MovieDirectory, input.Profile.PreferredResolution, timestamp, revision)
+	if err != nil {
+		return settings.Settings{}, databaseError(err)
+	}
+	changed, err := result.RowsAffected()
+	if err != nil {
+		return settings.Settings{}, databaseError(err)
+	}
+	if changed == 0 {
+		var count int
+		if err := tx.QueryRowContext(ctx, "SELECT count(*) FROM settings WHERE id=1").Scan(&count); err != nil {
+			return settings.Settings{}, databaseError(err)
+		}
+		if count == 0 {
+			return settings.Settings{}, settings.ErrSetupRequired
+		}
+		return settings.Settings{}, settings.ErrRevisionConflict
+	}
+	if _, err = tx.ExecContext(ctx, "DELETE FROM accepted_resolutions WHERE settings_id=1"); err != nil {
+		return settings.Settings{}, databaseError(err)
+	}
+	if _, err = tx.ExecContext(ctx, "DELETE FROM audio_preferences WHERE settings_id=1"); err != nil {
+		return settings.Settings{}, databaseError(err)
+	}
+	for _, resolution := range input.Profile.AcceptedResolutions {
+		if _, err = tx.ExecContext(ctx, "INSERT INTO accepted_resolutions(settings_id,resolution) VALUES(1,?)", resolution); err != nil {
+			return settings.Settings{}, databaseError(err)
+		}
+	}
+	for position, choice := range input.Profile.AudioPreferences {
+		if _, err = tx.ExecContext(ctx, "INSERT INTO audio_preferences(settings_id,position,choice) VALUES(1,?,?)", position, choice); err != nil {
+			return settings.Settings{}, databaseError(err)
+		}
+	}
+	if err = tx.Commit(); err != nil {
+		return settings.Settings{}, databaseError(err)
+	}
+	return settings.Settings{Revision: revision + 1, Directories: input.Directories, Profile: input.Profile, UpdatedAt: timestamp}, nil
+}

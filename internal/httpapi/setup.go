@@ -12,7 +12,11 @@ import (
 )
 
 func decodeSetup(w http.ResponseWriter, r *http.Request) (settings.Input, bool) {
-	var input settings.Input
+	return decodeSettingsBody[settings.Input](w, r, false)
+}
+
+func decodeSettingsBody[T any](w http.ResponseWriter, r *http.Request, allowRevision bool) (T, bool) {
+	var input T
 	data, err := io.ReadAll(r.Body)
 	var sizeError *http.MaxBytesError
 	if errors.As(err, &sizeError) {
@@ -25,7 +29,7 @@ func decodeSetup(w http.ResponseWriter, r *http.Request) (settings.Input, bool) 
 		return input, false
 	}
 	tokens := json.NewDecoder(bytes.NewReader(data))
-	if err = uniqueJSON(tokens, "", 0); err == nil {
+	if err = uniqueJSON(tokens, "", 0, allowRevision); err == nil {
 		_, err = tokens.Token()
 		if errors.Is(err, io.EOF) {
 			err = nil
@@ -48,7 +52,7 @@ func decodeSetup(w http.ResponseWriter, r *http.Request) (settings.Input, bool) 
 
 // Token-level validation catches duplicate keys before encoding/json can
 // silently discard earlier values, and enforces case-sensitive contract keys.
-func uniqueJSON(decoder *json.Decoder, location string, depth int) error {
+func uniqueJSON(decoder *json.Decoder, location string, depth int, allowRevision bool) error {
 	if depth > 100 {
 		return errors.New("JSON nesting limit exceeded")
 	}
@@ -68,6 +72,9 @@ func uniqueJSON(decoder *json.Decoder, location string, depth int) error {
 			"directories": {"downloadDirectory": true, "movieDirectory": true},
 			"profile":     {"acceptedResolutions": true, "preferredResolution": true, "audioPreferences": true},
 		}[location]
+		if location == "" && allowRevision {
+			allowed["revision"] = true
+		}
 		for decoder.More() {
 			keyToken, err := decoder.Token()
 			if err != nil {
@@ -82,7 +89,7 @@ func uniqueJSON(decoder *json.Decoder, location string, depth int) error {
 			if location != "" {
 				child = location + "." + key
 			}
-			if err := uniqueJSON(decoder, child, depth+1); err != nil {
+			if err := uniqueJSON(decoder, child, depth+1, allowRevision); err != nil {
 				return err
 			}
 		}
@@ -92,7 +99,7 @@ func uniqueJSON(decoder *json.Decoder, location string, depth int) error {
 		}
 	case '[':
 		for decoder.More() {
-			if err := uniqueJSON(decoder, location+"[]", depth+1); err != nil {
+			if err := uniqueJSON(decoder, location+"[]", depth+1, allowRevision); err != nil {
 				return err
 			}
 		}
@@ -115,6 +122,8 @@ func settingsFailure(w http.ResponseWriter, err error) {
 		fail(w, 409, "setup-already-completed", "Setup has already been completed. Reload to view the saved settings.")
 	case errors.Is(err, settings.ErrSetupRequired):
 		fail(w, 409, "setup-required", "Complete first-run setup before reading settings.")
+	case errors.Is(err, settings.ErrRevisionConflict):
+		fail(w, 409, "revision-conflict", "Settings changed in another tab. Reload the saved settings before editing again.")
 	case errors.Is(err, settings.ErrUnavailable):
 		fail(w, 503, "storage-unavailable", "Local settings storage is unavailable. Try again when storage is accessible.")
 	default:

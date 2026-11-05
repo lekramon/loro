@@ -1,11 +1,11 @@
 # Specification roadmap
 
-Specifications and tickets are the local tracker. Foundation startup and onboarding are implemented; subsequent slices remain planned.
+Specifications and tickets are the local tracker. Foundation startup, onboarding, and revision-safe settings editing are implemented; subsequent slices remain planned.
 
 | Feature | Outcome | Depends on | Planning state |
 |---|---|---|---|
 | 000-product | Product constraints and milestone boundaries | none | Accepted direction |
-| 001-foundation | Healthy local application, onboarding, profile, persistence, embedded UI | none | Startup and onboarding implemented; settings editing and packaging next |
+| 001-foundation | Healthy local application, onboarding, profile, persistence, embedded UI | none | Startup, onboarding, and settings editing implemented; packaging next |
 | 002-catalog | TMDB movie registration, cached metadata, existing-file scan and manual association | 001 | Next specification |
 | 003-search | Native Torznab capabilities, manual search, normalized candidates and profile explanations | 002 | Deferred specification |
 | 004-acquisition | qBittorrent submission, persistent workers, tracking and uncertain-send reconciliation | 003 | Deferred specification |

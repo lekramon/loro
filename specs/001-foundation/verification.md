@@ -2,17 +2,17 @@
 
 State: partially implemented
 
-Tickets 01 and 02 are implemented and verified on Windows, including Linux cross-builds. Settings editing and container distribution remain unimplemented. The following table distinguishes delivered behavior from future acceptance work.
+Tickets 01–03 are implemented and verified on Windows, including Linux cross-builds. Container distribution remains unimplemented. The following table distinguishes delivered behavior from future acceptance work.
 
 | Criteria | Primary ticket | Evidence |
 |---|---|---|
 | FND-001–FND-004 | 01 | Passed native/API/real storage/process tests; Linux runtime pending ticket 04 |
 | FND-005–FND-008 | 02 | Passed real API/storage restart, profile/path, repetition, alias, and Windows ACL tests |
-| FND-009 | 03 | Pending implementation |
-| FND-010 | 02–03 | Initial setup rollback/read-only faults pass; settings-update fault handling pending 03 |
+| FND-009 | 03 | Passed atomic revision increment, stale rejection, controlled concurrent updates, and restart tests |
+| FND-010 | 02–03 | Setup and settings-update rollback/read-only fault tests pass; failed writes preserve revision and every profile row |
 | FND-011 | 01 | Passed readiness/storage-loss/shutdown and liveness checks |
-| FND-012 | 01–03 | Host/Origin, header/content-type, duplicate/unknown/malformed/trailing JSON, and body limits pass; update-specific checks pending 03 |
-| FND-013 | 02–03 | Browser onboarding, ranking, invalid-path feedback, reload, and setup-conflict recovery pass; editing pending 03 |
+| FND-012 | 01–03 | Host/Origin, header/content-type, duplicate/unknown/malformed/trailing JSON, update revisions, and body limits pass |
+| FND-013 | 02–03 | Browser onboarding/editing, ranking, field feedback, save/reload, cancellation, and setup/edit conflict recovery pass |
 | FND-014 | 04 | Pending implementation |
 | FND-015 | 01–04 | Preview is explicit; runtime data/build outputs ignored; distribution checks pending |
 
@@ -45,3 +45,11 @@ Documentation preparation is separately checked by `python scripts/verify_specs.
 - A trigger failing the last table write proves full rollback through the public API; a read-only writer produces 503, and recovery succeeds after clearing the fault.
 - Three Chromium tests passed against the built frontend and real Go service: setup entry/required fields, complete onboarding and another tab's conflict, and API JSON 404 behavior. Saved audio order and directory contents were verified.
 - Frontend build/typecheck, pinned OpenAPI validation, Go static analysis, Windows build, and CGO-free Linux x64 cross-build passed. Linux runtime checks remain pending ticket 04; the Unix mode-bit permission test is prepared but was not executed on this Windows host.
+
+## Ticket 03 implementation evidence — 2026-11-04
+
+- All six foundation API operations are implemented. PUT settings requires the loaded revision; service validation and the write transaction both check it. A test barrier forces both competing requests past the initial read before writing, proving transaction-level exclusion with one 200 and one 409.
+- Real SQLite trigger and read-only failures prove settings updates are atomic across revision, timestamp, directories, resolutions, and ordered audio choices. Correcting the fault permits a single successful retry. Invalid requests preserve the original state.
+- API tests verify persisted updates after storage restart, profile normalization, directory changes without moving existing files, strict update JSON, blocked bootstrap-only settings, and stale updates without overwrites.
+- The Chromium journey verifies prefilled editing, changed quality/audio ranking and directory roots, validation errors without revision changes, second-tab conflict, explicit reload, cancellation, and preserved media. All three browser tests passed.
+- Go tests, static analysis, frontend build/typecheck, OpenAPI validation, and Windows/Linux builds passed. The Docker Linux engine remained unavailable; Linux runtime/distribution verification is still required by ticket 04.

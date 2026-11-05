@@ -227,7 +227,7 @@ func TestSetupRejectsMalformedAndOversizedJSON(t *testing.T) {
 	}
 	defer store.Close()
 	h := New(store, fstest.MapFS{}, "127.0.0.1:8080")
-	for _, body := range []string{"", "null", "[]", "{", "{} {}", "{} trailing", `{"profile":{},"profile":{}}`, `{"profile":{"audioPreferences":[],"audioPreferences":[]}}`, `{"unknown":1}`, `{"Profile":{}}`, `{"profile":{"unknown":true}}`, `{"profile":{"acceptedResolutions":42}}`} {
+	for _, body := range []string{"", "null", "[]", "{", "{} {}", "{} trailing", `{"revision":1}`, `{"profile":{},"profile":{}}`, `{"profile":{"audioPreferences":[],"audioPreferences":[]}}`, `{"unknown":1}`, `{"Profile":{}}`, `{"profile":{"unknown":true}}`, `{"profile":{"acceptedResolutions":42}}`} {
 		response := setupRequest(t, h, "POST", "/api/v1/setup", []byte(body), false)
 		if response.Code != 400 {
 			t.Errorf("body %q: %d %s", body, response.Code, response.Body.String())

@@ -22,6 +22,11 @@ type Input struct {
 	Profile     Profile     `json:"profile"`
 }
 
+type UpdateInput struct {
+	Revision int `json:"revision"`
+	Input
+}
+
 type Settings struct {
 	Revision    int         `json:"revision"`
 	Directories Directories `json:"directories"`
@@ -42,12 +47,14 @@ var (
 	ErrAlreadyCompleted = errors.New("setup already completed")
 	ErrSetupRequired    = errors.New("setup required")
 	ErrUnavailable      = errors.New("settings storage unavailable")
+	ErrRevisionConflict = errors.New("settings revision conflict")
 )
 
 type Repository interface {
 	SetupCompleted(context.Context) (bool, error)
 	CreateSettings(context.Context, Input) (Settings, error)
 	GetSettings(context.Context) (Settings, error)
+	UpdateSettings(context.Context, int, Input) (Settings, error)
 }
 
 type Service struct {
@@ -68,4 +75,23 @@ func (s Service) CompleteSetup(ctx context.Context, input Input) (Settings, erro
 		return Settings{}, err
 	}
 	return s.Repository.CreateSettings(ctx, validated)
+}
+
+func (s Service) Update(ctx context.Context, input UpdateInput) (Settings, error) {
+	if input.Revision < 1 {
+		return Settings{}, &ValidationError{Fields: []FieldError{{Field: "revision", Message: "Provide the saved settings revision."}}}
+	}
+	current, err := s.Repository.GetSettings(ctx)
+	if err != nil {
+		return Settings{}, err
+	}
+	if current.Revision != input.Revision {
+		return Settings{}, ErrRevisionConflict
+	}
+	validated, err := Validate(ctx, input.Input, s.DataDirectory)
+	if err != nil {
+		return Settings{}, err
+	}
+	// The repository checks the revision again inside its write transaction.
+	return s.Repository.UpdateSettings(ctx, input.Revision, validated)
 }

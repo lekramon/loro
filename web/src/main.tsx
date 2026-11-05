@@ -9,6 +9,7 @@ function App() {
   const [saved, setSaved] = useState<Settings>();
   const [error, setError] = useState('');
   const [path, setPath] = useState(window.location.pathname);
+  const [editing, setEditing] = useState(false);
   useEffect(() => {
     const controller = new AbortController();
     api<SetupState>('/setup', { signal: controller.signal })
@@ -20,6 +21,7 @@ function App() {
     return () => controller.abort();
   }, []);
   const afterSetup = (value: Settings) => {
+    setEditing(false);
     setSaved(value); setSetup(current => current ? { ...current, completed: true } : current);
     window.history.replaceState(null, '', '/settings'); setPath('/settings');
   };
@@ -34,10 +36,12 @@ function App() {
     <section className="panel">
       {error ? <><h2>Unable to read settings</h2><p role="alert">{error}</p><button onClick={() => window.location.reload()}>Try again</button></>
         : !setup ? <p role="status">Checking your installation…</p>
+        : saved && editing ? <SetupWizard setup={setup} initial={saved} onSaved={afterSetup} onCancel={() => setEditing(false)} />
         : saved ? <>
           <span className="badge">Configured · revision {saved.revision}</span><h2>Your saved settings</h2>
           <dl className="summary"><dt>Download directory</dt><dd>{saved.directories.downloadDirectory}</dd><dt>Movie directory</dt><dd>{saved.directories.movieDirectory}</dd><dt>Accepted resolutions</dt><dd>{saved.profile.acceptedResolutions.join(', ')}</dd><dt>Preferred resolution</dt><dd>{saved.profile.preferredResolution}</dd><dt>Audio preference order</dt><dd>{saved.profile.audioPreferences.map(audioName).join(' → ')}</dd></dl>
-          <p className="note">Your choices are saved locally. Editing and media management are not available yet.</p>
+          <button type="button" onClick={() => setEditing(true)}>Edit settings</button>
+          <p className="note">Your choices are saved locally. Catalog, search, and downloads are not available yet.</p>
         </> : path === '/setup' ? <SetupWizard setup={setup} onSaved={afterSetup} /> : <>
           <span className="badge">Not configured yet</span><h2>Make this space yours</h2>
           <p>Start by choosing where your files live and how you prefer to watch.</p>

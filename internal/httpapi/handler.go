@@ -21,6 +21,7 @@ type Storage interface {
 	SetupCompleted(context.Context) (bool, error)
 	CreateSettings(context.Context, settings.Input) (settings.Settings, error)
 	GetSettings(context.Context) (settings.Settings, error)
+	UpdateSettings(context.Context, int, settings.Input) (settings.Settings, error)
 	DataDirectory() string
 }
 
@@ -127,7 +128,12 @@ func (h *Handler) api(w http.ResponseWriter, r *http.Request) {
 			methodNotAllowed(w, "GET, POST")
 			return
 		}
-	case "/api/v1/health/live", "/api/v1/health/ready", "/api/v1/settings":
+	case "/api/v1/settings":
+		if r.Method != http.MethodGet && r.Method != http.MethodPut {
+			methodNotAllowed(w, "GET, PUT")
+			return
+		}
+	case "/api/v1/health/live", "/api/v1/health/ready":
 		if r.Method != http.MethodGet {
 			methodNotAllowed(w, "GET")
 			return
@@ -137,11 +143,28 @@ func (h *Handler) api(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	timeout := 2 * time.Second
-	if r.Method == http.MethodPost {
+	if r.Method == http.MethodPost || r.Method == http.MethodPut {
 		timeout = 15 * time.Second
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), timeout)
 	defer cancel()
+	if r.Method == http.MethodPut && r.URL.Path == "/api/v1/settings" {
+		if h.stopping.Load() {
+			fail(w, 503, "not-ready", "The service is stopping.")
+			return
+		}
+		input, ok := decodeSettingsBody[settings.UpdateInput](w, r, true)
+		if !ok {
+			return
+		}
+		result, err := h.settings.Update(ctx, input)
+		if err != nil {
+			settingsFailure(w, err)
+			return
+		}
+		writeJSON(w, 200, result)
+		return
+	}
 	if r.Method == http.MethodPost && r.URL.Path == "/api/v1/setup" {
 		if h.stopping.Load() {
 			fail(w, 503, "not-ready", "The service is stopping.")

@@ -4,7 +4,7 @@ A local, self-hosted movie and TV library manager with original catalog, search,
 
 ## Current state
 
-The foundation implements a local Go service, persistent SQLite startup, health endpoints, and a first-run setup wizard. Users can choose directories, accepted/preferred resolutions, and ranked audio preferences, save them locally, and view them after restart. Settings editing, catalog, search, and acquisition are subsequent tickets.
+The foundation implements a local Go service, persistent SQLite startup, health endpoints, and a first-run setup wizard. Users can choose and edit directories, accepted/preferred resolutions, and ranked audio preferences. Saves persist across restart, and revision conflicts prevent one tab from overwriting another. Container packaging, catalog, search, and acquisition are subsequent tickets.
 
 - [Product and milestone scope](specs/000-product/spec.md)
 - [Foundation specification](specs/001-foundation/spec.md)
