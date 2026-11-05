@@ -6,7 +6,7 @@ Specifications and tickets are the local tracker. Foundation startup, onboarding
 |---|---|---|---|
 | 000-product | Product constraints and milestone boundaries | none | Accepted direction |
 | 001-foundation | Healthy local application, onboarding, profile, persistence, embedded UI | none | Implemented and verified, including Linux Docker distribution |
-| 002-catalog | TMDB movie registration, cached metadata, existing-file scan and manual association | 001 | Metadata search/registration, local artwork cache and offline APIs implemented; inventory contract specified in ticket 02; implementation ticket 03, association/review ticket 04 |
+| 002-catalog | TMDB movie registration, cached metadata, existing-file scan and manual association | 001 | Metadata search/registration, local artwork cache and offline APIs implemented; manual inventory and Files UI implemented in ticket 03; association/review remains ticket 04 |
 | 003-search | Native Torznab capabilities, manual search, normalized candidates and profile explanations | 002 | Deferred specification |
 | 004-acquisition | qBittorrent submission, persistent workers, tracking and uncertain-send reconciliation | 003 | Deferred specification |
 | 005-import | ffprobe validation, hardlink/copy, review, replacement and restart recovery | 004 | Deferred specification |

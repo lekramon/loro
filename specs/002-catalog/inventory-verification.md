@@ -1,0 +1,19 @@
+# Ticket 03 inventory verification — 2026-11-05
+
+## Passed
+
+- Full Go tests passed as UID/GID 10001 in Linux, using the pinned Go 1.27.3 compiler; go vet passed. The final Docker image build repeats full non-root tests/vet and passed as `piratarr:inventory`.
+- Current HTTP API and storage/migration test executables were cross-compiled and executed natively on Windows: both PASS. Unix chmod-denial coverage intentionally skips Windows; missing-root, rooted traversal, API scanning, restart and migration checks run natively there. Symlink fixtures run on Linux and on Windows when OS privileges permit creation.
+- Public API tests with real temporary SQLite/directories cover empty inventory/setup precondition, nested/case-insensitive video extensions, unsupported files, zero-size inventory, repeat IDs, missing filters/pagination, reappearance and restart persistence. Original media bytes and modification times remain unchanged.
+- Failure checks cover missing/unreadable roots, symlink escape/loop exclusion, malformed/extra bodies, invalid query fields/pagination/status, and settings-revision change during publication. Failed scans do not publish a replacement summary or mark previous files missing. Root changes expose an independent inventory and retain the original root's IDs when restored.
+- Scanner tests cover simultaneous-call exclusion and entry/file/depth limits plus cancellation without publication. Limits are exercised with reduced internal test bounds; production limits remain 100,000 entries, 10,000 files and depth 64 with a cooperative ten-second API deadline.
+- Migration 3 to 4 preserves settings and catalog identity/metadata exactly. Old migration readers reject version 4. Readiness fails for a removed inventory table. Injected SQL write failure rolls back the full publication; retry succeeds after fault removal. Existing migration-startup failure tests remain passing.
+- All 21 Playwright journeys passed. The new journey uses the real running API and temporary movie/download directories: scan supported files, preserve contents, remove only a test fixture, rescan into missing status, filter, reload, and render localized desktop/mobile Files screens. No page overflow. Existing setup, profiles/photo, header geometry, themes/languages, metadata/token test and mock flows remain passing. Initial locator failure was corrected to target the filter's accessible combobox name; no product failure was observed.
+- `python scripts/verify_container.py --image piratarr:inventory --port 18082` passed: non-root Linux Compose, embedded UI, ffprobe availability, health before/after setup, path validation, instance exclusion, restart/recreation persistence, unchanged media and fixture cleanup.
+- Frontend build/typecheck, all four OpenAPI lints, repository consistency and whitespace checks passed. Reviewed `test-results/library-files-dark.png` and `library-files-mobile.png`.
+
+## Boundaries and recovery
+
+Native Go SDK remains unavailable; Docker supplied compilation. No user's running installation, media, token or database was opened by the new scanner during verification. All scan fixtures/databases were disposable; the compiler container was removed. The Windows executable is ignored `bin/piratarr-library.exe`.
+
+This is manual in-place inventory, not movie association, ffprobe validation, acquisition or import. Missing entries are retained; scan never moves, renames or deletes media. Database publication is atomic, while filesystem observations can change during a scan and are reconciled by repeating it. A response lost near commit may require reading saved inventory or rescanning; no partial publication is resumed after restart. Rollback to an older binary requires restoring a matching pre-upgrade stopped-service data copy; do not run destructive Down migrations on the current database. Association/review remains ticket 04.

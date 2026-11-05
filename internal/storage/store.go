@@ -23,11 +23,12 @@ import (
 var migrations embed.FS
 
 type Store struct {
-	catalogSchema bool
-	write         *sql.DB
-	read          *sql.DB
-	lock          *flock.Flock
-	path          string
+	catalogSchema   bool
+	inventorySchema bool
+	write           *sql.DB
+	read            *sql.DB
+	lock            *flock.Flock
+	path            string
 }
 
 func Open(ctx context.Context, directory string) (*Store, error) {
@@ -46,6 +47,9 @@ func open(ctx context.Context, directory string, source fs.FS) (_ *Store, result
 		return nil, errors.New("another instance is using this data directory")
 	}
 	s := &Store{lock: lock, path: filepath.Join(directory, "piratarr.db")}
+	if _, err := fs.Stat(source, "migrations/00004_library_inventory.sql"); err == nil {
+		s.inventorySchema = true
+	}
 	if _, err := fs.Stat(source, "migrations/00003_catalog.sql"); err == nil {
 		s.catalogSchema = true
 	}
@@ -165,6 +169,9 @@ func (s *Store) Ready(ctx context.Context) error {
 	query := "SELECT (SELECT count(*) FROM settings) + (SELECT count(*) FROM accepted_resolutions) + (SELECT count(*) FROM audio_preferences)"
 	if s.catalogSchema {
 		query += " + (SELECT count(*) FROM movies) + (SELECT count(*) FROM metadata_cache) + (SELECT count(*) FROM metadata_artwork)"
+	}
+	if s.inventorySchema {
+		query += " + (SELECT count(*) FROM library_files) + (SELECT count(*) FROM library_scan_summary)"
 	}
 	return s.read.QueryRowContext(ctx, query).Scan(&value)
 }

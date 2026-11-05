@@ -42,3 +42,16 @@ The first add returns 201 and `created:true`; another add returns 200 and the sa
 ## Browser movie search and diagnostics
 
 Open `/search` for real metadata, or select Search movies in the persistent sidebar. Enter the title and optional year. Test the saved token with the Test connection button in setup/settings, or GET `/api/v1/metadata/test`; success means an uncached provider search completed now. Status still reports presence only. Neither operation returns the token.
+
+## Scan the configured movie directory
+
+Open `/preview#/files`, or use the API after completing setup. No metadata credential is required. These operations observe files in place and do not assign movie identity or validate video contents.
+
+```powershell
+$catalogBase = 'http://localhost:18084/api/v1'
+Invoke-RestMethod "$catalogBase/library/scan" -Method Post -ContentType 'application/json' -Headers @{'X-Piratarr-Request'='1'} -Body '{}'
+Invoke-RestMethod "$catalogBase/library/files?limit=50&offset=0&status=all"
+Invoke-RestMethod "$catalogBase/library/files?status=missing"
+```
+
+Only a successful scan marks previously observed paths missing. A repeat scan is safe; the last committed inventory survives failures and restart. Wire shapes and limits are in [inventory contract](library-openapi.json).

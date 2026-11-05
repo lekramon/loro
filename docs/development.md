@@ -116,3 +116,11 @@ Use **Test connection** in Movie metadata to make a fresh authenticated provider
 ## Unified library and viewer photos
 
 Library navigation now contains Search at `/preview#/search`; `/search` redirects there. Primary navigation contains Library and Settings. One shared header controls theme/language across every section. Fresh browser storage starts with one Ramon viewer; choose Manage profiles or its pencil overlay to edit name/photo, or add a viewer explicitly. Select JPEG/PNG/WebP up to 5 MB; the browser crops/resizes to a 256px JPEG and stores it with the viewer locally. Cancel preserves the saved photo; Remove photo takes effect on Save profile. Photos are not uploaded or shared between browsers/devices. Storage failure displays a warning. Untouched former demo seeds are omitted on migration; customized viewers are preserved.
+
+## Existing-file inventory
+
+Open `/preview#/files`, then Scan folder. Setup must configure a movie directory first. This screen uses real inventory, independently of the mocked Movies screen; no TMDB credential is needed. It scans only that movie folder, skips symlinks and unsupported extensions, and never changes source media. Inventory presence is not proof of movie identity or a valid video stream.
+
+Scans are manual and synchronous, with one concurrent scan, a cooperative 10-second deadline, depth 64, 100,000 directory entries and 10,000 supported files. Failed/interrupted scans retain the last committed snapshot. After an uncertain response, refresh inventory or repeat the scan safely. Missing paths remain in history; successful rescans restore their IDs when present again. Changing folders keeps previous-root records and lists only the current folder.
+
+Schema 4 adds library inventory/summary tables and preserves catalog/settings. Startup applies it automatically. Older binaries refuse the newer database; return to an older build by restoring its matching pre-upgrade stopped-service data directory copy. Do not invoke destructive SQL Down migrations. Runtime data and backup copies belong outside this checkout.

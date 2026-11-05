@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { demoMovies, persistDemoState, readDemoState, type DemoMovie, type DemoViewer } from './mockData';
 import { SideNavigation } from './SideNavigation';
 import { AppHeader } from './AppHeader';
+import { LibraryFiles } from './LibraryFiles';
 import { MovieSearch } from './MovieSearch';
 import { ProfileForm, ProfileAvatar, Pencil } from './ProfileForm';
 import { useUI } from './ui';
@@ -39,7 +40,7 @@ export function MockApp(){
  const selectViewer=(id:string)=>{setState(current=>({...current,activeId:id}));go('/home')};
  const selectedMovie=demoMovies.find(m=>m.id===route.split('/')[2]);
  const editingViewer=state.viewers.find(v=>v.id===route.split('/')[3]);
- const isProfiles=route.startsWith('/profiles')||(!active&&route!=='/search');
+ const isProfiles=route.startsWith('/profiles')||(!active&&route!=='/search'&&route!=='/files');
  const favoriteMovies=demoMovies.filter(m=>active?.favorites.includes(m.id));
  const filtered=demoMovies.filter(m=>(genre==='all'||m.genre===genre)&&normalize(m.title).includes(normalize(query))).sort((a,b)=>sort==='year'?b.year-a.year:sort==='rating'?Number(b.rating)-Number(a.rating):a.title.localeCompare(b.title,locale));
  const visibleMovies=route==='/favorites'?favoriteMovies:filtered;
@@ -48,14 +49,14 @@ export function MockApp(){
  return <main className="demo-app">
   <SideNavigation />
   <AppHeader title="Library" viewer={active??null}/>
-  <div className="demo-indicator"><span>{t(route==='/search'?'Live movie metadata':'Mock data · Local prototype')}</span></div>
+  <div className="demo-indicator"><span>{t(route==='/search'?'Live movie metadata':route==='/files'?'Local file inventory':'Mock data · Local prototype')}</span></div>
   {storageFailed&&<p className="demo-notice" role="alert">{t('Browser storage is unavailable. Changes will last only until this page closes.')}</p>}
   {notice&&<p className="demo-notice" role="status">{notice}</p>}
   {isProfiles?<section className="profile-screen">
    {route.startsWith('/profiles/edit/')&&editingViewer?<ProfileForm initial={editingViewer} onCancel={()=>go('/profiles')} onSave={(name,photo)=>{setState(current=>({...current,viewers:current.viewers.map(v=>v.id===editingViewer.id?{...v,name,photo}:v)}));go('/profiles')}}/>:route==='/profiles/new'&&state.viewers.length<12?<ProfileForm onCancel={()=>go('/profiles')} onSave={(name,photo)=>{const id='viewer-'+crypto.randomUUID();setState(current=>({...current,viewers:[...current.viewers,{id,name,photo,color:'#237eaa',favorites:[],watched:[]}],activeId:id}));go('/home')}}/>:<>
     <h1>{t('Who is watching?')}</h1><p>{t('Choose a viewer to explore the prototype.')}</p><div className={'profile-grid'+(managing?' managing':'')}>{state.viewers.map(v=><div className="profile-entry" key={v.id}><button className="profile-choice" onClick={()=>managing?go('/profiles/edit/'+v.id):selectViewer(v.id)}><ProfileAvatar viewer={v}/><span>{v.name}</span></button><button className="profile-edit" aria-label={t('Edit profile for {name}',{name:v.name})} onClick={()=>go('/profiles/edit/'+v.id)}><Pencil/></button></div>)}{state.viewers.length<12&&<a className="profile-choice add-profile" href="#/profiles/new"><span className="profile-avatar"><Icon name="plus"/></span><span>{t('Add profile')}</span></a>}</div><button className="manage-profiles secondary" onClick={()=>setManaging(value=>!value)}>{t(managing?'Done':'Manage profiles')}</button><p className="profile-disclaimer">{t('Demo profiles personalize this browser only. They are not accounts or access controls.')}</p><a className="demo-text-link" href="/settings">{t('Real settings')}</a>
    </>}
-  </section>:route==='/search'?<MovieSearch/>:!active?null:route==='/home'?<div className="demo-content">
+  </section>:route==='/search'?<MovieSearch/>:route==='/files'?<LibraryFiles/>:!active?null:route==='/home'?<div className="demo-content">
    <section className="media-section"><h1>{t('My media')}</h1><div className="library-tiles"><a href="#/movies" className="library-tile"><img src="/mock-art/wild-north-wide.svg" alt=""/><strong>{t('Movies')}</strong></a><a href="#/favorites" className="library-tile"><img src="/mock-art/deep-blue-wide.svg" alt=""/><strong>{t('Favorites')}</strong></a><a href="#/downloads" className="library-tile download-tile"><Icon name="download"/><strong>{t('Downloads')}</strong></a></div></section>
    {row('Continue watching',demoMovies.filter(m=>m.progress&&!active.watched.includes(m.id)),true)}
    {row('Latest movies',demoMovies)}
