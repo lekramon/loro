@@ -35,7 +35,7 @@ test('connection test reports real request success and localized failure, with s
   await page.getByLabel('TMDB API Read Access Token').fill('unsaved');
   await expect(page.getByRole('button',{name:'Test connection',exact:true})).toBeDisabled();
   await page.getByLabel('TMDB API Read Access Token').fill('');
-  await page.getByLabel('Language',{exact:true}).selectOption('pt-BR');
+  await page.getByRole('button', { name: 'Português (Brasil)', exact: true }).click();
   await page.route('**/api/v1/metadata/test', route => route.fulfill({status:503,json:{code:'metadata-authentication-failed',message:'Sanitized'}}));
   await page.getByRole('button',{name:'Testar conexão',exact:true}).click();
   await expect(page.getByText(/O TMDB rejeitou o token/)).toBeVisible();

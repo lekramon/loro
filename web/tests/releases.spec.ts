@@ -26,7 +26,7 @@ test('TMDB registration leads to release search with profile explanations and lo
   expect(searches[0].searchParams.get('movieId')).toBe('7'); expect(searches[0].searchParams.get('category')).toBe('2000'); await expect(page.getByRole('button', { name: 'Next releases', exact: true })).toBeDisabled();
   await expect(page.locator('.release-results').getByRole('button', { name: /download/i })).toHaveCount(0); await expect(page.locator('.persistent-sidebar')).toBeVisible();
   await page.getByRole('button', { name: 'Dark', exact: true }).click(); await page.screenshot({ path: 'test-results/release-search-dark.png', fullPage: true });
-  await page.getByLabel('Language', { exact: true }).selectOption('pt-BR'); await expect(page.getByRole('heading', { name: 'Lançamentos', exact: true })).toBeVisible(); await expect(page.locator('.release-card').nth(1)).toContainText('Fora do perfil');
+  await page.getByRole('button', { name: 'Português (Brasil)', exact: true }).click(); await expect(page.getByRole('heading', { name: 'Lançamentos', exact: true })).toBeVisible(); await expect(page.locator('.release-card').nth(1)).toContainText('Fora do perfil');
   await page.setViewportSize({ width: 390, height: 844 }); await page.getByRole('button', { name: 'Claro', exact: true }).click(); await page.evaluate(() => window.scrollTo(0, 0)); expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true); await page.screenshot({ path: 'test-results/release-search-mobile.png', fullPage: true });
 });
 

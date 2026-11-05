@@ -181,3 +181,9 @@ Invoke-RestMethod "$base/download-client/test" -Method Post -Headers @{ 'X-Pirat
 ```
 
 Live validation requires your own accessible qBittorrent WebUI credentials. Disposable HTTP simulators cover development without them.
+
+## PT/EN display toggle
+
+The shared header uses a rounded PT/EN selector: PT is Brazilian Portuguese and EN is US English. Click either segment or use Tab with Space/Enter. The active segment is inset, with contrast adapted to the theme. Display choice keeps its existing browser-local storage key and does not change the media profile. The sun/moon buttons retain their behavior.
+
+The combined preview with qBittorrent connection settings and this control is `bin/piratarr-language.exe`, Linux image `piratarr:language`. Restart with the same external data directory; the connection feature uses schema 7 and this presentation change adds no migration.

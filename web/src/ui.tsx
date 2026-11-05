@@ -66,6 +66,9 @@ export function InterfacePreferences() {
   const { t, theme, locale, setTheme, setLocale } = useUI();
   return <nav className="interface-preferences" aria-label={t('Interface preferences')}>
 <div className="theme-switch" role="group" aria-label={t('Theme')}>{(['light','dark'] as const).map(value=><button type="button" key={value} aria-label={t(value==='light'?'Light':'Dark')} title={t(value==='light'?'Light':'Dark')} aria-pressed={theme===value} onClick={()=>setTheme(value)}><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">{value==='light'?<><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></>:<path d="M21 13a9 9 0 0 1-10-10A9 9 0 1 0 21 13Z"/>}</svg></button>)}</div>
-    <div className="preference-control"><label htmlFor="interface-language">{t('Language')}</label><select id="interface-language" value={locale} onChange={event => setLocale(event.target.value as Locale)}><option value="en-US">English (US)</option><option value="pt-BR">Português (Brasil)</option></select></div>
+    <div className="language-switch" role="group" aria-label={t('Language')}>
+      <button type="button" lang="pt-BR" aria-label="Português (Brasil)" title="Português (Brasil)" aria-pressed={locale === 'pt-BR'} onClick={() => setLocale('pt-BR')}>PT</button>
+      <button type="button" lang="en-US" aria-label="English (US)" title="English (US)" aria-pressed={locale === 'en-US'} onClick={() => setLocale('en-US')}>EN</button>
+    </div>
   </nav>;
 }

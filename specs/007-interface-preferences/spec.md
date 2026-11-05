@@ -10,6 +10,7 @@ Users need a comfortable light or dark interface and complete UI copy in Brazili
 ## Behavior
 
 - Expose Theme and Language selectors on all application screens, including onboarding, settings editing, loading, and errors.
+- UI-006: Replace the language dropdown with the user's rounded PT/EN segmented control. PT selects pt-BR; EN selects en-US. Use equal segments in a compact pill, an inset selected segment, muted inactive text, and clear contrast in each theme. Both segments are native buttons with full native-language accessible names/tooltips and aria-pressed, inside a localized Language group. Preserve visible focus, Tab/Enter/Space operation, existing localStorage keys, browser defaults, document language and unfinished form values. Use this shared control in every header with identical settings/library geometry. Theme sun/moon controls keep their existing behavior. This presentation change adds no API, schema, runtime data migration or branding decision.
 - Offer light/dark and `pt-BR`/`en-US`. Apply changes immediately without navigation or losing an in-progress form.
 - Store these display preferences in browser localStorage, scoped to the application origin. They are per-browser preferences, not part of the shared media profile; no backend API or database migration is needed.
 - Without a saved preference, use the browser's dark-mode preference and select pt-BR when its primary language is Portuguese, otherwise en-US. Ignore invalid saved values. If browser storage is unavailable, keep the UI usable with in-memory preferences.
@@ -37,3 +38,7 @@ Verified on 2026-11-04:
 - `pnpm run build` passed with TypeScript checking; `pnpm run test:browser` passed all seven Chromium tests, including existing setup/edit journeys and four new interface scenarios. `go test ./...` and Windows/Linux x64 builds passed. No backend schema or wire contract changed.
 
 The first localization test run exposed labels that included select option text. The controls were corrected to use separate explicit labels, and the complete suite then passed. Linux runtime/container verification remains a separate foundation packaging task; these UI changes were verified in Chromium on Windows.
+
+## PT/EN control verification — 2026-11-05
+
+UI-006: production frontend build passes and all 26 browser journeys pass with the native language buttons. Space and Enter activate the focused segment; aria-pressed/document language and persisted selection agree. Existing tests prove form/audio preservation, browser defaults, blocked/invalid storage, no preference mutations, immediate localized feedback and equal library/settings header geometry. Reviewed the cropped EN control against the reference and light mobile/dark desktop headers; no horizontal overflow. New preview: bin/piratarr-language.exe, including the completed qBittorrent connection settings. Linux image packaging is recorded in ticket 02. No backend/API/schema behavior changed in this ticket.
