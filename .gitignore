@@ -1,0 +1,57 @@
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+secrets/
+
+# Application state and media (runtime data belongs outside this checkout)
+/data/
+/runtime/
+/config/
+/downloads/
+/media/
+/cache/
+/backups/
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+*.log
+
+# Go builds and test output; retain go.mod and go.sum
+/bin/
+/build/
+/dist/
+/tmp/
+*.exe
+*.test
+*.out
+/coverage/
+coverage.*
+
+# Frontend dependencies and generated assets; retain dependency lockfiles
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+playwright-report/
+test-results/
+
+# Python verification tooling
+__pycache__/
+*.py[cod]
+.venv/
+
+# Machine-specific editor and OS files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
