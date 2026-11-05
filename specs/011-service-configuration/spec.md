@@ -19,3 +19,15 @@ Use Jellyfin official home/library screenshots as design reference: https://jell
 - CFG-004: Setup/settings and preview have matching flat Jellyfin-inspired visual language at desktop/mobile in both themes; existing journeys remain usable.
 
 See [API contract](openapi.json) and [ticket](issues/01-service-configuration.md).
+
+
+## Connection test, live search and persistent navigation update
+
+Ticket 02 supersedes CFG-004's hidden drawer: remove top branding from setup/settings, live search and preview; keep a persistent left sidebar on desktop and an always-visible icon rail on mobile. Existing preview drawer remains an optional secondary mock-navigation aid.
+
+- CFG-005: GET `/api/v1/metadata/test` performs an uncached authenticated movie search against TMDB, using the saved effective credential with existing bounded retries/timeouts. Returns `{ "provider":"tmdb", "connected":true }` only after a valid provider response. No secret or remote payload returned. Missing/rejected credentials 503; unavailable 503; timeout 504; malformed 502; rate-limited 429 with Retry-After. Existing Host/Origin protections apply. No credential modification or onboarding required. Configured status continues to mean presence only.
+- CFG-006: A localized Test connection button tests the saved token, shows pending/success/actionable errors, and blocks concurrent save/test. Unsaved input explicitly requires saving first. Saving clears previous test feedback and says saved, not authenticated.
+- CFG-007: `/search` provides real movie metadata search through the existing backend, with localized search title/year controls, result cards/year/overview, pagination, loading/empty/errors and stale-cache indication. Images use local URLs and credits link to About. New searches clear old results; use interface locale; no browser/provider token or direct external calls. No registration, acquisition or playback added. Clear links distinguish live search from mock preview. The global preview search icon opens `/search`; filters inside the mock library and its secondary drawer search remain mock-only.
+- CFG-008: Persistent navigation is visible at desktop and mobile widths, with accessible links to preview, live search and configuration. No top Piratarr branding; existing theme/locale controls, mock flows and keyboard navigation preserved.
+
+[Ticket 02](issues/02-connection-test-and-navigation.md) records execution and evidence. Provider application authentication follows https://developer.themoviedb.org/docs/authentication-application .

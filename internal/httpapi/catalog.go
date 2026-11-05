@@ -20,7 +20,7 @@ func (h *Handler) catalogAPI(w http.ResponseWriter, r *http.Request) bool {
 	route := r.URL.Path
 	imageRoute := strings.HasPrefix(route, catalog.ImagePrefix)
 	detailRoute := strings.HasPrefix(route, "/api/v1/catalog/movies/")
-	if route != "/api/v1/about" && route != "/api/v1/metadata/status" && route != "/api/v1/metadata/search" && route != "/api/v1/catalog/movies" && !imageRoute && !detailRoute {
+	if route != "/api/v1/metadata/test" && route != "/api/v1/about" && route != "/api/v1/metadata/status" && route != "/api/v1/metadata/search" && route != "/api/v1/catalog/movies" && !imageRoute && !detailRoute {
 		return false
 	}
 	allow := "GET"
@@ -56,6 +56,14 @@ func (h *Handler) catalogAPI(w http.ResponseWriter, r *http.Request) bool {
 		return true
 	}
 	switch {
+	case route == "/api/v1/metadata/test":
+		// Bypass local search caches so success proves an authenticated request now.
+		_, err := h.catalog.Provider.Search(ctx, "Inception", 0, 1, "en-US")
+		if err != nil {
+			catalogFailure(w, err)
+			return true
+		}
+		writeJSON(w, 200, map[string]any{"provider": "tmdb", "connected": true})
 	case route == "/api/v1/metadata/search":
 		parameters, ok := catalogQuery(w, r, "query", "year", "page", "language")
 		if !ok {

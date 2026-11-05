@@ -53,7 +53,7 @@ test('theme and locale switch immediately without resetting setup, then persist 
   await expect(page.getByLabel('Idioma', { exact: true })).toHaveValue('pt-BR');
   await expect(page.getByRole('button', {name:'Claro',exact:true})).toHaveAttribute('aria-pressed','true');
   await expect(page.locator('html')).toHaveAttribute('lang', 'pt-BR');
-  await page.getByRole('link', { name: 'Piratarr', exact: true }).click();
+  await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Deixe este espaço do seu jeito' })).toBeVisible();
   await page.setViewportSize({ width: 375, height: 812 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);

@@ -38,3 +38,7 @@ The first add returns 201 and `created:true`; another add returns 200 and the sa
 - Use error `code` for UI messages. Authentication/unconfigured/unavailable errors are 503, provider timeout 504, rate-limit 429 with Retry-After, invalid provider data 502, missing title 404, invalid request 400/422 and missing setup 409. No upstream payloads or credentials are returned.
 - Display the provider attribution on metadata-derived screens and link to `/about`. The attribution API `/api/v1/about` provides notice, provider URL and local logo URL.
 - Automatic acquisition, file scanning, media association, profiles/accounts and playback are not implemented by this backend ticket.
+
+## Browser movie search and diagnostics
+
+Open `/search` for real metadata, or select Search movies in the persistent sidebar. Enter the title and optional year. Test the saved token with the Test connection button in setup/settings, or GET `/api/v1/metadata/test`; success means an uncached provider search completed now. Status still reports presence only. Neither operation returns the token.

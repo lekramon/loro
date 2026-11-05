@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { demoMovies, persistDemoState, readDemoState, type DemoMovie, type DemoViewer } from './mockData';
+import { SideNavigation } from './SideNavigation';
 import { InterfacePreferences, useUI } from './ui';
 import './mock.css';
 
@@ -11,7 +12,6 @@ const paths: Record<string,string> = {
  check:'m4 12 5 5L20 6', back:'m14 5-7 7 7 7', close:'m5 5 14 14M5 19 19 5', play:'m8 4 13 8-13 8V4Z', pause:'M8 4v16M16 4v16', settings:'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm0-6v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2', plus:'M12 4v16M4 12h16',
 };
 function Icon({ name }: {name:string}) {return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[name]??paths.movies}/></svg>}
-function Brand(){return <span className="demo-brand"><span className="demo-brand-mark">P</span>Piratarr</span>}
 function routeNow(){return window.location.hash.slice(1)||'/profiles'}
 const normalize=(s:string)=>s.normalize('NFD').replace(/\p{Diacritic}/gu,'').toLowerCase();
 function go(path:string){window.location.hash=path}
@@ -41,10 +41,11 @@ export function MockApp(){
  const portrait=(movie:DemoMovie,wide=false)=><a className={'media-card'+(wide?' landscape':'')} href={'#/movie/'+movie.id} key={movie.id} aria-label={movie.title+' ('+movie.year+')'}><div className="media-art"><img src={'/mock-art/'+movie.id+(wide?'-wide':'')+'.svg'} alt="" loading="lazy"/>{active?.watched.includes(movie.id)&&<span className="seen-badge" aria-label={t('Watched')}><Icon name="check"/></span>}<span className="card-hover"><Icon name="play"/></span>{wide&&movie.progress&&!active?.watched.includes(movie.id)&&<span className="media-progress"><span style={{width:movie.progress+'%'}}/></span>}</div><span className="media-title">{movie.title}</span><span className="media-year">{movie.year}</span></a>;
  const row=(heading:Parameters<typeof t>[0],movies:DemoMovie[],wide=false)=>movies.length>0?<section className="media-section"><h2><a href="#/movies">{t(heading)} <span aria-hidden="true">›</span></a></h2><div className={'media-row'+(wide?' wide-row':'')}>{movies.map(m=>portrait(m,wide))}</div></section>:null;
  return <main className="demo-app">
+  <SideNavigation />
   <header className="demo-header">
-   <div className="demo-header-start">{!isProfiles&&<button className="icon-button" aria-label={t('Open navigation')} onClick={()=>setDrawer(true)}><Icon name="menu"/></button>}<a href={isProfiles?'#/profiles':'#/home'} aria-label="Piratarr"><Brand/></a></div>
+   <div className="demo-header-start">{!isProfiles&&<button className="icon-button" aria-label={t('Open navigation')} onClick={()=>setDrawer(true)}><Icon name="menu"/></button>}</div>
    {!isProfiles&&<nav className="demo-tabs" aria-label={t('Main navigation')}><a href="#/home" aria-current={route==='/home'?'page':undefined}>{t('Home')}</a><a href="#/favorites" aria-current={route==='/favorites'?'page':undefined}>{t('Favorites')}</a></nav>}
-   <div className="demo-header-end">{!isProfiles&&<><a className="icon-button" href="#/search" aria-label={t('Search')}><Icon name="search"/></a><a className="viewer-chip" href="#/profile" aria-label={t('Viewer profile')+': '+active?.name}><span style={{background:active?.color}}>{active?.name.slice(0,1).toUpperCase()}</span><span className="viewer-name">{active?.name}</span></a></>}<InterfacePreferences/></div>
+   <div className="demo-header-end">{!isProfiles&&<><a className="icon-button" href="/search" aria-label={t('Search')}><Icon name="search"/></a><a className="viewer-chip" href="#/profile" aria-label={t('Viewer profile')+': '+active?.name}><span style={{background:active?.color}}>{active?.name.slice(0,1).toUpperCase()}</span><span className="viewer-name">{active?.name}</span></a></>}<InterfacePreferences/></div>
   </header>
   <div className="demo-indicator"><span>{t('Mock data · Local prototype')}</span><a href="/settings">{t('Real settings')}</a></div>
   {drawer&&<NavigationDrawer close={()=>setDrawer(false)}/>}
@@ -76,7 +77,7 @@ export function MockApp(){
 function NavigationDrawer({close}:{close:()=>void}){
  const {t}=useUI();const ref=useRef<HTMLDialogElement>(null);
  useEffect(()=>{ref.current?.showModal()},[]);
- return <dialog className="demo-drawer" ref={ref} onCancel={close} onClick={e=>{if(e.target===e.currentTarget)close()}} aria-label={t('Main navigation')}><div className="drawer-heading"><Brand/><button className="icon-button" onClick={close} aria-label={t('Close navigation')}><Icon name="close"/></button></div><nav>{(['home','movies','search','favorites','downloads','profile','profiles'] as const).map((route,i)=><a key={route} href={'#/'+route} onClick={close}><Icon name={['home','movies','search','heart','download','user','user'][i]}/>{t((['Home','Movies','Search','Favorites','Downloads','Viewer profile','Switch profile'] as const)[i])}</a>)}<a href="/settings"><Icon name="settings"/>{t('Real settings')}</a></nav><p>{t('Mock data · Local prototype')}</p></dialog>
+ return <dialog className="demo-drawer" ref={ref} onCancel={close} onClick={e=>{if(e.target===e.currentTarget)close()}} aria-label={t('Main navigation')}><div className="drawer-heading"><span>{t('Main navigation')}</span><button className="icon-button" onClick={close} aria-label={t('Close navigation')}><Icon name="close"/></button></div><nav>{(['home','movies','search','favorites','downloads','profile','profiles'] as const).map((route,i)=><a key={route} href={'#/'+route} onClick={close}><Icon name={['home','movies','search','heart','download','user','user'][i]}/>{t((['Home','Movies','Search','Favorites','Downloads','Viewer profile','Switch profile'] as const)[i])}</a>)}<a href="/settings"><Icon name="settings"/>{t('Real settings')}</a></nav><p>{t('Mock data · Local prototype')}</p></dialog>
 }
 function ProfileForm({initial='',onSave,onCancel}:{initial?:string;onSave:(name:string)=>void;onCancel:()=>void}){
  const {t}=useUI();const [name,setName]=useState(initial);return <form className="profile-form" onSubmit={e=>{e.preventDefault();if(name.trim())onSave(name.trim())}}><h2>{t(initial?'Edit profile':'Add profile')}</h2><label htmlFor="viewer-name">{t('Display name')}</label><input id="viewer-name" value={name} onChange={e=>setName(e.target.value)} maxLength={30} required autoComplete="off"/><div className="actions"><button type="submit" disabled={!name.trim()}>{t('Save profile')}</button><button type="button" className="secondary" onClick={onCancel}>{t('Cancel')}</button></div></form>

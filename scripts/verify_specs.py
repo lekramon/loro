@@ -57,7 +57,7 @@ def walk(node):
 
 
 operations = []
-for feature, expected in [("001-foundation", 8), ("002-catalog", 8)]:
+for feature, expected in [("001-foundation", 8), ("002-catalog", 9)]:
     contract = json.loads((ROOT / "specs" / feature / "openapi.json").read_text(encoding="utf-8"))
     check(contract.get("openapi") == "3.1.1", "Unexpected OpenAPI version")
     walk(contract)

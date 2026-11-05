@@ -29,3 +29,5 @@ Run `python scripts/verify_specs.py` to check local documentation links, tracker
 The real catalog API is described in the [catalog contract](specs/002-catalog/openapi.json) and [API examples](specs/002-catalog/api-examples.md). The `/preview` interface remains mock data while the new design is developed in v0. Provider credits are available at `/about`.
 
 Service configuration now includes a write-only TMDB token field in setup/settings. See [configuration and design update](specs/011-service-configuration/spec.md).
+
+Open `/search` for real TMDB movie metadata search. Setup/settings include Test connection for the saved credential; the preview still uses mock library records. Navigation stays visible on desktop and as an icon rail on mobile.

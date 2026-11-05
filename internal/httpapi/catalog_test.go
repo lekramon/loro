@@ -552,3 +552,48 @@ func TestMetadataCredentialMutationGuards(t *testing.T) {
 		t.Fatal(response.Code)
 	}
 }
+
+func TestMetadataConnectionUsesUncachedSavedCredential(t *testing.T) {
+	f := newCatalogFixture(t, false)
+	if r := f.request(t, "PUT", "/api/v1/metadata/credential", `{"token":"dummy-tested-token"}`); r.Code != 200 {
+		t.Fatal(r.Code)
+	}
+	if r := f.request(t, "GET", "/api/v1/metadata/search?query=Inception", ""); r.Code != 200 {
+		t.Fatal(r.Code)
+	}
+	for attempt := 0; attempt < 2; attempt++ {
+		before := f.searchCalls.Load()
+		r := f.request(t, "GET", "/api/v1/metadata/test", "")
+		if r.Code != 200 || !strings.Contains(r.Body.String(), `"connected":true`) || strings.Contains(r.Body.String(), "dummy-tested-token") {
+			t.Fatal(r.Code, r.Body.String())
+		}
+		if f.searchCalls.Load() != before+1 || f.seenToken.Load() != "Bearer dummy-tested-token" {
+			t.Fatal("connection test used cache or wrong credential")
+		}
+	}
+}
+func TestMetadataConnectionFailures(t *testing.T) {
+	for _, scenario := range []struct {
+		mode   int32
+		status int
+		code   string
+	}{{401, 503, "metadata-authentication-failed"}, {429, 429, "metadata-rate-limited"}, {503, 503, "metadata-unavailable"}, {1, 502, "metadata-invalid-response"}, {2, 504, "metadata-timeout"}} {
+		t.Run(scenario.code, func(t *testing.T) {
+			f := newCatalogFixture(t, false)
+			f.mode.Store(scenario.mode)
+			r := f.request(t, "GET", "/api/v1/metadata/test", "")
+			if r.Code != scenario.status || !strings.Contains(r.Body.String(), scenario.code) || strings.Contains(r.Body.String(), "dummy-read-token") {
+				t.Fatal(r.Code, r.Body.String())
+			}
+			if scenario.status == 429 && r.Header().Get("Retry-After") == "" {
+				t.Fatal("missing retry-after")
+			}
+		})
+	}
+	f := newCatalogFixture(t, false)
+	os.Remove(f.tokenFile)
+	r := f.request(t, "GET", "/api/v1/metadata/test", "")
+	if r.Code != 503 || !strings.Contains(r.Body.String(), "metadata-unconfigured") {
+		t.Fatal(r.Code, r.Body.String())
+	}
+}

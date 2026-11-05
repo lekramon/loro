@@ -1048,6 +1048,100 @@
           }
         }
       }
+    },
+    "/api/v1/metadata/test": {
+      "get": {
+        "operationId": "testMetadataConnection",
+        "summary": "Test saved credentials with a fresh movie search",
+        "tags": [
+          "Metadata"
+        ],
+        "responses": {
+          "403": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Fresh authenticated provider movie search succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "provider",
+                    "connected"
+                  ],
+                  "properties": {
+                    "provider": {
+                      "type": "string",
+                      "const": "tmdb"
+                    },
+                    "connected": {
+                      "type": "boolean",
+                      "const": true
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized provider failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Seconds before retry."
+              }
+            }
+          },
+          "502": {
+            "description": "Sanitized provider failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Sanitized provider failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
