@@ -113,7 +113,7 @@ Automatic monitoring, upgrades, TV series, and additional integrations follow in
 - Versioned JSON REST API under /api/v1; production frontend embedded in the Go executable.
 - Four durable workers by default, configurable from one through eight, with renewable leases and per-acquisition and destination coordination.
 - Three retries after the initial attempt for transient metadata/search failures; download polling every 15 seconds. Uncertain sends require reconciliation.
-- TMDB API v3 with a local user-provided token, cached metadata/images, and required attribution.
+- TMDB API v3 with application-level read credentials registered for Piratarr, cached metadata/images, and required attribution. Release packaging supplies the application credential; normal users are not asked for a personal TMDB token. Authentication stays in the Go backend, with direct TMDB access and no Piratarr cloud backend.
 - Native Torznab-compatible endpoint support, configured by the user, without another indexer manager dependency.
 - qBittorrent 5.x WebUI API with a dedicated category, acquisition tags, and torrent-identity reconciliation.
 - ffprobe video-stream validation before import.
@@ -155,7 +155,7 @@ Automatic monitoring, upgrades, TV series, and additional integrations follow in
 ### Implementation boundaries and dependencies
 
 - Concrete contracts for catalog, search, acquisitions, imports, and maintenance are specified per feature before implementation; foundation contracts are prepared now.
-- Real integration checks require a TMDB token, an accessible Torznab endpoint and credentials, qBittorrent access, and ffprobe. Simulators remove these as development prerequisites.
+- Real metadata integration checks require the application credential issued for Piratarr, provisioned by the maintainer. Each installation still needs its own accessible Torznab endpoint/credentials, qBittorrent access, and ffprobe. Simulators remove these as development prerequisites. Piratarr application registration/token provisioning remains outstanding; this specification does not claim registration has occurred.
 - The first release is local-only with no account management. Container publishing is restricted to host loopback; runtime state lives outside synchronized source folders.
 - Supported stable toolchains and application dependencies are pinned in manifests and lockfiles; see development documentation for build and verification commands.
 

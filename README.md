@@ -17,6 +17,8 @@ The selected stack is Go, React/TypeScript/Vite, and SQLite. The first supported
 
 The first usable milestone is manual movie acquisition through import. TMDB, a user-configured Torznab endpoint, and qBittorrent are the initial integrations. Credentials are not needed to develop against simulators.
 
+TMDB access will use application credentials registered for Piratarr, supplied by release packaging. Normal users will not need a personal TMDB token. Metadata integration and application credential provisioning are not implemented yet; see [maintainer registration instructions](docs/tmdb-registration.md).
+
 ## Development preparation verification
 
 Run `python scripts/verify_specs.py` to check local documentation links, tracker dependencies, acceptance references, and the foundation contract's local references. This is a repository consistency check, not an application test or a full OpenAPI validator.

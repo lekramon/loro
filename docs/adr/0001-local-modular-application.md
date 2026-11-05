@@ -18,7 +18,7 @@ Database and private directories use owner-only permissions on Linux and a user-
 
 ## Integrations
 
-- TMDB API v3 with a user-provided read token. Cache metadata and images locally; expose attribution in About and metadata-derived screens. Include TMDB's approved logo and required notice, with current terms checked before release.
+- TMDB API v3 with application-level read credentials registered for Piratarr, replacing the original per-user-token choice by user instruction on 2026-11-04. Normal onboarding does not request a personal TMDB token. The metadata adapter sends the Piratarr credential in its backend Authorization header. Release packaging supplies the registered application credential; development uses simulators until it is provisioned. Cache metadata and images locally; expose attribution in About and metadata-derived screens. Include TMDB's approved logo and required notice, with current terms checked before release. See [registration and provisioning](../tmdb-registration.md).
 - Native Torznab endpoint adapter: capabilities, movie search, pagination, and normalized candidates. No dependency on another indexer manager. An actual endpoint and credentials are user configuration, not a bundled tracker.
 - qBittorrent 5.x WebUI API: dedicated `piratarr` category and per-acquisition tags. External download engine remains outside the application.
 - `ffprobe` in the runtime image for video-stream validation. Development tests use a controlled process substitute plus one real fixture check when the binary is available.
