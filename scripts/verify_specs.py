@@ -18,7 +18,7 @@ def check(condition, message):
         errors.append(message)
 
 
-markdown = list(ROOT.rglob("*.md"))
+markdown = list(ROOT.glob("*.md")) + list((ROOT / "docs").rglob("*.md")) + list((ROOT / "specs").rglob("*.md"))
 for path in markdown:
     if ".git" in path.relative_to(ROOT).parts:
         continue

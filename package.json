@@ -1,0 +1,33 @@
+{
+  "name": "piratarr",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.25.0",
+  "engines": {
+    "node": "24.22.1"
+  },
+  "scripts": {
+    "dev": "vite --config web/vite.config.ts",
+    "build": "tsc --noEmit && vite build --config web/vite.config.ts",
+    "typecheck": "tsc --noEmit",
+    "check:api": "redocly lint specs/001-foundation/openapi.json --config redocly.yaml",
+    "test:go": "go test ./...",
+    "vet:go": "go vet ./...",
+    "test:browser": "playwright test"
+  },
+  "dependencies": {
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "@redocly/cli": "2.73.0",
+    "@types/node": "26.6.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.2.1",
+    "typescript": "7.0.2",
+    "vite": "8.3.5"
+  }
+}

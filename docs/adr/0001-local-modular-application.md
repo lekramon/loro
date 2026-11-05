@@ -27,7 +27,7 @@ These choices are documented in [TMDB guides](https://developer.themoviedb.org/d
 
 ## Consequences
 
-One local database and application process simplify installation. SQLite write coordination and migration discipline are explicit responsibilities. Native credentials and real integration checks are unnecessary for simulator-based development. Toolchain and dependency versions must be pinned to supported stable releases when scaffolding; no executable dependency versions are claimed by this documentation-only change.
+One local database and application process simplify installation. SQLite write coordination and migration discipline are explicit responsibilities. Native credentials and real integration checks are unnecessary for simulator-based development. Toolchains and dependencies are pinned in application manifests and lockfiles; development documentation lists verified build commands and platform limitations.
 
 ## Maintenance
 

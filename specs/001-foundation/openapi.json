@@ -3,7 +3,7 @@
   "info": {
     "title": "Piratarr Foundation API",
     "version": "0.1.0",
-    "description": "Proposed implementation contract, not a running API. Localhost-only. Mutations require X-Piratarr-Request: 1 and same-origin browser requests. Settings writes are atomic and revision-checked. Unknown API routes return structured 404; unsupported methods return structured 405 with Allow. All requests validate Host and browser Origin; no CORS permission headers are emitted."
+    "description": "Foundation API contract. The startup slice implements GET health, setup state, and pre-setup settings responses. POST setup and PUT settings are planned. Localhost-only with Host/Origin protection and structured JSON errors."
   },
   "servers": [
     {

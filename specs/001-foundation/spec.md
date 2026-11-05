@@ -1,11 +1,11 @@
 # Foundation: local application, onboarding, and persistent settings
 
 Label: ready-for-agent
-State: specified
+State: in-progress
 
 ## Problem Statement
 
-Piratarr needs a runnable local application that can initialize storage, explain startup failures, and preserve explicitly chosen profile and library settings. No application currently exists. Users must be able to configure this foundation without external credentials or network services.
+Piratarr needs a local application that can initialize storage, explain startup failures, and preserve explicitly chosen profile and library settings. Users must be able to configure this foundation without external credentials or network services.
 
 ## Solution
 
@@ -100,4 +100,4 @@ Catalog, scanning, credential configuration, metadata fetching, Torznab, downloa
 
 ## Further Notes
 
-The foundation feature is specified, not implemented. Its individual tickets are the executable units; dependencies and evidence live in those files. Go is not currently discoverable on the inspected development shell's PATH; verify/install a supported stable toolchain before scaffolding. Docker availability and daemon access must be checked when implementing distribution. No dependency installation is required to read or validate this specification.
+Startup is implemented. Onboarding, settings editing, and Docker distribution remain open tickets. Individual tickets carry execution state and evidence. A checksum-verified portable Go 1.27.3 toolchain is installed under the development account's local application data; see development documentation for PATH setup. Docker is installed but its Linux daemon was unavailable during native verification. Reading or validating specifications does not require running the application.

@@ -1,0 +1,9 @@
+extends:
+  - minimal
+rules:
+  operation-operationId: error
+  no-unresolved-refs: error
+  security-defined: off
+  operation-summary: off
+  # The application intentionally supports localhost only.
+  no-server-example.com: off

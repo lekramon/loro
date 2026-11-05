@@ -4,13 +4,14 @@ A local, self-hosted movie and TV library manager with original catalog, search,
 
 ## Current state
 
-This repository contains development specifications, architecture decisions, an OpenAPI contract, and local implementation tickets. It does not yet contain a runnable application.
+The first foundation slice implements persistent local startup, health/setup-status endpoints, and an embedded React preview. Setup saving and media workflows are subsequent tickets.
 
 - [Product and milestone scope](specs/000-product/spec.md)
 - [Foundation specification](specs/001-foundation/spec.md)
 - [Foundation API contract](specs/001-foundation/openapi.json)
 - [Implementation roadmap](specs/README.md)
 - [Agent instructions](AGENTS.md)
+- [Build, run, and verification commands](docs/development.md)
 
 The selected stack is Go, React/TypeScript/Vite, and SQLite. The first supported deployment is Linux x64 using Docker Compose, published only on the host loopback interface. Windows is a development environment.
 

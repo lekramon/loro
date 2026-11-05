@@ -4,7 +4,7 @@ Status: accepted product direction; published to the local Markdown tracker.
 Label: ready-for-agent
 State: specified
 
-This specification synthesizes the conversation and approved development-preparation plan. It defines product behavior and the first usable milestone; implementation proceeds through separately specified vertical slices. Architecture defaults are accepted in the ADRs. The user confirmed the testing strategy. Conversation and specifications use English. Application implementation has not started.
+This specification synthesizes the conversation and approved development-preparation plan. It defines product behavior and the first usable milestone; implementation proceeds through separately specified vertical slices. Architecture defaults are accepted in the ADRs. The user confirmed the testing strategy. Conversation and specifications use English. Foundation startup is implemented; onboarding, settings editing, and media workflows remain planned.
 
 ## Problem Statement
 
@@ -157,7 +157,7 @@ Automatic monitoring, upgrades, TV series, and additional integrations follow in
 - Concrete contracts for catalog, search, acquisitions, imports, and maintenance are specified per feature before implementation; foundation contracts are prepared now.
 - Real integration checks require a TMDB token, an accessible Torznab endpoint and credentials, qBittorrent access, and ffprobe. Simulators remove these as development prerequisites.
 - The first release is local-only with no account management. Container publishing is restricted to host loopback; runtime state lives outside synchronized source folders.
-- Pin supported stable toolchains and dependencies when scaffolding executable code. No app dependency lockfiles exist yet.
+- Supported stable toolchains and application dependencies are pinned in manifests and lockfiles; see development documentation for build and verification commands.
 
 ## Testing Decisions
 
@@ -224,4 +224,4 @@ These criteria will be expanded into scenarios and tasks for each slice before i
 - Later stories guide evolution; they do not make the first milestone depend on implementing the entire vision.
 - Local Markdown tracking, standard triage labels, and single-context domain documentation are configured. The user approved adapting plugin conventions to the existing specs layout.
 - This is an umbrella specification, not a single implementation ticket. Its ready label means product decisions are available to feature authors; only feature tickets authorize a bounded implementation slice.
-- Next, implement the specified foundation tickets, then write the catalog specification against the resulting interfaces. No application acceptance criteria have passed yet.
+- Foundation startup is implemented. First-run setup is next, followed by settings editing and distribution. Acquisition/import criteria are not yet satisfied.
