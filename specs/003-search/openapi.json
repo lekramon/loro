@@ -1,0 +1,497 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Piratarr source configuration API",
+    "version": "0.4.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080"
+    }
+  ],
+  "paths": {
+    "/api/v1/source": {
+      "get": {
+        "operationId": "getSourceConfiguration",
+        "summary": "Read public source configuration",
+        "responses": {
+          "200": {
+            "description": "Public configuration. Key omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Source"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized diagnostic; no key, endpoint or upstream body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized diagnostic; no key, endpoint or upstream body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized diagnostic; no key, endpoint or upstream body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized diagnostic; no key, endpoint or upstream body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "saveSourceConfiguration",
+        "summary": "Save source and write-only key",
+        "parameters": [
+          {
+            "name": "X-Piratarr-Request",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "1"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "revision",
+                  "name",
+                  "url"
+                ],
+                "properties": {
+                  "revision": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "url": {
+                    "type": "string",
+                    "maxLength": 2048
+                  },
+                  "apiKey": {
+                    "type": "string",
+                    "writeOnly": true,
+                    "maxLength": 1024
+                  },
+                  "clearApiKey": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "Sanitized diagnostic; no key, endpoint or upstream body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized diagnostic; no key, endpoint or upstream body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized diagnostic; no key, endpoint or upstream body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized diagnostic; no key, endpoint or upstream body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized diagnostic; no key, endpoint or upstream body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized diagnostic; no key, endpoint or upstream body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized diagnostic; no key, endpoint or upstream body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Public configuration. Key omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Source"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/source/test": {
+      "get": {
+        "operationId": "testSourceCapabilities",
+        "summary": "Fetch fresh Torznab capabilities",
+        "responses": {
+          "400": {
+            "description": "Sanitized diagnostic; no key, endpoint or upstream body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized diagnostic; no key, endpoint or upstream body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized diagnostic; no key, endpoint or upstream body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized diagnostic; no key, endpoint or upstream body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds before retry",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Sanitized diagnostic; no key, endpoint or upstream body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized diagnostic; no key, endpoint or upstream body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Sanitized diagnostic; no key, endpoint or upstream body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Fresh capabilities discovered; caps success does not prove search authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "connected",
+                    "sourceRevision",
+                    "capabilities",
+                    "checkedAt"
+                  ],
+                  "properties": {
+                    "connected": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "sourceRevision": {
+                      "type": "integer"
+                    },
+                    "capabilities": {
+                      "$ref": "#/components/schemas/Capabilities"
+                    },
+                    "checkedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized diagnostic; no key, endpoint or upstream body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "fieldErrors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "field",
+                "message"
+              ],
+              "properties": {
+                "field": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Capabilities": {
+        "type": "object",
+        "required": [
+          "search",
+          "movieSearch",
+          "maxLimit",
+          "defaultLimit",
+          "categories"
+        ],
+        "properties": {
+          "search": {
+            "type": "object",
+            "required": [
+              "available",
+              "supportedParams"
+            ],
+            "properties": {
+              "available": {
+                "type": "boolean"
+              },
+              "supportedParams": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "movieSearch": {
+            "type": "object",
+            "required": [
+              "available",
+              "supportedParams"
+            ],
+            "properties": {
+              "available": {
+                "type": "boolean"
+              },
+              "supportedParams": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "maxLimit": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "defaultLimit": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "name"
+              ],
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "name": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Source": {
+        "type": "object",
+        "required": [
+          "configured",
+          "revision",
+          "name",
+          "url",
+          "hasApiKey",
+          "capabilities",
+          "checkedAt"
+        ],
+        "properties": {
+          "configured": {
+            "type": "boolean"
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "hasApiKey": {
+            "type": "boolean"
+          },
+          "capabilities": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Capabilities"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "checkedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  }
+}

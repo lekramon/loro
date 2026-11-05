@@ -134,3 +134,11 @@ The service opens the file under the configured root and feeds that handle to ff
 Ignore clears any existing link and persists across scans; Reopen returns ignored entries to pending. Unchanged links survive scans/restart; changed size/mtime or an observed missing file clears verification. Rescanning also advances file revisions, so stale review forms must refresh. API catalog hasMedia reflects associated present files in the current root, based on last observations. This is not continuous integrity monitoring or content hashing.
 
 Schema 5 adds review fields to inventory while preserving existing records. Older binaries reject it; rollback requires restoring a matching pre-upgrade stopped-service data copy. No media file is moved, renamed or deleted by review.
+
+## Torznab source configuration
+
+After onboarding, open Settings → Release source. Enter a descriptive name, the exact Torznab API endpoint without query parameters, and its API key separately. Use an address reachable from the service: localhost in Docker refers to that container; host.docker.internal can address a host service on Docker Desktop. Saving only persists configuration. Test source makes a fresh t=caps request and stores normalized search/category capabilities on success. No Jackett/Prowlarr installation is required by the adapter; provide any compatible endpoint.
+
+Blank key preserves the saved value. To switch endpoints, provide a new key or explicitly select Clear saved API key. Keys never return through the API or persist in browser storage; they reside in private SQLite, so data-directory backups contain credentials. A capability endpoint may be public even when searches require authentication; success is not proof of search access. Last successful discovery remains visible with its timestamp after a test failure.
+
+Migration 6 adds the source configuration table while preserving existing catalog/settings/associations. Older binaries reject the upgraded DB; rollback requires a matching stopped-service data copy. No live endpoint is bundled. Ticket 02 adds manual release search and profile evaluation.

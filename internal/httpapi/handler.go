@@ -16,6 +16,7 @@ import (
 	"github.com/lekramon/piratarr/internal/catalog"
 	"github.com/lekramon/piratarr/internal/library"
 	"github.com/lekramon/piratarr/internal/settings"
+	"github.com/lekramon/piratarr/internal/sources"
 )
 
 type Storage interface {
@@ -30,6 +31,7 @@ type Storage interface {
 type Handler struct {
 	catalog     *catalog.Service
 	library     *library.Service
+	source      *sources.Service
 	defaultRoot string
 	storage     Storage
 	assets      fs.FS
@@ -52,6 +54,9 @@ func New(storage Storage, assets fs.FS, listen string, services ...*catalog.Serv
 	}
 	if repo, ok := storage.(library.Repository); ok {
 		handler.library = library.New(repo, storage.DataDirectory())
+	}
+	if repo, ok := storage.(sources.Repository); ok {
+		handler.source = sources.New(repo)
 	}
 	return handler
 }
@@ -134,6 +139,10 @@ func methodNotAllowed(w http.ResponseWriter, allow string) {
 }
 
 func (h *Handler) api(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "/api/v1/source" || r.URL.Path == "/api/v1/source/test" {
+		h.sourceAPI(w, r)
+		return
+	}
 	if r.URL.Path == "/api/v1/metadata/credential" {
 		h.metadataCredential(w, r)
 		return

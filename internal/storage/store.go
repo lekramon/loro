@@ -26,6 +26,7 @@ type Store struct {
 	catalogSchema   bool
 	inventorySchema bool
 	reviewSchema    bool
+	sourceSchema    bool
 	write           *sql.DB
 	read            *sql.DB
 	lock            *flock.Flock
@@ -48,6 +49,9 @@ func open(ctx context.Context, directory string, source fs.FS) (_ *Store, result
 		return nil, errors.New("another instance is using this data directory")
 	}
 	s := &Store{lock: lock, path: filepath.Join(directory, "piratarr.db")}
+	if _, err := fs.Stat(source, "migrations/00006_source.sql"); err == nil {
+		s.sourceSchema = true
+	}
 	if _, err := fs.Stat(source, "migrations/00005_file_review.sql"); err == nil {
 		s.reviewSchema = true
 	}
@@ -179,6 +183,9 @@ func (s *Store) Ready(ctx context.Context) error {
 	}
 	if s.reviewSchema {
 		query += " + (SELECT count(review_state) FROM library_files)"
+	}
+	if s.sourceSchema {
+		query += " + (SELECT count(*) FROM source_configuration)"
 	}
 	return s.read.QueryRowContext(ctx, query).Scan(&value)
 }

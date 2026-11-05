@@ -37,3 +37,5 @@ The library and settings now share one header/sidebar. Real metadata search live
 Library → Files now scans the configured movie folder into a persistent inventory. Repeat scans retain IDs, distinguish present/missing paths and preserve existing media. Movie identification and video verification follow in the next catalog ticket. See [inventory evidence](specs/002-catalog/inventory-verification.md).
 
 Files review now supports explicit movie association, ffprobe video checks, Ignore and Reopen. Associate from registered metadata or choose/register a TMDB result, confirm identity, then verify. Changed or missing observed files lose verification on scan. Docker includes ffprobe; native development requires ffprobe on PATH.
+
+Settings → Release source now saves a Torznab-compatible endpoint and write-only API key, with fresh capability discovery, classified errors and persisted last-success state. Manual release search and profile explanations follow in the next ticket. See [source specification](specs/003-search/spec.md).

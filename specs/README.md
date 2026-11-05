@@ -1,13 +1,13 @@
 # Specification roadmap
 
-Specifications and tickets are the local tracker. Foundation startup, onboarding, revision-safe settings editing and Linux Docker distribution are implemented; the catalog metadata/registration backend is implemented, while scanning and subsequent slices remain planned.
+Specifications and tickets are the local tracker. Foundation, movie metadata, file inventory and explicit association/review are implemented. Torznab source configuration/capability discovery is implemented; release search and acquisition/import remain subsequent slices.
 
 | Feature | Outcome | Depends on | Planning state |
 |---|---|---|---|
 | 000-product | Product constraints and milestone boundaries | none | Accepted direction |
 | 001-foundation | Healthy local application, onboarding, profile, persistence, embedded UI | none | Implemented and verified, including Linux Docker distribution |
-| 002-catalog | TMDB movie registration, cached metadata, existing-file scan and manual association | 001 | Metadata search/registration, local artwork cache and offline APIs implemented; metadata/registration, inventory and explicit ffprobe association/review implemented; real Movies presentation remains mocked |
-| 003-search | Native Torznab capabilities, manual search, normalized candidates and profile explanations | 002 | Deferred specification |
+| 002-catalog | TMDB movie registration, cached metadata, existing-file scan and manual association | 001 | Metadata/registration, local artwork/offline APIs, inventory and ffprobe association/review implemented; real Movies presentation remains mocked |
+| 003-search | Native Torznab capabilities, manual search, normalized candidates and profile explanations | 002 | Source configuration/capability discovery implemented and verified; manual search ticket 02 next |
 | 004-acquisition | qBittorrent submission, persistent workers, tracking and uncertain-send reconciliation | 003 | Deferred specification |
 | 005-import | ffprobe validation, hardlink/copy, review, replacement and restart recovery | 004 | Deferred specification |
 | 006-operations | Stopped-service backup/restore, installation and upgrade verification | 005 | Deferred specification |

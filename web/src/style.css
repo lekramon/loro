@@ -132,3 +132,7 @@ button,.button {font-size:13px;font-weight:600;border-radius:6px;gap:12px;}label
 @media(max-width:760px){.app-header {height:64px;min-height:64px;padding:0 14px;}.app-header .header-context {display:none;}.app-header .header-utilities {gap:10px;}.app-header .interface-preferences {gap:8px;}.app-header .interface-preferences select {width:122px;font-size:11px;}.library-navigation{padding:0 0 16px;}.library-navigation a{justify-content:center;padding:10px 0;}.library-nav-icon{font-size:23px;}.app-header .header-viewer{width:28px;height:28px;}.app-header .header-viewer .profile-avatar{width:28px;height:28px;}}
 
 .app-header .header-viewer{text-decoration:none;}.library-navigation .library-nav-icon{flex:none;}
+
+.source-settings{padding:16px 0 30px;margin:0 0 28px;border-bottom:1px solid var(--border);}.source-settings h3{font-size:20px;font-weight:400;}.source-settings fieldset{border:0;padding:0;max-width:650px;}.source-settings .source-clear{display:flex;align-items:center;gap:10px;margin:18px 0;font-size:13px;}.source-clear input{width:auto;margin:0;}.source-settings .hint{font-size:12px;color:var(--muted);line-height:1.6;}.source-capabilities{margin-top:24px;font-size:13px;}.source-capabilities h4{font-weight:400;font-size:16px;}.source-capabilities ul{padding-left:20px;}.source-settings .actions{flex-wrap:wrap;}
+
+.source-capabilities{overflow-wrap:anywhere;}
