@@ -114,8 +114,9 @@ def verify(image, port):
         assert json.loads(request("/api/v1/setup"))["completed"] is False
         html = request("/")
         assert b"<html" in html.lower()
-        assert b"<title>Louro</title>" in html
-        assert json.loads(request("/api/v1/about"))["name"] == "Louro"
+        assert "<title>Lôro</title>".encode("utf-8") in html
+        assert json.loads(request("/api/v1/about"))["name"] == "Lôro"
+        assert request("/brand/parrot.png").startswith(b"\x89PNG\r\n\x1a\n")
         assets = re.findall(rb'(?:src|href)="(/assets/[^" ]+)"', html)
         assert assets, "Embedded page references no production assets"
         for asset in assets:

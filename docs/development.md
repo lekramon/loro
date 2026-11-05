@@ -1,6 +1,6 @@
-# Louro development
+# Lôro development
 
-Current product name: Louro. Build the current executable with `go build -o bin/louro.exe ./cmd/louro` on Windows (or `-o bin/louro` on Linux). Existing command entry points and persisted Piratarr identifiers remain compatible; [the rename decision](adr/0003-louro-product-name.md) explains why. The current local distribution image is `louro:local`. Earlier slice artifacts below record their historical names.
+Current product name: Lôro. Build the current executable with `go build -o bin/louro.exe ./cmd/louro` on Windows (or `-o bin/louro` on Linux). Existing command entry points and persisted Piratarr identifiers remain compatible; [the rename decision](adr/0003-louro-product-name.md) explains why. The current local distribution image is `louro:local`. Earlier slice artifacts below record their historical names.
 
 ## Toolchain
 

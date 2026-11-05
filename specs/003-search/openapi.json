@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.1",
   "info": {
-    "title": "Louro source and release search API",
+    "title": "Lôro source and release search API",
     "version": "0.4.0"
   },
   "servers": [
@@ -336,7 +336,7 @@
       "get": {
         "operationId": "searchMovieReleases",
         "summary": "Search source releases for a registered movie",
-        "description": "Requires setup and tested source capabilities. Accepts no body. Candidate IDs are observations, not verified torrent identity or persisted selections. See REL-001\u2013REL-006 for evidence rules.",
+        "description": "Requires setup and tested source capabilities. Accepts no body. Candidate IDs are observations, not verified torrent identity or persisted selections. See REL-001–REL-006 for evidence rules.",
         "parameters": [
           {
             "name": "movieId",

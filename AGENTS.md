@@ -1,4 +1,4 @@
-# Louro
+# Lôro
 
 Use English for conversation, specifications, code, and project documentation.
 

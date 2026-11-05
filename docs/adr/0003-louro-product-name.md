@@ -15,3 +15,7 @@ This supersedes product-name references in ADR-0001/0002, while preserving their
 ## Consequences
 
 Existing launch commands, credentials, browser state and file ownership remain valid. Some technical identifiers retain the historical name intentionally. A later persistent-identity migration needs its own preservation, concurrency and rollback contract. UI/About changes can roll back without a schema change. External credential registration remains recorded under its actual historical application name until changed at the provider.
+
+## Display spelling and icon update — 2026-11-05
+
+The user selected **Lôro** as the display spelling and provided the parrot artwork. UTF-8 UI/API/descriptive names use Lôro; executable/image/package identifiers and environment names continue to use ASCII louro/LOURO. The supplied PNG is a local asset for browser/navigation/About, with viewer photos kept separate. Existing compatibility and storage decisions above still apply.

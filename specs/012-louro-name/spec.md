@@ -1,9 +1,11 @@
-# Louro product name
+# Lôro product identity
 
 Label: ready-for-agent
 State: done
 
 The user selected **Louro** on 2026-11-05, replacing the Piratarr product name.
+
+The user refined the displayed name to **Lôro** and supplied a parrot icon later on 2026-11-05. NAME-005 supersedes the displayed spelling in NAME-001; ASCII operational identifiers remain as specified in NAME-002–NAME-004.
 
 ## Contract
 
@@ -14,7 +16,13 @@ The user selected **Louro** on 2026-11-05, replacing the Piratarr product name.
 
 ## API compatibility
 
-Existing API routes, JSON fields, status codes and `X-Piratarr-Request` mutation header remain unchanged. Only the About response's descriptive name changes to Louro; [catalog API](../002-catalog/openapi.json) is authoritative. Branding is independent of persisted domain identity.
+Existing API routes, JSON fields, status codes and `X-Piratarr-Request` mutation header remain unchanged. The About response's descriptive name is now Lôro; [catalog API](../002-catalog/openapi.json) is authoritative. Branding is independent of persisted domain identity.
+
+## Name and supplied icon update
+
+- NAME-005: Display **Lôro** in document title, visible English/Portuguese UI text, About/API name, current documentation/OpenAPI titles and demo poster watermarks. Keep `louro` command/package/image identifiers, `LOURO_*` variables, ASCII User-Agent tokens and all compatibility/storage identifiers intact. UTF-8 display text must survive production build and API serialization.
+- NAME-006: Use the user's supplied PNG unchanged as the application icon. Commit it under `web/public/brand/parrot.png` and serve it locally for the browser favicon, the main Library navigation icon and the About identity. Preserve the artwork/background/aspect ratio; no external image calls, generation or reinterpretation. Keep viewer photos separate. Use explicit image dimensions and meaningful/decorative alt text according to context. The icon and name remain legible in both themes and the compact mobile rail, with existing shared header/PT-EN geometry preserved.
+- NAME-007: Verify source/copy identity, production asset delivery/MIME and browser loading, favicon reference, accented title and About API name, both locales/themes and mobile layout. Existing preference/profile journeys must pass; no API routes, schema or runtime migration is added.
 
 ## Verification
 

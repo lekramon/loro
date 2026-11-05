@@ -57,7 +57,7 @@ function App() {
           <p className="note">{t("Choose your preferences during setup. Movie metadata search is available from the sidebar.")}</p>
         </>}
     </section>
-    <footer>{t("Stored locally. No Louro cloud account.")} · <a href="/about">{t('About & credits')}</a></footer>
+    <footer>{t("Stored locally. No Lôro cloud account.")} · <a href="/about">{t('About & credits')}</a></footer>
     </div>
   </main>;
 }

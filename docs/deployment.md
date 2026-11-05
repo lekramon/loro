@@ -1,4 +1,4 @@
-# Louro deployment
+# Lôro deployment
 
 Build `louro:local` and use `/usr/local/bin/louro`; the image also provides the legacy `piratarr` executable. Compose deliberately retains its existing project/service identity and PIRATARR mount settings to preserve current deployments. Program bootstrap accepts preferred `LOURO_*` environment values with `PIRATARR_*` fallback. Existing default data folders, SQLite names, locks, browser storage and credentials remain in place. See [compatibility](adr/0003-louro-product-name.md).
 

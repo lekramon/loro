@@ -1,6 +1,6 @@
-# Louro
+# Lôro
 
-Louro is the local movie-management application formerly named Piratarr. The product rename preserves existing installations. See [name compatibility](docs/adr/0003-louro-product-name.md).
+Lôro is the local movie-management application formerly named Piratarr. The product rename preserves existing installations. See [name compatibility](docs/adr/0003-louro-product-name.md).
 
 A local, self-hosted movie and TV library manager with original catalog, search, acquisition, and import modules.
 
