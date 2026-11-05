@@ -20,3 +20,5 @@
 | Readiness | Whether storage and startup initialization permit handling API requests; independent of onboarding and external service health. |
 
 Release format describes a source or modifier such as WEB-DL or Remux. A file container is the file structure, such as MKV or MP4; it is independent of resolution and release format.
+
+A **viewer profile** is a person or viewing persona shown by the mock media interface. It is distinct from the acquisition **Profile** above. Prototype viewer names, favorites and watched markers are browser-local demonstration state, not authentication.

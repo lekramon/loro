@@ -75,3 +75,14 @@ Setup includes an in-app directory explorer that lists folders on the server, in
 The explicit **Create and use default folders** action creates `~/Videos/Piratarr/downloads` and `~/Videos/Piratarr/movies` on native installations; in containers it uses `/data/downloads` and `/data/movies`. Mount `/data` to durable host storage when using this option. This action does not save settings or complete onboarding. Existing folders and files are preserved; if creation fails after creating one directory, that empty directory may remain for retry.
 
 New setups accept every supported resolution, release format and container. Select a preferred resolution and remove unwanted options. Remux is a release format, while MKV and MP4 are containers. Existing saved resolution choices remain unchanged during migration. Format/container preferences are persisted now; candidate filtering will use these fields when manual search is implemented.
+
+
+## Mock media prototype
+
+Open `/preview` in the native app or Vite dev server. Setup is not required. Choose a demo viewer to explore home, movies, search, favorites, details, simulated playback/downloads, and viewer editing. The Library/Prototype link in real settings also opens it.
+
+Preview navigation uses hash routes, for example `/preview#/movies`. All catalog fixtures and original SVG artwork are bundled locally under `web/src/mockData.ts` and `web/public/mock-art/`. No external metadata, movie images, video or download requests are made.
+
+Viewer names, active viewer, favorites and watched flags persist under the browser-local key `piratarr.demo.viewers.v1`. Delete only that key in browser developer tools to reset the sample profiles. Download pause/resume state and the simulated player's controls are in-memory demonstrations and reset on reload. Blocked storage falls back to in-memory profiles.
+
+Real setup and settings remain at `/setup` and `/settings`. The prototype never saves configuration, scans files or submits downloads. Viewer profiles are distinct from acquisition quality preferences and provide no access control.

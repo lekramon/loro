@@ -4,6 +4,7 @@ import { api, type Settings, type SetupState } from './api';
 import { SetupWizard } from './SetupWizard';
 import { InterfacePreferences, UIProvider, useUI } from './ui';
 import './style.css';
+import { MockApp } from './MockApp';
 
 function App() {
   const { t, errorText, languageName } = useUI();
@@ -33,7 +34,7 @@ function App() {
       <a className="brand" href="/"><svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><defs><linearGradient id="brand-gradient" x2="1" y2="1"><stop stopColor="#ac7dff"/><stop offset="1" stopColor="#39c5df"/></linearGradient></defs><path fill="url(#brand-gradient)" d="M7 4h10a8 8 0 0 1 0 16h-4v8H7V4Zm6 6v4h4a2 2 0 0 0 0-4h-4Z"/></svg><strong>Piratarr</strong></a>
       <p className="nav-caption">{t('Workspace')}</p>
       <nav className="workspace-nav" aria-label={t('Workspace')}>
-        <span className="nav-item unavailable" aria-disabled="true"><span aria-hidden="true">▦</span>{t('Library')}<small>{t('Soon')}</small></span>
+        <a className="nav-item" href="/preview"><span aria-hidden="true">▦</span>{t('Library')}<small>{t('Prototype')}</small></a>
         <a className="nav-item selected" href={saved ? '/settings' : '/setup'} aria-current="page"><span aria-hidden="true">⚙</span>{t(saved ? 'Settings' : 'Setup')}</a>
       </nav>
       <div className="sidebar-status"><span className="status-dot" aria-hidden="true"/>{t('Local workspace')}<small>{t('Your library, locally.')}</small></div>
@@ -63,4 +64,4 @@ function App() {
   </main>;
 }
 
-createRoot(document.getElementById('root')!).render(<StrictMode><UIProvider><App /></UIProvider></StrictMode>);
+createRoot(document.getElementById('root')!).render(<StrictMode><UIProvider>{window.location.pathname === '/preview' ? <MockApp /> : <App />}</UIProvider></StrictMode>);

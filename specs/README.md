@@ -18,3 +18,5 @@ The first usable milestone requires 001–006. Subsequent milestones add automat
 - [Cinematic setup and quality preferences](008-cinematic-setup/spec.md).
 
 - [Jellyfin-inspired interface](009-jellyfin-interface/spec.md).
+
+- [Jellyfin-style mock media prototype](010-mock-media-prototype/spec.md).

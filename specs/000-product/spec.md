@@ -233,3 +233,8 @@ These criteria will be expanded into scenarios and tasks for each slice before i
 - Local Markdown tracking, standard triage labels, and single-context domain documentation are configured. The user approved adapting plugin conventions to the existing specs layout.
 - This is an umbrella specification, not a single implementation ticket. Its ready label means product decisions are available to feature authors; only feature tickets authorize a bounded implementation slice.
 - Foundation startup, first-run setup, and revision-safe settings editing are implemented with native/API/browser evidence recorded in their tickets. Next, implement distribution before specifying catalog behavior against the resulting interfaces. Product-level acquisition/import criteria are not yet satisfied.
+
+
+## Mock interface exploration
+
+The user authorized a populated Jellyfin-style prototype with viewer profiles and additional screens. See [mock media prototype](../010-mock-media-prototype/spec.md). This frontend-only slice is independently accessible at `/preview`; it does not claim that real catalog, playback, downloads or authenticated accounts are implemented. Viewer profiles in this slice are local demonstration identities and do not replace the saved acquisition quality profile. A production multi-user persistence/authentication design remains outside this mock implementation.
