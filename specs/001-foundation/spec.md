@@ -1,7 +1,7 @@
 # Foundation: local application, onboarding, and persistent settings
 
 Label: ready-for-agent
-State: in-progress
+State: done
 
 ## Problem Statement
 
@@ -29,7 +29,7 @@ Follow ADR-0001. Go packages separate HTTP handlers, foundation application serv
 ### Startup and persistence
 
 - Resolve bootstrap values from CLI, then environment, then defaults. Flags: `--data-dir`, `--listen`, `--workers`; environment: `PIRATARR_DATA_DIR`, `PIRATARR_LISTEN`, `PIRATARR_WORKERS`. Workers default to 4 and must be 1–8. Invalid supplied values fail startup.
-- Native listen default is `127.0.0.1:8080`. Reject non-loopback native binding unless explicit container mode `PIRATARR_CONTAINER=true`; Compose sets this and uses `0.0.0.0:8080` internally with host-loopback publishing.
+- Native listen default is `127.0.0.1:8080`. Reject non-loopback native binding unless explicit container mode `PIRATARR_CONTAINER=true`; Compose sets this and uses `0.0.0.0:8080` internally with host-loopback publishing by default. Optional `PIRATARR_PORT` changes both ports together.
 - Create only the data directory automatically. Acquire its exclusive OS lock before opening the database; fail a second instance without changing data. Graceful shutdown stops requests and closes storage/lock. Handle OS termination and a 15-second shutdown deadline.
 - Bootstrap database file is `piratarr.db` within the data directory. Migration 1 creates singleton application settings with revision, profile, directories, and UTC creation/update timestamps; no external credentials are part of this feature.
 - Keep settings in normalized SQL tables: singleton settings record, accepted resolution rows, ordered audio rows, and foreign-key constraints. Release format and container lists are stored as JSON columns on the singleton settings row. All settings edits are one transaction. SQL constraints plus service validation enforce singleton and uniqueness rules.
@@ -100,4 +100,4 @@ Catalog, scanning, credential configuration, metadata fetching, Torznab, downloa
 
 ## Further Notes
 
-Startup, onboarding, and revision-safe settings editing are implemented. Docker distribution remains an open ticket. Individual tickets carry execution state and evidence. A checksum-verified portable Go 1.27.3 toolchain is installed under the development account's local application data; see development documentation for PATH setup. Docker is installed but its Linux daemon was unavailable during native verification. Reading or validating specifications does not require running the application.
+Startup, onboarding, revision-safe settings editing and Linux Docker distribution are implemented and verified. Individual tickets carry execution state and evidence. A checksum-verified portable Go 1.27.3 toolchain is installed under the development account's local application data; see development documentation for PATH setup. Docker Linux runtime and filesystem checks subsequently passed in ticket 04. Reading or validating specifications does not require running the application.

@@ -68,3 +68,23 @@ State: implementation prepared; Linux acceptance verification pending.
 - Docker Desktop was started through its CLI and application executable, then exited before its Linux engine could answer. The user confirmed that Docker Desktop displays an error; its exact text is pending. WSL status reports version 2.5.9.0 and WSL 2 as default. No WSL reset, distribution deletion, system feature changes or Docker data cleanup was attempted.
 
 FND-014/FND-015 and Linux rechecks of FND-005/FND-007 are not marked passed. Keep this work on its feature branch until the image build and runtime acceptance checks succeed. See [deployment instructions](../../docs/deployment.md).
+
+
+## Ticket 04 completed verification — 2026-11-05
+
+Supersedes the pending preparation status above. FND-014 and FND-015 passed, with FND-005/FND-007 rechecked through the real Linux distribution.
+
+- Recovered Docker Desktop startup by preserving only its two stale zero-byte runtime socket objects in `%LOCALAPPDATA%/Docker/run.stale-20261105-004801` and allowing a fresh `run` directory. The engine now responds as Linux Docker 28.3.2. No factory reset, WSL reset, image/volume prune or persistent data removal was used. The targeted workaround is described in [Docker issue 554](https://github.com/docker/desktop-feedback/issues/554).
+- `docker build --platform linux/amd64 -t piratarr:local .` completed with pinned base digests, exact runtime packages and snapshot indexes. Frontend build/typecheck, full Go tests and Go vet ran successfully inside the build; Go checks run as UID/GID 10001 on the Linux filesystem.
+- Runtime image includes ffmpeg/ffprobe 7:7.1.5-0+deb13u1 and CA certificates 20250419+deb13u1. Snapshot download errors were handled with bounded whole-install retries, disabled HTTP pipelining and a BuildKit package cache; repository signatures and package checksums remain enforced. No TLS or signature checks are disabled.
+- Actual Docker context export contained 80 source/build-input files and no runtime data, credentials, node_modules, Git history or generated assets. Temporary audit output was verified and removed.
+- `python scripts/verify_container.py --image piratarr:local --port 18082` passed against the production image through Docker Compose with real disposable bind mounts and SQLite. Port 8080 was occupied by the user's native preview, which remained running; configurable `PIRATARR_PORT` matches the container listener and host-loopback publishing.
+- Verified actual UID 10001, private config mode 0700, ffprobe availability, CA bundle presence and absence of Node/npm. Embedded HTML, referenced JavaScript/CSS and local artwork were fetched successfully without a frontend server.
+- Readiness and the CLI healthcheck succeeded before and after onboarding. Missing/nested/equal/data-overlapping/read-only and symlink-alias roots were rejected without saving setup. A second instance was refused specifically by the data-directory lock.
+- Saved directories, profile, revision and timestamp remained identical after restart and force-recreation. Existing media checksum, mode and ownership remained identical; no temporary validation probes were left behind.
+- The verifier stopped its unique Compose project and removed only its verified temporary fixture. No acceptance containers remained running afterward.
+- Standalone/native Go tests, Go vet, healthcheck smoke verification, Compose configuration checks, Python syntax validation, documentation consistency and whitespace checks passed during this ticket. No real integration credentials were needed or accessed.
+
+Validated image ID: `sha256:61ef308cabcbe2027f33f04c89081663bc2b4668d87f91d53d0f110b566d1ef5` (Linux amd64). Environment: Docker Desktop Linux engine on Windows, including Linux-native build/test temporary files and disposable host bind mounts.
+
+The running native preview holds `bin/piratarr.exe` open, so the refreshed Windows executable is available side by side as `bin/piratarr-next.exe`; its readiness probe against the existing preview on port 8080 passed. The running process was not stopped or replaced.

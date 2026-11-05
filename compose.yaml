@@ -8,11 +8,11 @@ services:
     user: "${PIRATARR_UID:-10001}:${PIRATARR_GID:-10001}"
     environment:
       PIRATARR_CONTAINER: "true"
-      PIRATARR_LISTEN: "0.0.0.0:8080"
+      PIRATARR_LISTEN: "0.0.0.0:${PIRATARR_PORT:-8080}"
       PIRATARR_DATA_DIR: "/config"
       PIRATARR_WORKERS: "${PIRATARR_WORKERS:-4}"
     ports:
-      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:${PIRATARR_PORT:-8080}:${PIRATARR_PORT:-8080}"
     volumes:
       - type: bind
         source: "${PIRATARR_CONFIG_DIR:?Set PIRATARR_CONFIG_DIR to an existing absolute private directory}"

@@ -27,10 +27,14 @@ FROM debian:trixie-slim@sha256:f6b08b09a05725f9431502d3b5714f5c4576e82c1a84fa1de
 ARG DEBIAN_SNAPSHOT=20261104T000000Z
 ARG FFMPEG_VERSION=7:7.1.5-0+deb13u1
 ARG CA_CERTIFICATES_VERSION=20250419+deb13u1
-RUN rm -f /etc/apt/sources.list.d/debian.sources \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked rm -f /etc/apt/sources.list.d/debian.sources /etc/apt/apt.conf.d/docker-clean \
+ && printf 'Acquire::Retries "0";\nAcquire::http::Pipeline-Depth "0";\nAcquire::http::Timeout "25";\nAcquire::https::Timeout "25";\n' > /etc/apt/apt.conf.d/99piratarr-build \
  && printf 'deb [check-valid-until=no] http://snapshot.debian.org/archive/debian/%s trixie main\ndeb [check-valid-until=no] http://snapshot.debian.org/archive/debian-security/%s trixie-security main\n' "$DEBIAN_SNAPSHOT" "$DEBIAN_SNAPSHOT" > /etc/apt/sources.list \
- && apt-get -o Acquire::Retries=3 update \
- && apt-get install --yes --no-install-recommends "ca-certificates=$CA_CERTIFICATES_VERSION" "ffmpeg=$FFMPEG_VERSION" \
+ && apt-get -o APT::Update::Error-Mode=any update \
+ && for attempt in 1 2 3; do \
+      if apt-get install --yes --no-install-recommends "ca-certificates=$CA_CERTIFICATES_VERSION" "ffmpeg=$FFMPEG_VERSION"; then break; fi; \
+      if [ "$attempt" = 3 ]; then exit 1; fi; sleep 3; \
+    done \
  && rm -rf /var/lib/apt/lists/* \
  && groupadd --gid 10001 piratarr \
  && useradd --uid 10001 --gid 10001 --create-home --shell /usr/sbin/nologin piratarr \

@@ -27,7 +27,7 @@ docker compose up -d --wait
 docker compose ps
 ```
 
-Open `http://localhost:8080` for setup/settings or `/preview` for the mock media interface. Compose publishes only `127.0.0.1:8080`, with port 8080 inside the container. Arbitrary hostnames, remote access and host-port translation are outside the current Host validation contract.
+Open `http://localhost:8080` for setup/settings or `/preview` for the mock media interface. Compose publishes only host loopback, using port 8080 by default. Set `PIRATARR_PORT` to another unused port to change both the published and application listener port together. Arbitrary hostnames, remote access and different internal/external port translation remain outside the current Host validation contract.
 
 During setup use container paths, for example `/data/downloads` and `/data/media/movies`. The optional default-folder button creates `/data/downloads` and `/data/movies`; both remain inside the shared mount. Existing files are cataloged in place in later work; changing folder settings never moves media.
 
@@ -52,7 +52,7 @@ Use the name of the executable you built and the running service's port. The com
 
 ## Reproducible inputs and updates
 
-The Dockerfile pins Go 1.27.3, Node 24.22.1 and Debian trixie image manifest digests, pnpm 11.25.0, and frontend/Go lockfiles. Runtime packages use the Debian and Debian-security snapshots dated 2026-11-04, with exact CA certificate and ffmpeg versions. Snapshot repositories pin transitive apt resolution; signed repository verification remains enabled. Snapshot expiry checks are disabled only for these immutable historical indexes.
+The Dockerfile pins Go 1.27.3, Node 24.22.1 and Debian trixie image manifest digests, pnpm 11.25.0, and frontend/Go lockfiles. Runtime packages use the Debian and Debian-security snapshots dated 2026-11-04, with exact CA certificate and ffmpeg versions. Snapshot repositories pin transitive apt resolution; signed repository verification remains enabled. BuildKit caches downloaded apt archives, disables HTTP pipelining and retries failed whole installs at most three times to handle transient snapshot errors. Snapshot expiry checks are disabled only for these immutable historical indexes.
 
 Refresh base image digests, snapshot date and runtime package versions together when applying security updates, then rebuild and repeat verification. Pins are not an automatic security-update mechanism. Verify supported tags through the [official Go image](https://hub.docker.com/_/golang), [Debian package index](https://packages.debian.org/trixie/ffmpeg), and [Docker Compose service reference](https://docs.docker.com/reference/compose-file/services/).
 
@@ -66,12 +66,17 @@ Choose an empty output directory outside this checkout and inspect `/context` be
 
 ## Acceptance checks
 
-With the image built and Linux Docker running, keep local port 8080 free and run:
+With the image built and Linux Docker running, choose an unused local port and run:
 
 ```sh
-python scripts/verify_container.py --image piratarr:local
+python scripts/verify_container.py --image piratarr:local --port 18082
 ```
 
 This creates a unique temporary fixture and Compose project, prepares only those new directories using a short-lived root helper, and runs the service as 10001:10001. It verifies real HTTP setup, readiness before/after onboarding, inaccessible/overlapping/symlinked roots, second-instance exclusion, embedded assets, ffprobe, unchanged media content/mode, and settings across restart/recreation. It stops its own Compose project and removes only its verified temporary fixture. Existing user libraries are never mounted by this verifier.
 
 Backend tests also run inside the Docker build as UID/GID 10001. Docker Desktop on Windows must have its Linux engine running; filesystem behavior on Windows-backed mounts may differ from native Linux. Keep Windows native development checks alongside Linux container checks.
+
+
+## Docker Desktop stale-socket startup failure
+
+A startup error referring to `Docker/run/dockerInference` can prevent the Linux engine from starting even when WSL is available. A reported [Docker workaround](https://github.com/docker/desktop-feedback/issues/554) preserves the stopped application's transient socket directory under a different name and lets Docker recreate it. This development environment recovered that way on 2026-11-05, preserving all images, volumes and persistent data. Inspect the directory first and limit any recovery to verified transient runtime objects; no factory reset was needed here.

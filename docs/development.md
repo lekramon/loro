@@ -36,7 +36,7 @@ Bootstrap flags override environment variables:
 | `--listen` | `PIRATARR_LISTEN` | `127.0.0.1:8080` |
 | `--workers` | `PIRATARR_WORKERS` | 4 (validated, workers not implemented yet) |
 
-`PIRATARR_CONTAINER=true` permits non-loopback binding and changes the default data root to `/config`. Only enable it in an isolated container with a host-loopback-only published port. Container packaging is ticket 04.
+`PIRATARR_CONTAINER=true` permits non-loopback binding and changes the default data root to `/config`. Only enable it in an isolated container with a host-loopback-only published port. Container packaging is implemented and verified in ticket 04; see the deployment guide.
 
 For frontend development, keep the native backend running and run `pnpm dev` in another terminal. Open `http://127.0.0.1:5173`. The loopback Vite server proxies API requests to the backend at port 8080, rewriting browser Origin only in development. Production uses one same-origin endpoint.
 
@@ -65,7 +65,7 @@ go build -o bin/piratarr-linux-amd64 ./cmd/piratarr
 Remove-Item Env:GOOS, Env:GOARCH, Env:CGO_ENABLED
 ```
 
-Cross-compilation does not substitute for Linux runtime and filesystem tests. Run those when the Docker Linux daemon is available; the initial development environment has Docker installed but its daemon stopped.
+Cross-compilation does not substitute for Linux runtime and filesystem tests. Ticket 04 verified the Linux container build, non-root backend tests and disposable Compose acceptance suite; rerun the deployment checks when packaging or filesystem behavior changes.
 
 
 ## Setup folders and quality
@@ -90,4 +90,4 @@ Real setup and settings remain at `/setup` and `/settings`. The prototype never 
 
 ## Container distribution
 
-See [Linux deployment](deployment.md) for pinned builds, local mounts, healthcheck and disposable container verification. Packaging verification remains pending until the Docker Linux engine is available.
+See [Linux deployment](deployment.md) for pinned builds, local mounts, healthcheck and disposable container verification. Packaging and Linux runtime verification passed in foundation ticket 04.

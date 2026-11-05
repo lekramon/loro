@@ -1,13 +1,14 @@
 """Verify the Linux distribution through Compose, HTTP and disposable bind mounts.
 
 Build the image first: docker compose build (or docker build -t piratarr:local .).
-Requires a running Linux Docker engine and an unused loopback port 8080.
+Requires a running Linux Docker engine and an unused loopback port (--port).
 Only fresh temporary directories are initialized; existing user media is untouched.
 """
 import argparse
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import socket
@@ -57,12 +58,14 @@ def ready():
     raise RuntimeError("Container readiness did not succeed within 60 seconds")
 
 
-def verify(image):
+def verify(image, port):
+    global BASE
+    BASE = f"http://127.0.0.1:{port}"
     info = command(["docker", "info", "--format", "{{.OSType}}"], timeout=20).stdout.strip()
     assert info == "linux", "A Linux Docker engine is required"
     # Fail before starting Compose if another local application owns this port.
     with socket.socket() as probe:
-        probe.bind(("127.0.0.1", 8080))
+        probe.bind(("127.0.0.1", port))
     temporary_parent = Path(tempfile.gettempdir()).resolve()
     fixture = Path(tempfile.mkdtemp(prefix="piratarr-container-", dir=temporary_parent)).resolve()
     assert fixture.parent == temporary_parent and fixture.name.startswith("piratarr-container-")
@@ -70,7 +73,7 @@ def verify(image):
     data = fixture / "data"
     config.mkdir()
     data.mkdir()
-    (data / "downloads").mkdir()
+    (data / "downloads" / "nested").mkdir(parents=True)
     (data / "media" / "movies").mkdir(parents=True)
     (data / "readonly").mkdir()
     sentinel = data / "media" / "movies" / "existing.mkv"
@@ -78,7 +81,7 @@ def verify(image):
     fingerprint = hashlib.sha256(sentinel.read_bytes()).hexdigest()
     project = "piratarr-check-" + uuid.uuid4().hex[:10]
     environment = os.environ.copy()
-    environment.update(PIRATARR_CONFIG_DIR=str(config), PIRATARR_STORAGE_DIR=str(data), PIRATARR_UID="10001", PIRATARR_GID="10001", PIRATARR_WORKERS="4")
+    environment.update(PIRATARR_CONFIG_DIR=str(config), PIRATARR_STORAGE_DIR=str(data), PIRATARR_UID="10001", PIRATARR_GID="10001", PIRATARR_WORKERS="4", PIRATARR_PORT=str(port))
     override = fixture / "override.json"
     override.write_text(json.dumps({"services": {"piratarr": {"image": image, "restart": "no"}}}), encoding="utf-8")
     compose = ["docker", "compose", "-p", project, "-f", str(ROOT / "compose.yaml"), "-f", str(override)]
@@ -90,6 +93,7 @@ def verify(image):
         service = resolved["services"]["piratarr"]
         assert service["user"] == "10001:10001"
         assert all(port.get("host_ip") == "127.0.0.1" for port in service["ports"])
+        assert all(item["target"] == port and int(item["published"]) == port for item in service["ports"])
         assert len(service["volumes"]) == 2
         started = True
         command(compose + ["up", "--detach", "--no-build", "--wait", "--wait-timeout", "60"], env=environment)
@@ -107,7 +111,13 @@ def verify(image):
         execute("sh", "-ec", "! command -v node; ! command -v npm; test -s /etc/ssl/certs/ca-certificates.crt")
         execute("/usr/local/bin/piratarr", "healthcheck")
         assert json.loads(request("/api/v1/setup"))["completed"] is False
-        assert b"<html" in request("/").lower()
+        html = request("/")
+        assert b"<html" in html.lower()
+        assets = re.findall(rb'(?:src|href)="(/assets/[^" ]+)"', html)
+        assert assets, "Embedded page references no production assets"
+        for asset in assets:
+            assert len(request(asset.decode())) > 0
+        assert b"<html" in request("/preview").lower()
         assert b"<svg" in request("/mock-art/orbit.svg")
         payload = {"directories": {"downloadDirectory": "/data/downloads", "movieDirectory": "/data/media/movies"}, "profile": {"acceptedResolutions": ["720p", "1080p"], "preferredResolution": "1080p", "audioPreferences": ["pt", "original"], "acceptedFormats": ["remux", "web-dl"], "acceptedContainers": ["mkv"]}}
         for invalid in ["/data/downloads", "/data/downloads/nested", "/config", "/data/readonly"]:
@@ -121,7 +131,8 @@ def verify(image):
         saved = json.loads(request("/api/v1/setup", payload, expected=201))
         assert saved["revision"] == 1
         execute("/usr/local/bin/piratarr", "healthcheck")
-        execute("/usr/local/bin/piratarr", "--data-dir", "/config", "--listen", "0.0.0.0:8082", success=False)
+        exclusion = command(["docker", "exec", container, "/usr/local/bin/piratarr", "--data-dir", "/config", "--listen", "0.0.0.0:8082"], allow_failure=True)
+        assert exclusion.returncode != 0 and "another instance" in exclusion.stderr, "Second instance was not refused by the data-directory lock"
         assert json.loads(request("/api/v1/settings")) == saved
         command(compose + ["restart", "piratarr"], env=environment)
         ready()
@@ -133,7 +144,6 @@ def verify(image):
         assert execute("stat", "-c", "%a:%u:%g", "/data/media/movies/existing.mkv") == mode_before
         assert hashlib.sha256(sentinel.read_bytes()).hexdigest() == fingerprint
         assert not list(data.rglob(".piratarr-probe-*"))
-        print("PASS: Linux non-root Compose, embedded UI, ffprobe, health before/after setup, path validation, exclusion, restart/recreation persistence, unchanged media")
     finally:
         if started:
             cleanup = command(compose + ["down", "--timeout", "20"], env=environment, allow_failure=True)
@@ -146,10 +156,14 @@ def verify(image):
             # Reclaim only this disposable fixture, without following symlinks.
             command(["docker", "run", "--rm", "--user", "0:0", "--entrypoint", "sh", "--mount", f"type=bind,source={fixture},target=/fixture", image, "-ec", f"chown -hR {os.getuid()}:{os.getgid()} /fixture"])
         shutil.rmtree(fixture)
+    print("PASS: Linux non-root Compose, embedded UI, ffprobe, health before/after setup, path validation, exclusion, restart/recreation persistence, unchanged media and fixture cleanup")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--image", default="piratarr:local")
+    parser.add_argument("--port", type=int, default=8080)
     options = parser.parse_args()
-    verify(options.image)
+    if not 1 <= options.port <= 65535:
+        parser.error("--port must be between 1 and 65535")
+    verify(options.image, options.port)

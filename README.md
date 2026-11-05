@@ -4,7 +4,7 @@ A local, self-hosted movie and TV library manager with original catalog, search,
 
 ## Current state
 
-The foundation implements a local Go service, persistent SQLite startup, health endpoints, and a first-run setup wizard. Users can choose and edit directories, accepted/preferred resolutions, and ranked audio preferences. Saves persist across restart, and revision conflicts prevent one tab from overwriting another. Container packaging, catalog, search, and acquisition are subsequent tickets.
+The foundation implements a local Go service, persistent SQLite startup, health endpoints, and a first-run setup wizard. Users can choose and edit directories, accepted/preferred resolutions, and ranked audio preferences. Saves persist across restart, and revision conflicts prevent one tab from overwriting another. Linux Docker Compose distribution is verified, with non-root execution, a bounded healthcheck, local mounts and settings persistence across recreation. Catalog, search and acquisition remain subsequent slices.
 
 The interface supports light/dark themes and English (US)/Português (Brasil), selectable in the header. Display preferences are saved in the browser and do not change movie audio preferences. On first visit, language and theme follow browser defaults.
 
@@ -14,6 +14,7 @@ The interface supports light/dark themes and English (US)/Português (Brasil), s
 - [Implementation roadmap](specs/README.md)
 - [Agent instructions](AGENTS.md)
 - [Build, run, and verification commands](docs/development.md)
+- [Linux Docker Compose deployment](docs/deployment.md)
 
 The selected stack is Go, React/TypeScript/Vite, and SQLite. The first supported deployment is Linux x64 using Docker Compose, published only on the host loopback interface. Windows is a development environment.
 

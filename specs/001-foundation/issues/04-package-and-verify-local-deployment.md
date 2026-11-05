@@ -1,7 +1,7 @@
 # 04 — Run the foundation in Linux Docker Compose
 
 Label: ready-for-agent
-State: in-progress
+State: done
 Blocked by: specs/001-foundation/issues/03-edit-persistent-settings.md
 
 ## Outcome
@@ -22,7 +22,7 @@ Cover FND-014 and FND-015, and recheck FND-005/FND-007 in Linux. Prove assets wo
 
 ## Verification
 
-Implementation prepared. Native healthcheck tests, full Go tests/vet, standalone Compose configuration validation and native readiness smoke check passed. Linux image build/runtime checks remain pending because Docker Desktop exits with an error before its engine responds. See [preparation evidence](../verification.md).
+Completed on 2026-11-05. Pinned Linux image build, non-root Go tests/vet, actual build-context audit and the full disposable Compose acceptance suite passed. Coverage includes FND-014/FND-015 and Linux rechecks of FND-005/FND-007. Settings persisted across restart and recreation, with original media unchanged. See [completed verification evidence](../verification.md).
 
 ## Comments
 

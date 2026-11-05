@@ -4,7 +4,7 @@ Status: accepted product direction; published to the local Markdown tracker.
 Label: ready-for-agent
 State: specified
 
-This specification synthesizes the conversation and approved development-preparation plan. It defines product behavior and the first usable milestone; implementation proceeds through separately specified vertical slices. Architecture defaults are accepted in the ADRs. The user confirmed the testing strategy. Conversation and specifications use English. Foundation startup, first-run setup, and revision-safe settings editing are implemented; distribution and media workflows remain planned.
+This specification synthesizes the conversation and approved development-preparation plan. It defines product behavior and the first usable milestone; implementation proceeds through separately specified vertical slices. Architecture defaults are accepted in the ADRs. The user confirmed the testing strategy. Conversation and specifications use English. Foundation startup, first-run setup, revision-safe settings editing and Linux Docker distribution are implemented; media workflows remain planned.
 
 ## Problem Statement
 
@@ -232,7 +232,7 @@ These criteria will be expanded into scenarios and tasks for each slice before i
 - Later stories guide evolution; they do not make the first milestone depend on implementing the entire vision.
 - Local Markdown tracking, standard triage labels, and single-context domain documentation are configured. The user approved adapting plugin conventions to the existing specs layout.
 - This is an umbrella specification, not a single implementation ticket. Its ready label means product decisions are available to feature authors; only feature tickets authorize a bounded implementation slice.
-- Foundation startup, first-run setup, and revision-safe settings editing are implemented with native/API/browser evidence recorded in their tickets. Next, implement distribution before specifying catalog behavior against the resulting interfaces. Product-level acquisition/import criteria are not yet satisfied.
+- Foundation startup, first-run setup, and revision-safe settings editing are implemented with native/API/browser evidence recorded in their tickets. Linux Docker distribution is now verified; next specify catalog behavior against the resulting interfaces. Product-level acquisition/import criteria are not yet satisfied.
 
 
 ## Mock interface exploration
