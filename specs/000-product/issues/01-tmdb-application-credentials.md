@@ -23,3 +23,5 @@ Replace the per-user TMDB token requirement with application credentials registe
 ## Comments
 
 2026-11-04: User explicitly selected credentials registered for Piratarr. Claimed on `feature/tmdb-application-credentials`. This ticket updates the metadata design only; it does not claim application registration or implement catalog queries.
+
+2026-11-04: Follow-up on `feature/tmdb-credential-provisioning`: user supplied the application credential, saved outside Git with user-only access. A direct request to TMDB's configuration endpoint returned HTTP 200. Recorded provisioning status and private-file location without credential values. Runtime adapter/release wiring remains pending. Documentation consistency checks passed; application code is unchanged.

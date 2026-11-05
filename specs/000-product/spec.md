@@ -155,7 +155,7 @@ Automatic monitoring, upgrades, TV series, and additional integrations follow in
 ### Implementation boundaries and dependencies
 
 - Concrete contracts for catalog, search, acquisitions, imports, and maintenance are specified per feature before implementation; foundation contracts are prepared now.
-- Real metadata integration checks require the application credential issued for Piratarr, provisioned by the maintainer. Each installation still needs its own accessible Torznab endpoint/credentials, qBittorrent access, and ffprobe. Simulators remove these as development prerequisites. Piratarr application registration/token provisioning remains outstanding; this specification does not claim registration has occurred.
+- Real metadata integration checks require the application credential issued for Piratarr, provisioned by the maintainer. The user supplied the development credential and live authentication was verified on 2026-11-04; its private local location is documented in the maintainer registration instructions. Runtime adapter wiring and release provisioning remain pending. Each installation still needs its own accessible Torznab endpoint/credentials, qBittorrent access, and ffprobe. Simulators remove these as development prerequisites.
 - The first release is local-only with no account management. Container publishing is restricted to host loopback; runtime state lives outside synchronized source folders.
 - Supported stable toolchains and application dependencies are pinned in manifests and lockfiles; see development documentation for build and verification commands.
 

@@ -22,8 +22,9 @@ When metadata integration ships, use an approved TMDB logo and the required attr
 
 ## Current state and verification
 
-- Decision and product documentation updated; registration and real credential provisioning remain outstanding.
-- No credential has been created, retrieved, embedded, or tested by this documentation change.
+- The user supplied the Piratarr application read credential on 2026-11-04. Authentication against TMDB's configuration endpoint succeeded with HTTP 200.
+- The development credential is stored in a user-only private file at `%LOCALAPPDATA%/Piratarr/credentials/tmdb-read-token`, outside the repository. No credential value is recorded here or in Git. Read the file directly when implementing an explicitly authorized live check; never print it.
+- This provisioning does not wire the credential into the current foundation. The catalog adapter must implement a private-file configuration hook, and release packaging still needs its application credential injection mechanism.
 - The current foundation has no TMDB adapter or credential input, so no runtime or database change is required.
 - Development and the next foundation ticket can continue without a TMDB token.
 
