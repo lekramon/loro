@@ -19,9 +19,15 @@ RUN go mod download
 COPY cmd ./cmd
 COPY internal ./internal
 COPY --from=frontend /src/internal/webui/dist ./internal/webui/dist
-RUN mkdir -p /out /tmp/go-build-cache && chown 10001:10001 /out /tmp/go-build-cache
+RUN mkdir -p /out /tmp/go-build-cache && chown 10001:10001 /out /tmp/go-build-cache /src/internal/tmdb/release-credential.txt
 USER 10001:10001
-RUN go test ./... && go vet ./... && go build -trimpath -ldflags="-s -w" -o /out/piratarr ./cmd/piratarr
+ARG TMDB_BUILD_REVISION=none
+RUN --mount=type=secret,id=tmdb_token,uid=10001,gid=10001,mode=0400 \
+    : "$TMDB_BUILD_REVISION" \
+ && if [ -s /run/secrets/tmdb_token ]; then cp /run/secrets/tmdb_token internal/tmdb/release-credential.txt; fi \
+ && go test ./... && go vet ./... \
+ && go build -trimpath -ldflags="-s -w" -o /out/piratarr ./cmd/piratarr \
+ && : > internal/tmdb/release-credential.txt
 
 FROM debian:trixie-slim@sha256:f6b08b09a05725f9431502d3b5714f5c4576e82c1a84fa1debe0c24a7e0c3ec4 AS runtime
 ARG DEBIAN_SNAPSHOT=20261104T000000Z

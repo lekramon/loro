@@ -4,7 +4,7 @@ Status: accepted product direction; published to the local Markdown tracker.
 Label: ready-for-agent
 State: specified
 
-This specification synthesizes the conversation and approved development-preparation plan. It defines product behavior and the first usable milestone; implementation proceeds through separately specified vertical slices. Architecture defaults are accepted in the ADRs. The user confirmed the testing strategy. Conversation and specifications use English. Foundation startup, first-run setup, revision-safe settings editing and Linux Docker distribution are implemented; media workflows remain planned.
+This specification synthesizes the conversation and approved development-preparation plan. It defines product behavior and the first usable milestone; implementation proceeds through separately specified vertical slices. Architecture defaults are accepted in the ADRs. The user confirmed the testing strategy. Conversation and specifications use English. Foundation startup, first-run setup, revision-safe settings editing and Linux Docker distribution are implemented; the movie metadata/registration backend is implemented, while file scanning, acquisitions and imports remain planned.
 
 ## Problem Statement
 
@@ -163,7 +163,7 @@ Automatic monitoring, upgrades, TV series, and additional integrations follow in
 ### Implementation boundaries and dependencies
 
 - Concrete contracts for catalog, search, acquisitions, imports, and maintenance are specified per feature before implementation; foundation contracts are prepared now.
-- Real metadata integration checks require the application credential issued for Piratarr, provisioned by the maintainer. The user supplied the development credential and live authentication was verified on 2026-11-04; its private local location is documented in the maintainer registration instructions. Runtime adapter wiring and release provisioning remain pending. Each installation still needs its own accessible Torznab endpoint/credentials, qBittorrent access, and ffprobe. Simulators remove these as development prerequisites.
+- Real metadata integration checks require the application credential issued for Piratarr, provisioned by the maintainer. The user supplied the development credential and live authentication was verified on 2026-11-04; its private local location is documented in the maintainer registration instructions. The metadata adapter, private-file hook and optional BuildKit release provisioning hook are implemented; source-only live queries require the private credential file to be available. Each installation still needs its own accessible Torznab endpoint/credentials, qBittorrent access, and ffprobe. Simulators remove these as development prerequisites.
 - The first release is local-only with no account management. Container publishing is restricted to host loopback; runtime state lives outside synchronized source folders.
 - Supported stable toolchains and application dependencies are pinned in manifests and lockfiles; see development documentation for build and verification commands.
 
@@ -232,7 +232,7 @@ These criteria will be expanded into scenarios and tasks for each slice before i
 - Later stories guide evolution; they do not make the first milestone depend on implementing the entire vision.
 - Local Markdown tracking, standard triage labels, and single-context domain documentation are configured. The user approved adapting plugin conventions to the existing specs layout.
 - This is an umbrella specification, not a single implementation ticket. Its ready label means product decisions are available to feature authors; only feature tickets authorize a bounded implementation slice.
-- Foundation startup, first-run setup, and revision-safe settings editing are implemented with native/API/browser evidence recorded in their tickets. Linux Docker distribution is now verified; next specify catalog behavior against the resulting interfaces. Product-level acquisition/import criteria are not yet satisfied.
+- Foundation startup, first-run setup, and revision-safe settings editing are implemented with native/API/browser evidence recorded in their tickets. Linux Docker distribution is now verified; the first catalog backend ticket is implemented; next specify existing-file scanning and association. Product-level acquisition/import criteria are not yet satisfied.
 
 
 ## Mock interface exploration

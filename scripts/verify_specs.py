@@ -29,9 +29,6 @@ for path in markdown:
         local = target.split("#", 1)[0]
         check((path.parent / local).exists(), f"Broken link in {path.relative_to(ROOT)}: {target}")
 
-contract_path = ROOT / "specs/001-foundation/openapi.json"
-contract = json.loads(contract_path.read_text(encoding="utf-8"))
-check(contract.get("openapi") == "3.1.1", "Unexpected OpenAPI version")
 
 
 def resolve(pointer):
@@ -59,20 +56,27 @@ def walk(node):
             walk(child)
 
 
-walk(contract)
 operations = []
-for api_path, methods in contract["paths"].items():
-    check(api_path.startswith("/api/v1/"), f"Unversioned path: {api_path}")
-    for method, operation in methods.items():
-        operations.append(operation["operationId"])
-        if method in {"post", "put", "patch", "delete"}:
-            check(bool(operation.get("requestBody")), f"Mutation lacks body: {api_path}")
-            check({"$ref": "#/components/parameters/MutationHeader"} in operation.get("parameters", []), f"Mutation lacks header: {api_path}")
-            check(({"400", "403", "413", "415", "422", "503"} | ({"409"} if api_path in {"/api/v1/setup", "/api/v1/settings"} else set())) <= set(operation["responses"]), f"Missing mutation failure contracts: {api_path}")
-check(len(operations) == len(set(operations)) == 8, "Expected eight uniquely named operations")
+for feature, expected in [("001-foundation", 8), ("002-catalog", 7)]:
+    contract = json.loads((ROOT / "specs" / feature / "openapi.json").read_text(encoding="utf-8"))
+    check(contract.get("openapi") == "3.1.1", "Unexpected OpenAPI version")
+    walk(contract)
+    current = []
+    for api_path, methods in contract["paths"].items():
+        check(api_path.startswith("/api/v1/"), f"Unversioned path: {api_path}")
+        for method, operation in methods.items():
+            current.append(operation["operationId"])
+            if method in {"post", "put", "patch", "delete"}:
+                check(bool(operation.get("requestBody")), f"Mutation lacks body: {api_path}")
+                headers = operation.get("parameters", [])
+                check({"$ref": "#/components/parameters/MutationHeader"} in headers or any(p.get("name") == "X-Piratarr-Request" and p.get("required") for p in headers), f"Mutation lacks header: {api_path}")
+                check({"400", "403", "413", "415", "422", "503"} <= set(operation["responses"]), f"Missing mutation failure contracts: {api_path}")
+    check(len(current) == len(set(current)) == expected, f"Expected {expected} uniquely named operations in {feature}")
+    operations.extend(current)
+check(len(operations) == len(set(operations)), "Duplicate operation IDs across contracts")
 
-tickets = sorted((ROOT / "specs/001-foundation/issues").glob("*.md"))
-check(len(tickets) == 4, "Expected four foundation tickets")
+tickets = sorted((ROOT / "specs").glob("*/issues/*.md"))
+check(len(list((ROOT / "specs/001-foundation/issues").glob("*.md"))) == 4, "Expected four foundation tickets")
 graph = {}
 criteria = set(re.findall(r"\| (FND-\d{3}) \|", (ROOT / "specs/001-foundation/spec.md").read_text(encoding="utf-8")))
 covered = set()

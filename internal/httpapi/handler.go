@@ -13,6 +13,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/lekramon/piratarr/internal/catalog"
 	"github.com/lekramon/piratarr/internal/settings"
 )
 
@@ -26,6 +27,7 @@ type Storage interface {
 }
 
 type Handler struct {
+	catalog     *catalog.Service
 	defaultRoot string
 	storage     Storage
 	assets      fs.FS
@@ -40,9 +42,13 @@ type apiError struct {
 	FieldErrors []settings.FieldError `json:"fieldErrors,omitempty"`
 }
 
-func New(storage Storage, assets fs.FS, listen string) *Handler {
+func New(storage Storage, assets fs.FS, listen string, services ...*catalog.Service) *Handler {
 	_, port, _ := net.SplitHostPort(listen)
-	return &Handler{storage: storage, assets: assets, port: port, settings: settings.Service{Repository: storage, DataDirectory: storage.DataDirectory()}}
+	handler := &Handler{storage: storage, assets: assets, port: port, settings: settings.Service{Repository: storage, DataDirectory: storage.DataDirectory()}}
+	if len(services) > 0 {
+		handler.catalog = services[0]
+	}
+	return handler
 }
 
 func (h *Handler) Stop() { h.stopping.Store(true) }
@@ -123,6 +129,9 @@ func methodNotAllowed(w http.ResponseWriter, allow string) {
 }
 
 func (h *Handler) api(w http.ResponseWriter, r *http.Request) {
+	if h.catalogAPI(w, r) {
+		return
+	}
 	if r.URL.Path == "/api/v1/directories" || r.URL.Path == "/api/v1/directories/defaults" {
 		h.directoryAPI(w, r)
 		return
@@ -219,7 +228,7 @@ func (h *Handler) api(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) frontend(w http.ResponseWriter, r *http.Request) {
 	filename := strings.TrimPrefix(path.Clean(r.URL.Path), "/")
-	if filename == "" || filename == "." || filename == "setup" || filename == "settings" || filename == "preview" {
+	if filename == "" || filename == "." || filename == "setup" || filename == "settings" || filename == "preview" || filename == "about" {
 		filename = "index.html"
 	}
 	file, err := fs.ReadFile(h.assets, filename)

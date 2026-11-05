@@ -23,10 +23,11 @@ import (
 var migrations embed.FS
 
 type Store struct {
-	write *sql.DB
-	read  *sql.DB
-	lock  *flock.Flock
-	path  string
+	catalogSchema bool
+	write         *sql.DB
+	read          *sql.DB
+	lock          *flock.Flock
+	path          string
 }
 
 func Open(ctx context.Context, directory string) (*Store, error) {
@@ -45,6 +46,9 @@ func open(ctx context.Context, directory string, source fs.FS) (_ *Store, result
 		return nil, errors.New("another instance is using this data directory")
 	}
 	s := &Store{lock: lock, path: filepath.Join(directory, "piratarr.db")}
+	if _, err := fs.Stat(source, "migrations/00003_catalog.sql"); err == nil {
+		s.catalogSchema = true
+	}
 	defer func() {
 		if resultErr != nil {
 			_ = s.Close()
@@ -158,7 +162,11 @@ func (s *Store) Ready(ctx context.Context) error {
 		return errors.New("database file unavailable")
 	}
 	var value int
-	return s.read.QueryRowContext(ctx, "SELECT (SELECT count(*) FROM settings) + (SELECT count(*) FROM accepted_resolutions) + (SELECT count(*) FROM audio_preferences)").Scan(&value)
+	query := "SELECT (SELECT count(*) FROM settings) + (SELECT count(*) FROM accepted_resolutions) + (SELECT count(*) FROM audio_preferences)"
+	if s.catalogSchema {
+		query += " + (SELECT count(*) FROM movies) + (SELECT count(*) FROM metadata_cache) + (SELECT count(*) FROM metadata_artwork)"
+	}
+	return s.read.QueryRowContext(ctx, query).Scan(&value)
 }
 
 func (s *Store) SetupCompleted(ctx context.Context) (bool, error) {

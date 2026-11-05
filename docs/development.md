@@ -91,3 +91,16 @@ Real setup and settings remain at `/setup` and `/settings`. The prototype never 
 ## Container distribution
 
 See [Linux deployment](deployment.md) for pinned builds, local mounts, healthcheck and disposable container verification. Packaging and Linux runtime verification passed in foundation ticket 04.
+
+
+## Catalog backend
+
+The real catalog API is independent of the mock `/preview` interface. See [catalog API examples](../specs/002-catalog/api-examples.md) and the [wire contract](../specs/002-catalog/openapi.json). Metadata search and movie registration use the backend-only application credential; list/details and previously cached images remain available without it. Registration requires saved setup, uses authoritative TMDB details, and is idempotent per TMDB ID.
+
+`--tmdb-token-file` overrides `PIRATARR_TMDB_TOKEN_FILE`; the optional absolute private-file path is a maintainer/development bootstrap option. No token is requested during onboarding. Read [credential provisioning/rotation](tmdb-registration.md) for the optional BuildKit release-secret hook and opt-in live test. The source placeholder `internal/tmdb/release-credential.txt` must stay empty in Git. Store no real token in it.
+
+Schema migration 3 adds durable movies, bounded metadata query caches and observed artwork references. Artwork bytes live under the private data root's `cache/tmdb/` directory and are capped at 128 MiB. Search caches last 24 hours; stale provider-error fallbacks are explicitly marked. Registration does not scan folders or mark any media file available.
+
+The frontend design remains under development in v0. Do not interpret a mock movie or simulated download as an actual catalog/acquisition record. `/about` is the implemented attribution screen.
+
+Package verification commands: `python scripts/verify_metadata_package.py --image piratarr:catalog` and, for an image built with the known dummy verification token only, `python scripts/verify_metadata_package.py --image piratarr:catalog-test-release --dummy-provisioned`. These start and remove only temporary containers and do not contact TMDB. Never use the dummy-provisioned check to infer that a real application credential authenticates successfully.

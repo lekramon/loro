@@ -1,0 +1,1261 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Piratarr Catalog API",
+    "version": "0.2.0",
+    "description": "Backend-first catalog slice. Same loopback Host/Origin and mutation protections as foundation. All responses are local; metadata errors are sanitized. Registered titles and cached artwork remain browsable offline. Metadata/catalog JSON responses link to the About attribution resource."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080"
+    }
+  ],
+  "paths": {
+    "/api/v1/metadata/status": {
+      "get": {
+        "operationId": "metadataStatus",
+        "summary": "Read credential configuration without contacting TMDB",
+        "responses": {
+          "200": {
+            "description": "Read credential configuration without contacting TMDB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetadataStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/metadata/search": {
+      "get": {
+        "operationId": "searchMovieMetadata",
+        "summary": "Search normalized movie metadata with explicit cache status",
+        "responses": {
+          "200": {
+            "description": "Search normalized movie metadata with explicit cache status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "required": true
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en-US",
+                "pt-BR"
+              ],
+              "default": "en-US"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 1
+            }
+          },
+          {
+            "name": "year",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1870,
+              "maximum": 2100
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/catalog/movies": {
+      "get": {
+        "operationId": "listCatalogMovies",
+        "summary": "Browse persisted catalog offline",
+        "responses": {
+          "200": {
+            "description": "Browse persisted catalog offline",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MovieList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000,
+              "default": 0
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "registerCatalogMovie",
+        "summary": "Register authoritative metadata once per TMDB identity",
+        "responses": {
+          "200": {
+            "description": "Register authoritative metadata once per TMDB identity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistrationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Movie registered for the first time.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistrationResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Complete onboarding first.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request exceeds 64 KiB.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON content type required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-Piratarr-Request",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "1"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Registration"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/movies/{id}": {
+      "get": {
+        "operationId": "getCatalogMovie",
+        "summary": "Read one registered movie without provider access",
+        "responses": {
+          "200": {
+            "description": "Read one registered movie without provider access",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Movie"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/metadata/images/{size}/{filename}": {
+      "get": {
+        "operationId": "getMetadataArtwork",
+        "summary": "Serve observed TMDB artwork through a bounded private local cache",
+        "parameters": [
+          {
+            "name": "size",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "w342",
+                "w780"
+              ]
+            }
+          },
+          {
+            "name": "filename",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9]+\\.(jpg|png)$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Verified image bytes; cached files can be served offline.",
+            "content": {
+              "image/jpeg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Artwork error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Artwork error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Artwork error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Artwork error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Artwork error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Artwork error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Artwork error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/about": {
+      "get": {
+        "operationId": "getAboutCredits",
+        "summary": "Read application identity and TMDB attribution",
+        "responses": {
+          "200": {
+            "description": "Read application identity and TMDB attribution",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/About"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Classified error; secrets and provider payloads omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "fieldErrors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "field",
+                "message"
+              ],
+              "properties": {
+                "field": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Metadata": {
+        "type": "object",
+        "required": [
+          "tmdbId",
+          "title",
+          "originalTitle",
+          "year",
+          "originalLanguage",
+          "overview",
+          "runtimeMinutes",
+          "genres",
+          "posterUrl",
+          "backdropUrl",
+          "metadataLanguage"
+        ],
+        "properties": {
+          "tmdbId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "title": {
+            "type": "string"
+          },
+          "originalTitle": {
+            "type": "string"
+          },
+          "year": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "originalLanguage": {
+            "type": "string"
+          },
+          "overview": {
+            "type": "string"
+          },
+          "runtimeMinutes": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "genres": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "posterUrl": {
+            "type": "string",
+            "description": "Local artwork URL or empty when unavailable."
+          },
+          "backdropUrl": {
+            "type": "string"
+          },
+          "metadataLanguage": {
+            "type": "string",
+            "enum": [
+              "en-US",
+              "pt-BR"
+            ]
+          }
+        }
+      },
+      "Movie": {
+        "type": "object",
+        "required": [
+          "tmdbId",
+          "title",
+          "originalTitle",
+          "year",
+          "originalLanguage",
+          "overview",
+          "runtimeMinutes",
+          "genres",
+          "posterUrl",
+          "backdropUrl",
+          "metadataLanguage",
+          "id",
+          "addedAt",
+          "hasMedia"
+        ],
+        "properties": {
+          "tmdbId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "title": {
+            "type": "string"
+          },
+          "originalTitle": {
+            "type": "string"
+          },
+          "year": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "originalLanguage": {
+            "type": "string"
+          },
+          "overview": {
+            "type": "string"
+          },
+          "runtimeMinutes": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "genres": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "posterUrl": {
+            "type": "string",
+            "description": "Local artwork URL or empty when unavailable."
+          },
+          "backdropUrl": {
+            "type": "string"
+          },
+          "metadataLanguage": {
+            "type": "string",
+            "enum": [
+              "en-US",
+              "pt-BR"
+            ]
+          },
+          "id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "addedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "hasMedia": {
+            "type": "boolean",
+            "const": false
+          }
+        }
+      },
+      "CacheState": {
+        "type": "object",
+        "required": [
+          "hit",
+          "stale"
+        ],
+        "properties": {
+          "hit": {
+            "type": "boolean"
+          },
+          "stale": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SearchResponse": {
+        "type": "object",
+        "required": [
+          "page",
+          "totalPages",
+          "totalResults",
+          "results",
+          "cache"
+        ],
+        "properties": {
+          "page": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
+          },
+          "totalResults": {
+            "type": "integer"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Metadata"
+            }
+          },
+          "cache": {
+            "$ref": "#/components/schemas/CacheState"
+          },
+          "warning": {
+            "type": "string"
+          }
+        }
+      },
+      "Registration": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "tmdbId"
+        ],
+        "properties": {
+          "tmdbId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "en-US",
+              "pt-BR"
+            ],
+            "default": "en-US"
+          }
+        }
+      },
+      "RegistrationResponse": {
+        "type": "object",
+        "required": [
+          "movie",
+          "created"
+        ],
+        "properties": {
+          "movie": {
+            "$ref": "#/components/schemas/Movie"
+          },
+          "created": {
+            "type": "boolean"
+          }
+        }
+      },
+      "MovieList": {
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Movie"
+            }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "limit": {
+            "type": "integer"
+          },
+          "offset": {
+            "type": "integer"
+          }
+        }
+      },
+      "MetadataStatus": {
+        "type": "object",
+        "required": [
+          "provider",
+          "configured"
+        ],
+        "properties": {
+          "provider": {
+            "type": "string",
+            "const": "tmdb"
+          },
+          "configured": {
+            "type": "boolean",
+            "description": "Credential presence only; no external authentication check."
+          }
+        }
+      },
+      "About": {
+        "type": "object",
+        "required": [
+          "name",
+          "attribution",
+          "providerUrl",
+          "logoUrl"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "attribution": {
+            "type": "string"
+          },
+          "providerUrl": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

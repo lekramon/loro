@@ -13,10 +13,11 @@ import (
 )
 
 type Config struct {
-	DataDir   string
-	Listen    string
-	Workers   int
-	Container bool
+	TMDBTokenFile string
+	DataDir       string
+	Listen        string
+	Workers       int
+	Container     bool
 }
 
 func Parse(args []string, getenv func(string) string) (Config, error) {
@@ -48,6 +49,7 @@ func Parse(args []string, getenv func(string) string) (Config, error) {
 	}
 	flags := flag.NewFlagSet("piratarr", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
+	tokenFile := flags.String("tmdb-token-file", envOr("PIRATARR_TMDB_TOKEN_FILE", ""), "private application metadata credential file")
 	data := flags.String("data-dir", envOr("PIRATARR_DATA_DIR", dataDefault), "private data directory")
 	listen := flags.String("listen", envOr("PIRATARR_LISTEN", listenDefault), "HTTP listener")
 	workers := flags.String("workers", envOr("PIRATARR_WORKERS", "4"), "future worker count (1-8)")
@@ -76,7 +78,10 @@ func Parse(args []string, getenv func(string) string) (Config, error) {
 	if !container && !ip.IsLoopback() {
 		return Config{}, errors.New("native listener must use a loopback IP address")
 	}
-	return Config{DataDir: filepath.Clean(*data), Listen: *listen, Workers: count, Container: container}, nil
+	if *tokenFile != "" && !filepath.IsAbs(*tokenFile) {
+		return Config{}, errors.New("TMDB credential file must be absolute")
+	}
+	return Config{TMDBTokenFile: *tokenFile, DataDir: filepath.Clean(*data), Listen: *listen, Workers: count, Container: container}, nil
 }
 
 // PrepareDataDir creates only the private application directory, not media roots.

@@ -194,7 +194,9 @@ export const english = {
   "Playback simulation — no video is being streamed.": "Playback simulation — no video is being streamed.",
   "Playback position": "Playback position",
   "Simulating playback": "Simulating playback",
-  "{count} movie": "{count} movie"
+  "{count} movie": "{count} movie",
+  "About & credits": "About & credits",
+  "Movie metadata and artwork provided by TMDB.": "Movie metadata and artwork provided by TMDB."
 } as const;
 export type MessageKey = keyof typeof english;
 export const portuguese: Record<MessageKey, string> = {
@@ -393,5 +395,7 @@ export const portuguese: Record<MessageKey, string> = {
   "Playback simulation — no video is being streamed.": "Simulação de reprodução — nenhum vídeo está sendo transmitido.",
   "Playback position": "Posição da reprodução",
   "Simulating playback": "Simulando reprodução",
-  "{count} movie": "{count} filme"
+  "{count} movie": "{count} filme",
+  "About & credits": "Sobre e créditos",
+  "Movie metadata and artwork provided by TMDB.": "Metadados e imagens dos filmes fornecidos pelo TMDB."
 };

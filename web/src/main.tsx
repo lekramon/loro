@@ -4,6 +4,7 @@ import { api, type Settings, type SetupState } from './api';
 import { SetupWizard } from './SetupWizard';
 import { InterfacePreferences, UIProvider, useUI } from './ui';
 import './style.css';
+import { About } from './About';
 import { MockApp } from './MockApp';
 
 function App() {
@@ -59,9 +60,9 @@ function App() {
           <p className="note">{t("Choose your own preferences during setup. Catalog, search, and downloads are not available yet.")}</p>
         </>}
     </section>
-    <footer>{t("Stored locally. No Piratarr cloud account.")}</footer>
+    <footer>{t("Stored locally. No Piratarr cloud account.")} · <a href="/about">{t('About & credits')}</a></footer>
     </div>
   </main>;
 }
 
-createRoot(document.getElementById('root')!).render(<StrictMode><UIProvider>{window.location.pathname === '/preview' ? <MockApp /> : <App />}</UIProvider></StrictMode>);
+createRoot(document.getElementById('root')!).render(<StrictMode><UIProvider>{window.location.pathname === '/preview' ? <MockApp /> : window.location.pathname === '/about' ? <About /> : <App />}</UIProvider></StrictMode>);

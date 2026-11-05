@@ -4,7 +4,7 @@ A local, self-hosted movie and TV library manager with original catalog, search,
 
 ## Current state
 
-The foundation implements a local Go service, persistent SQLite startup, health endpoints, and a first-run setup wizard. Users can choose and edit directories, accepted/preferred resolutions, and ranked audio preferences. Saves persist across restart, and revision conflicts prevent one tab from overwriting another. Linux Docker Compose distribution is verified, with non-root execution, a bounded healthcheck, local mounts and settings persistence across recreation. Catalog, search and acquisition remain subsequent slices.
+The foundation implements a local Go service, persistent SQLite startup, health endpoints, and a first-run setup wizard. Users can choose and edit directories, accepted/preferred resolutions, and ranked audio preferences. Saves persist across restart, and revision conflicts prevent one tab from overwriting another. Linux Docker Compose distribution is verified, with non-root execution, a bounded healthcheck, local mounts and settings persistence across recreation. The catalog backend now implements TMDB metadata search, duplicate-safe movie registration, local metadata/artwork caches and offline browsing. File scanning, source search and acquisition remain subsequent slices.
 
 The interface supports light/dark themes and English (US)/Português (Brasil), selectable in the header. Display preferences are saved in the browser and do not change movie audio preferences. On first visit, language and theme follow browser defaults.
 
@@ -20,8 +20,10 @@ The selected stack is Go, React/TypeScript/Vite, and SQLite. The first supported
 
 The first usable milestone is manual movie acquisition through import. TMDB, a user-configured Torznab endpoint, and qBittorrent are the initial integrations. Credentials are not needed to develop against simulators.
 
-TMDB access will use application credentials registered for Piratarr, supplied by release packaging. Normal users will not need a personal TMDB token. The development credential is privately provisioned and verified; metadata adapter wiring and release provisioning remain pending. See [maintainer registration instructions](docs/tmdb-registration.md).
+TMDB access will use application credentials registered for Piratarr, supplied by release packaging. Normal users will not need a personal TMDB token. The development credential is privately provisioned and verified; the metadata adapter and private-file/BuildKit release provisioning hooks are implemented. Source-only builds need an available private credential file for new live provider queries. See [maintainer registration instructions](docs/tmdb-registration.md).
 
 ## Development preparation verification
 
 Run `python scripts/verify_specs.py` to check local documentation links, tracker dependencies, acceptance references, and the foundation contract's local references. This is a repository consistency check, not an application test or a full OpenAPI validator.
+
+The real catalog API is described in the [catalog contract](specs/002-catalog/openapi.json) and [API examples](specs/002-catalog/api-examples.md). The `/preview` interface remains mock data while the new design is developed in v0. Provider credits are available at `/about`.

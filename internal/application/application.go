@@ -10,8 +10,10 @@ import (
 	"time"
 
 	"github.com/lekramon/piratarr/internal/bootstrap"
+	"github.com/lekramon/piratarr/internal/catalog"
 	"github.com/lekramon/piratarr/internal/httpapi"
 	"github.com/lekramon/piratarr/internal/storage"
+	"github.com/lekramon/piratarr/internal/tmdb"
 )
 
 type Application struct {
@@ -36,7 +38,7 @@ func Open(ctx context.Context, config bootstrap.Config, assets fs.FS) (*Applicat
 		_ = store.Close()
 		return nil, fmt.Errorf("open HTTP listener: %w", err)
 	}
-	handler := httpapi.New(store, assets, listener.Addr().String())
+	handler := httpapi.New(store, assets, listener.Addr().String(), catalog.New(store, tmdb.New(tmdb.Config{TokenFile: config.TMDBTokenFile}), directory))
 	server := &http.Server{Handler: handler, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16384}
 	return &Application{Server: server, Handler: handler, listener: listener, store: store}, nil
 }
