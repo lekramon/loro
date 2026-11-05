@@ -31,3 +31,5 @@ The real catalog API is described in the [catalog contract](specs/002-catalog/op
 Service configuration now includes a write-only TMDB token field in setup/settings. See [configuration and design update](specs/011-service-configuration/spec.md).
 
 Open `/search` for real TMDB movie metadata search. Setup/settings include Test connection for the saved credential; the preview still uses mock library records. Navigation stays visible on desktop and as an icon rail on mobile.
+
+The library and settings now share one header/sidebar. Real metadata search lives inside Library (`/preview#/search`). Start with one viewer, add more explicitly, and edit viewer names/photos using the pencil overlay or Manage profiles. Viewer photos/preferences remain browser-local.

@@ -44,7 +44,7 @@ export function MetadataSettings() {
     <button type="button" className="secondary" disabled={saving || testing || !!token.trim()} onClick={() => void testConnection()}>{t(testing ? 'Testing connection…' : 'Test connection')}</button>
     {token.trim() && <p className="hint">{t('Save your changes before testing the saved token.')}</p>}
     {testResult && <p role="status">{testResult}</p>}
-    <a className="metadata-help" href="/search">{t('Search movies on TMDB')}</a>
+    <a className="metadata-help" href="/preview#/search">{t('Search movies on TMDB')}</a>
     {message && <p role={message === 'error' ? 'alert' : 'status'}>{t(message === 'saved' ? 'Token saved. Test the connection to verify access.' : 'Unable to save token. Check the Read Access Token and try again.')}</p>}
     <a className="metadata-help" href="https://www.themoviedb.org/settings/api" target="_blank" rel="noreferrer">{t('Open TMDB API settings')}</a>
   </section>;

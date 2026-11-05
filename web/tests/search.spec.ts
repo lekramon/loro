@@ -3,7 +3,7 @@ import {expect,test} from '@playwright/test';
 test('live movie search uses the API, handles pagination, unknowns and stale results',async({page})=>{
  const calls:URL[]=[];
  await page.route('**/api/v1/metadata/search?**',route=>{const url=new URL(route.request().url());calls.push(url);return route.fulfill({json:{page:Number(url.searchParams.get('page')),totalPages:2,totalResults:21,cache:{hit:false,stale:url.searchParams.get('page')==='2'},results:[{tmdbId:27205,title:'Inception',year:2010,overview:'A real API result from a simulator.',posterUrl:''},{tmdbId:1,title:'Unknown film',year:null,overview:'',posterUrl:''}]}})});
- await page.goto('/preview');await page.getByRole('button',{name:'Ramon',exact:true}).click();await page.getByRole('link',{name:'Search',exact:true}).click();await expect(page).toHaveURL(/\/search$/);
+ await page.goto('/preview');await page.getByRole('button',{name:'Ramon',exact:true}).click();await page.getByRole('navigation',{name:'Library navigation',exact:true}).getByRole('link',{name:'Search',exact:true}).click();await expect(page).toHaveURL(/\/preview#\/search$/);
  await expect(page.locator('.persistent-sidebar')).toBeVisible();await expect(page.locator('.header-brand,.demo-brand')).toHaveCount(0);
  await page.getByLabel('Movie title',{exact:true}).fill('Inception');await page.getByLabel('Year (optional)').fill('2010');
  await page.getByRole('button',{name:'Search',exact:true}).click();await expect(page.getByRole('heading',{name:'Inception',exact:true})).toBeVisible();await expect(page.getByText('Unknown year',{exact:true})).toBeVisible();

@@ -19,3 +19,7 @@ Public browser journeys cover navigation, profiles and isolated persistence, moc
 ## Reference
 
 Official [Jellyfin screenshots](https://jellyfin.org/) were inspected as visual references. This implementation uses original React/CSS and local illustration assets; it does not incorporate upstream source code, logos or screenshot imagery.
+
+## Updated viewer and shell behavior
+
+[Unified library requirements](../011-service-configuration/spec.md) supersede the original multiple demo seeds and duplicate drawer/header: one initial viewer, explicit additional profiles, local photo editing, shared application header/sidebar and library-contained live metadata search. Viewer state remains browser-local and mock library records remain separate from real metadata.

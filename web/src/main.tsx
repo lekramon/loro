@@ -2,10 +2,10 @@ import { StrictMode, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { api, type Settings, type SetupState } from './api';
 import { SetupWizard } from './SetupWizard';
-import { InterfacePreferences, UIProvider, useUI } from './ui';
+import { UIProvider, useUI } from './ui';
 import './style.css';
 import { SideNavigation } from './SideNavigation';
-import { MovieSearch } from './MovieSearch';
+import { AppHeader } from './AppHeader';
 import { MetadataSettings } from './MetadataSettings';
 import { About } from './About';
 import { MockApp } from './MockApp';
@@ -35,7 +35,7 @@ function App() {
   const audioName = (code: string) => languageName(code, setup?.languages.find(language => language.code === code)?.name);
   return <main className="app-shell">
     <SideNavigation settingsPath={saved ? '/settings' : '/setup'} />
-    <header className="topbar"><span className="local">{t(saved ? 'Settings' : 'Setup')}</span><InterfacePreferences /></header>
+    <AppHeader title={saved?'Settings':'Setup'} />
     <div className="workspace">
     <section className="page-heading"><p className="eyebrow">{t('Your library, locally.')}</p><h1>{t(saved ? 'Settings' : 'Getting started')}</h1><p className="description">{t(saved ? 'Manage your folders and viewing preferences.' : 'A few preferences, then you are ready to build your library.')}</p></section>
     <section className="panel">
@@ -60,4 +60,6 @@ function App() {
   </main>;
 }
 
-createRoot(document.getElementById('root')!).render(<StrictMode><UIProvider>{window.location.pathname === '/preview' ? <MockApp /> : window.location.pathname === '/about' ? <About /> : window.location.pathname === '/search' ? <MovieSearch /> : <App />}</UIProvider></StrictMode>);
+function SearchRedirect(){useEffect(()=>{window.location.replace('/preview#/search')},[]);return null}
+
+createRoot(document.getElementById('root')!).render(<StrictMode><UIProvider>{window.location.pathname === '/preview' ? <MockApp /> : window.location.pathname === '/about' ? <About /> : window.location.pathname === '/search' ? <SearchRedirect /> : <App />}</UIProvider></StrictMode>);

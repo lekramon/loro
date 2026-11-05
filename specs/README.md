@@ -22,3 +22,5 @@ The first usable milestone requires 001–006. Subsequent milestones add automat
 - [Jellyfin-style mock media prototype](010-mock-media-prototype/spec.md).
 
 - [Service configuration and Jellyfin layout](011-service-configuration/spec.md): token configuration/testing, live movie search and persistent navigation implemented and verified.
+
+Ticket 03 of service configuration adds a unified library/settings header, library-contained search, one initial viewer and local profile photo/pencil editing; implemented and verified.

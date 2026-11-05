@@ -1,4 +1,16 @@
 export const english = {
+  "Library navigation": "Library navigation",
+  "Choose photo": "Choose photo",
+  "Remove photo": "Remove photo",
+  "JPEG, PNG or WebP, up to 5 MB. Stored in this browser only.": "JPEG, PNG or WebP, up to 5 MB. Stored in this browser only.",
+  "Preparing photo…": "Preparing photo…",
+  "Choose a valid JPEG, PNG or WebP image up to 5 MB.": "Choose a valid JPEG, PNG or WebP image up to 5 MB.",
+  "Manage profiles": "Manage profiles",
+  "Done": "Done",
+  "Edit profile for {name}": "Edit profile for {name}",
+  "Browser storage is unavailable. Changes will last only until this page closes.": "Browser storage is unavailable. Changes will last only until this page closes.",
+  "Live movie metadata": "Live movie metadata",
+
   "Your choices are saved locally. Search movies from the sidebar; the library preview uses mock data.": "Your choices are saved locally. Search movies from the sidebar; the library preview uses mock data.",
   "Choose your preferences during setup. Movie metadata search is available from the sidebar.": "Choose your preferences during setup. Movie metadata search is available from the sidebar.",
 
@@ -237,6 +249,18 @@ export const english = {
 } as const;
 export type MessageKey = keyof typeof english;
 export const portuguese: Record<MessageKey, string> = {
+  "Library navigation": "Navegação da biblioteca",
+  "Choose photo": "Escolher foto",
+  "Remove photo": "Remover foto",
+  "JPEG, PNG or WebP, up to 5 MB. Stored in this browser only.": "JPEG, PNG ou WebP, até 5 MB. Armazenada apenas neste navegador.",
+  "Preparing photo…": "Preparando foto…",
+  "Choose a valid JPEG, PNG or WebP image up to 5 MB.": "Escolha uma imagem JPEG, PNG ou WebP válida de até 5 MB.",
+  "Manage profiles": "Gerenciar perfis",
+  "Done": "Concluído",
+  "Edit profile for {name}": "Editar perfil de {name}",
+  "Browser storage is unavailable. Changes will last only until this page closes.": "O armazenamento do navegador está indisponível. As alterações durarão apenas até fechar esta página.",
+  "Live movie metadata": "Metadados reais dos filmes",
+
   "Your choices are saved locally. Search movies from the sidebar; the library preview uses mock data.": "Suas escolhas são salvas localmente. Pesquise filmes pela barra lateral; a prévia da biblioteca usa dados simulados.",
   "Choose your preferences during setup. Movie metadata search is available from the sidebar.": "Escolha suas preferências na configuração. A pesquisa de metadados está disponível na barra lateral.",
 

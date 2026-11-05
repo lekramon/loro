@@ -112,3 +112,7 @@ Open `/setup` (or `/settings` after onboarding), enter a TMDB API Read Access To
 For Windows testing when native Go is unavailable, set `PIRATARR_TEST_EXECUTABLE` to an absolute path of a freshly built Windows executable before `pnpm run test:browser`. The browser harness still creates disposable application storage.
 
 Use **Test connection** in Movie metadata to make a fresh authenticated provider search; it does not use the local search cache. Save edited token input before testing. Open `/search` from the persistent sidebar to search real metadata by movie title and optional year. The `/preview` search continues to filter mock records.
+
+## Unified library and viewer photos
+
+Library navigation now contains Search at `/preview#/search`; `/search` redirects there. Primary navigation contains Library and Settings. One shared header controls theme/language across every section. Fresh browser storage starts with one Ramon viewer; choose Manage profiles or its pencil overlay to edit name/photo, or add a viewer explicitly. Select JPEG/PNG/WebP up to 5 MB; the browser crops/resizes to a 256px JPEG and stores it with the viewer locally. Cancel preserves the saved photo; Remove photo takes effect on Save profile. Photos are not uploaded or shared between browsers/devices. Storage failure displays a warning. Untouched former demo seeds are omitted on migration; customized viewers are preserved.

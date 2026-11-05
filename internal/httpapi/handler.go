@@ -75,7 +75,7 @@ func (h *Handler) permittedHost(authority string) bool {
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Set("Referrer-Policy", "no-referrer")
-	w.Header().Set("Content-Security-Policy", "default-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'self'")
+	w.Header().Set("Content-Security-Policy", "default-src 'self'; img-src 'self' data:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'")
 	if !h.permittedHost(r.Host) {
 		fail(w, 403, "forbidden", "Only the configured loopback host and port are allowed.")
 		return
