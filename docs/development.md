@@ -141,4 +141,23 @@ After onboarding, open Settings → Release source. Enter a descriptive name, th
 
 Blank key preserves the saved value. To switch endpoints, provide a new key or explicitly select Clear saved API key. Keys never return through the API or persist in browser storage; they reside in private SQLite, so data-directory backups contain credentials. A capability endpoint may be public even when searches require authentication; success is not proof of search access. Last successful discovery remains visible with its timestamp after a test failure.
 
-Migration 6 adds the source configuration table while preserving existing catalog/settings/associations. Older binaries reject the upgraded DB; rollback requires a matching stopped-service data copy. No live endpoint is bundled. Ticket 02 adds manual release search and profile evaluation.
+Migration 6 adds the source configuration table while preserving existing catalog/settings/associations. Older binaries reject the upgraded DB; rollback requires a matching stopped-service data copy. No live endpoint is bundled. Manual release search uses these saved capabilities.
+
+## Manual release search
+
+Open Library → Search, find a TMDB movie, then choose Find releases. This registers metadata idempotently and opens Library → Releases. Select a category if needed and Search releases. Releases also lists and filters registered movies; those searches use saved movie identity and work without contacting TMDB. Source requests still require the configured endpoint to be available.
+
+Candidates remain in provider order. Each displays known/unknown resolution, release format, container and observed audio languages, plus the saved profile values and match/mismatch/unknown checks. Preferred resolution is marked separately. Subtitle languages, MULTI/DUAL and audio codecs do not establish audio language. Source claims do not prove movie identity. Unknowns and mismatches are visible; no downloads or profile changes occur here.
+
+Searches prefer declared TMDB movie-ID queries, then declared movie text queries, then generic text search. Test the source after saving or changing its endpoint. Pagination uses bounded provider offsets; opaque result IDs are observations scoped to source revision, not durable acquisitions or verified torrent hashes. The acquisition stage must persist selection, confirm unknown/mismatching profile overrides and establish torrent identity before any submission.
+
+Example after setup and source testing (PowerShell):
+
+```powershell
+$base = 'http://127.0.0.1:18084/api/v1'
+$movies = Invoke-RestMethod "$base/catalog/movies?limit=25&offset=0"
+$movieId = $movies.items[0].id
+Invoke-RestMethod "$base/releases?movieId=$movieId&limit=25&offset=0"
+```
+
+No schema change accompanies release search; source configuration still uses schema 6. The preview executable for this slice is `bin/piratarr-releases.exe`. Start it from the repository root with the same external data directory used by your previous preview; stop that preview process first. Do not run two instances against the same data directory.

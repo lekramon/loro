@@ -35,45 +35,8 @@ type capsXML struct {
 
 func parseCapabilities(data []byte, key string) (Capabilities, error) {
 	invalid := failed("source-invalid-response")
-	decoder := xml.NewDecoder(bytes.NewReader(data))
-	depth, tokens, roots := 0, 0, 0
-	for {
-		token, err := decoder.Token()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return Capabilities{}, invalid
-		}
-		tokens++
-		if tokens > 20000 {
-			return Capabilities{}, invalid
-		}
-		switch value := token.(type) {
-		case xml.StartElement:
-			if depth == 0 {
-				roots++
-			}
-			depth++
-			if depth > 32 || len(value.Attr) > 64 {
-				return Capabilities{}, invalid
-			}
-		case xml.EndElement:
-			depth--
-		case xml.Directive:
-			return Capabilities{}, invalid
-		case xml.ProcInst:
-			if value.Target != "xml" {
-				return Capabilities{}, invalid
-			}
-		case xml.CharData:
-			if depth == 0 && strings.TrimSpace(string(value)) != "" {
-				return Capabilities{}, invalid
-			}
-		}
-	}
-	if roots != 1 || depth != 0 {
-		return Capabilities{}, invalid
+	if err := validateXML(data); err != nil {
+		return Capabilities{}, err
 	}
 	var dto capsXML
 	if xml.Unmarshal(data, &dto) != nil {
@@ -164,4 +127,50 @@ func parseCapabilities(data []byte, key string) (Capabilities, error) {
 		return result, invalid
 	}
 	return result, nil
+}
+
+// validateXML bounds the document before decoding into response-specific structures.
+func validateXML(data []byte) error {
+	invalid := failed("source-invalid-response")
+	decoder := xml.NewDecoder(bytes.NewReader(data))
+	depth, tokens, roots := 0, 0, 0
+	for {
+		token, err := decoder.Token()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return invalid
+		}
+		tokens++
+		if tokens > 20000 {
+			return invalid
+		}
+		switch value := token.(type) {
+		case xml.StartElement:
+			if depth == 0 {
+				roots++
+			}
+			depth++
+			if depth > 32 || len(value.Attr) > 64 {
+				return invalid
+			}
+		case xml.EndElement:
+			depth--
+		case xml.Directive:
+			return invalid
+		case xml.ProcInst:
+			if value.Target != "xml" {
+				return invalid
+			}
+		case xml.CharData:
+			if depth == 0 && strings.TrimSpace(string(value)) != "" {
+				return invalid
+			}
+		}
+	}
+	if roots != 1 || depth != 0 {
+		return invalid
+	}
+	return nil
 }

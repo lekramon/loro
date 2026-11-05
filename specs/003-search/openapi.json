@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.1",
   "info": {
-    "title": "Piratarr source configuration API",
+    "title": "Piratarr source and release search API",
     "version": "0.4.0"
   },
   "servers": [
@@ -331,6 +331,163 @@
           }
         }
       }
+    },
+    "/api/v1/releases": {
+      "get": {
+        "operationId": "searchMovieReleases",
+        "summary": "Search source releases for a registered movie",
+        "description": "Requires setup and tested source capabilities. Accepts no body. Candidate IDs are observations, not verified torrent identity or persisted selections. See REL-001\u2013REL-006 for evidence rules.",
+        "parameters": [
+          {
+            "name": "movieId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9223372036854775807
+            },
+            "description": "Registered catalog identity."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 25
+            },
+            "description": "Bounded provider pagination; limit is clamped to discovered maximum."
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10000,
+              "default": 0
+            },
+            "description": "Bounded provider pagination; limit is clamped to discovered maximum."
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000000
+            },
+            "description": "Discovered category only; omitted means no category filter."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Fresh normalized observations and saved-profile explanations. No download URLs or credentials.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReleasePage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure. 409 includes missing capabilities, unsupported search, busy source, setup or revision change. 429 supplies Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure. 409 includes missing capabilities, unsupported search, busy source, setup or revision change. 429 supplies Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized failure. 409 includes missing capabilities, unsupported search, busy source, setup or revision change. 429 supplies Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized failure. 409 includes missing capabilities, unsupported search, busy source, setup or revision change. 429 supplies Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized failure. 409 includes missing capabilities, unsupported search, busy source, setup or revision change. 429 supplies Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized failure. 409 includes missing capabilities, unsupported search, busy source, setup or revision change. 429 supplies Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Sanitized failure. 409 includes missing capabilities, unsupported search, busy source, setup or revision change. 429 supplies Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized failure. 409 includes missing capabilities, unsupported search, busy source, setup or revision change. 429 supplies Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Sanitized failure. 409 includes missing capabilities, unsupported search, busy source, setup or revision change. 429 supplies Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -489,6 +646,215 @@
               "null"
             ],
             "format": "date-time"
+          }
+        }
+      },
+      "ProfileCheck": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "dimension",
+          "status",
+          "accepted"
+        ],
+        "properties": {
+          "dimension": {
+            "enum": [
+              "resolution",
+              "format",
+              "container",
+              "audio"
+            ]
+          },
+          "status": {
+            "enum": [
+              "match",
+              "mismatch",
+              "unknown"
+            ]
+          },
+          "accepted": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Candidate": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title",
+          "sizeBytes",
+          "seeders",
+          "publishedAt",
+          "resolution",
+          "format",
+          "container",
+          "audioLanguages",
+          "preferredResolution",
+          "audioPreferenceRank",
+          "status",
+          "checks"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "title": {
+            "type": "string"
+          },
+          "sizeBytes": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "seeders": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "publishedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "resolution": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "format": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "container": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "audioLanguages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "preferredResolution": {
+            "type": "boolean"
+          },
+          "audioPreferenceRank": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "status": {
+            "enum": [
+              "match",
+              "mismatch",
+              "unknown"
+            ]
+          },
+          "checks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProfileCheck"
+            },
+            "minItems": 4,
+            "maxItems": 4
+          }
+        }
+      },
+      "ReleasePage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "movieId",
+          "sourceName",
+          "sourceRevision",
+          "profileRevision",
+          "mode",
+          "limit",
+          "offset",
+          "total",
+          "hasMore",
+          "items",
+          "nextOffset"
+        ],
+        "properties": {
+          "movieId": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "sourceName": {
+            "type": "string"
+          },
+          "sourceRevision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "profileRevision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "mode": {
+            "enum": [
+              "movie-tmdb",
+              "movie-query",
+              "search-query"
+            ]
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "total": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "hasMore": {
+            "type": "boolean"
+          },
+          "items": {
+            "type": "array",
+            "maxItems": 50,
+            "items": {
+              "$ref": "#/components/schemas/Candidate"
+            }
+          },
+          "nextOffset": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 10000,
+            "description": "Offset after the raw provider items, including duplicates; null at end or offset bound."
           }
         }
       }

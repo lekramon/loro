@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { api } from './api';
+import { api, ApiError } from './api';
 import { metadataError } from './metadataErrors';
 import { useUI } from './ui';
 type Movie = { tmdbId: number; title: string; year: number | null; overview: string; posterUrl: string };
@@ -9,6 +9,13 @@ export function MovieSearch() {
   const [query, setQuery] = useState(''); const [year, setYear] = useState('');
   const [result, setResult] = useState<Results>(); const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [registering, setRegistering] = useState<number>();
+  async function findReleases(movie: Movie) {
+    setRegistering(movie.tmdbId); setError('');
+    try { const result = await api<{movie: {id:number}}>('/catalog/movies', { method:'POST', headers:{'Content-Type':'application/json','X-Piratarr-Request':'1'}, body:JSON.stringify({tmdbId:movie.tmdbId,language:searched?.language ?? locale}) }); window.location.hash='/releases?movieId='+result.movie.id; }
+    catch (value) { setError(value instanceof ApiError && value.code==='setup-required' ? t('Complete setup before searching releases.') : metadataError(value,t)); }
+    finally { setRegistering(undefined); }
+  }
   const [searched, setSearched] = useState<{query: string; year: string; language: string}>();
   async function search(page = 1, paginate = false) {
     if (loading) return;
@@ -23,10 +30,10 @@ export function MovieSearch() {
   }
   return <section className="demo-content live-search">
     <h1>{t('Search movies on TMDB')}</h1><p>{t('Real movie metadata. This search is separate from the mock library.')}</p>
-    <form onSubmit={event => { event.preventDefault(); void search(); }}><fieldset disabled={loading}><label htmlFor="live-query">{t('Movie title')}</label><input id="live-query" type="search" value={query} onChange={event => setQuery(event.target.value)} maxLength={200} required /><label htmlFor="live-year">{t('Year (optional)')}</label><input id="live-year" type="number" min="1870" max="2100" value={year} onChange={event => setYear(event.target.value)} /><button disabled={!query.trim()}>{t(loading ? 'Searching…' : 'Search')}</button></fieldset></form>
+    <form onSubmit={event => { event.preventDefault(); void search(); }}><fieldset disabled={loading || registering !== undefined}><label htmlFor="live-query">{t('Movie title')}</label><input id="live-query" type="search" value={query} onChange={event => setQuery(event.target.value)} maxLength={200} required /><label htmlFor="live-year">{t('Year (optional)')}</label><input id="live-year" type="number" min="1870" max="2100" value={year} onChange={event => setYear(event.target.value)} /><button disabled={!query.trim()}>{t(loading ? 'Searching…' : 'Search')}</button></fieldset></form>
     {error && <p role="alert">{error} <a href="/settings">{t('Settings')}</a></p>}
     {loading && <p role="status">{t('Searching…')}</p>}
-    {result && <><p role="status">{t('{count} movies', { count: result.totalResults })}</p>{result.cache.stale && <p>{t('Showing cached results because TMDB is unavailable.')}</p>}<div className="live-results">{result.results.map(movie => <article key={movie.tmdbId}>{movie.posterUrl ? <img src={movie.posterUrl} alt="" loading="lazy" /> : <div className="poster-placeholder" aria-hidden="true">◇</div>}<div><h2>{movie.title}</h2><p>{movie.year ?? t('Unknown year')}</p><p>{movie.overview}</p></div></article>)}</div>{result.totalResults === 0 && <p>{t('No movies found')}</p>}<div className="actions"><button className="secondary" disabled={loading || result.page <= 1} onClick={() => void search(result.page - 1, true)}>{t('Previous page')}</button><span>{result.page} / {Math.max(1, Math.min(500, result.totalPages))}</span><button className="secondary" disabled={loading || result.page >= Math.min(500, result.totalPages)} onClick={() => void search(result.page + 1, true)}>{t('Next page')}</button></div></>}
+    {result && <><p role="status">{t('{count} movies', { count: result.totalResults })}</p>{result.cache.stale && <p>{t('Showing cached results because TMDB is unavailable.')}</p>}<div className="live-results">{result.results.map(movie => <article key={movie.tmdbId}>{movie.posterUrl ? <img src={movie.posterUrl} alt="" loading="lazy" /> : <div className="poster-placeholder" aria-hidden="true">◇</div>}<div><h2>{movie.title}</h2><p>{movie.year ?? t('Unknown year')}</p><p>{movie.overview}</p><button className="secondary" disabled={loading || registering !== undefined} onClick={() => void findReleases(movie)}>{t(registering === movie.tmdbId ? 'Adding movie…' : 'Find releases')}</button></div></article>)}</div>{result.totalResults === 0 && <p>{t('No movies found')}</p>}<div className="actions"><button className="secondary" disabled={loading || registering !== undefined || result.page <= 1} onClick={() => void search(result.page - 1, true)}>{t('Previous page')}</button><span>{result.page} / {Math.max(1, Math.min(500, result.totalPages))}</span><button className="secondary" disabled={loading || registering !== undefined || result.page >= Math.min(500, result.totalPages)} onClick={() => void search(result.page + 1, true)}>{t('Next page')}</button></div></>}
     <footer><a href="/about">{t('About & credits')}</a><p>{t('Movie metadata and artwork provided by TMDB.')}</p></footer>
   </section>;
 }

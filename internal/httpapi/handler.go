@@ -139,6 +139,10 @@ func methodNotAllowed(w http.ResponseWriter, allow string) {
 }
 
 func (h *Handler) api(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "/api/v1/releases" {
+		h.releaseSearch(w, r)
+		return
+	}
 	if r.URL.Path == "/api/v1/source" || r.URL.Path == "/api/v1/source/test" {
 		h.sourceAPI(w, r)
 		return

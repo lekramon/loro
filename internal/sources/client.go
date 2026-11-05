@@ -32,6 +32,14 @@ func NewClient() *Client {
 	return &Client{http: &http.Client{Transport: transport, Timeout: 2 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}
 }
 func (c *Client) Capabilities(ctx context.Context, config Config) (Capabilities, error) {
+	data, err := c.request(ctx, config, url.Values{"t": {"caps"}})
+	if err != nil {
+		return Capabilities{}, err
+	}
+	return parseCapabilities(data, config.APIKey)
+}
+
+func (c *Client) request(ctx context.Context, config Config, query url.Values) ([]byte, error) {
 	var last error
 	for attempt := 0; attempt < 4; attempt++ {
 		c.mu.Lock()
@@ -39,20 +47,19 @@ func (c *Client) Capabilities(ctx context.Context, config Config) (Capabilities,
 		same := c.revision == config.Revision
 		c.mu.Unlock()
 		if same && remaining > 0 {
-			return Capabilities{}, &ProviderError{Code: "source-rate-limited", RetryAfter: int(remaining.Seconds()) + 1}
+			return nil, &ProviderError{Code: "source-rate-limited", RetryAfter: int(remaining.Seconds()) + 1}
 		}
 		endpoint, err := url.Parse(config.URL)
 		if err != nil {
-			return Capabilities{}, failed("source-invalid-response")
+			return nil, failed("source-invalid-response")
 		}
-		query := url.Values{"t": {"caps"}}
 		if config.APIKey != "" {
 			query.Set("apikey", config.APIKey)
 		}
 		endpoint.RawQuery = query.Encode()
 		req, err := http.NewRequestWithContext(ctx, "GET", endpoint.String(), nil)
 		if err != nil {
-			return Capabilities{}, failed("source-invalid-response")
+			return nil, failed("source-invalid-response")
 		}
 		req.Header.Set("Accept", "application/xml, text/xml")
 		req.Header.Set("User-Agent", "Piratarr/0.4")
@@ -69,10 +76,10 @@ func (c *Client) Capabilities(ctx context.Context, config Config) (Capabilities,
 				bytes, readErr := io.ReadAll(io.LimitReader(response.Body, (2<<20)+1))
 				response.Body.Close()
 				if len(bytes) > 2<<20 {
-					return Capabilities{}, failed("source-invalid-response")
+					return nil, failed("source-invalid-response")
 				}
 				if readErr == nil {
-					return parseCapabilities(bytes, config.APIKey)
+					return bytes, nil
 				}
 				last = failed("source-unavailable")
 				var network net.Error
@@ -83,7 +90,7 @@ func (c *Client) Capabilities(ctx context.Context, config Config) (Capabilities,
 				response.Body.Close()
 				switch {
 				case status == 401 || status == 403:
-					return Capabilities{}, failed("source-authentication-failed")
+					return nil, failed("source-authentication-failed")
 				case status == 429:
 					delay, err := strconv.Atoi(response.Header.Get("Retry-After"))
 					if err != nil {
@@ -103,18 +110,18 @@ func (c *Client) Capabilities(ctx context.Context, config Config) (Capabilities,
 					c.cooldown = time.Now().Add(time.Duration(delay) * time.Second)
 					c.revision = config.Revision
 					c.mu.Unlock()
-					return Capabilities{}, &ProviderError{Code: "source-rate-limited", RetryAfter: delay}
+					return nil, &ProviderError{Code: "source-rate-limited", RetryAfter: delay}
 				case status >= 500:
 					last = failed("source-unavailable")
 				case status >= 300 && status < 400:
-					return Capabilities{}, failed("source-invalid-response")
+					return nil, failed("source-invalid-response")
 				default:
-					return Capabilities{}, failed("source-unavailable")
+					return nil, failed("source-unavailable")
 				}
 			}
 		}
 		if ctx.Err() != nil {
-			return Capabilities{}, failed("source-timeout")
+			return nil, failed("source-timeout")
 		}
 		if attempt < 3 {
 			timer := time.NewTimer(time.Duration(100*(1<<attempt)) * time.Millisecond)
@@ -122,9 +129,9 @@ func (c *Client) Capabilities(ctx context.Context, config Config) (Capabilities,
 			case <-timer.C:
 			case <-ctx.Done():
 				timer.Stop()
-				return Capabilities{}, failed("source-timeout")
+				return nil, failed("source-timeout")
 			}
 		}
 	}
-	return Capabilities{}, last
+	return nil, last
 }

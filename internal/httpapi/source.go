@@ -133,7 +133,7 @@ func sourceFailure(w http.ResponseWriter, err error) {
 	case errors.Is(err, sources.ErrChanged):
 		fail(w, 409, "source-changed", "Source configuration changed. Reload it before trying again.")
 	case errors.Is(err, sources.ErrBusy):
-		fail(w, 409, "source-test-in-progress", "A source test is already running.")
+		fail(w, 409, "source-test-in-progress", "A source operation is already running.")
 	case errors.Is(err, sources.ErrValidation):
 		fail(w, 422, "source-validation-failed", "Check source name, endpoint and credential fields. Endpoint changes require a new key or explicit clearing.")
 	case errors.Is(err, sources.ErrUnconfigured):
@@ -156,7 +156,7 @@ func sourceFailure(w http.ResponseWriter, err error) {
 			message = "The source timed out."
 		case "source-invalid-response":
 			status = 502
-			message = "The source returned invalid capabilities."
+			message = "The source returned an invalid response."
 		case "source-rate-limited":
 			status = 429
 			message = "The source is rate limiting requests."
