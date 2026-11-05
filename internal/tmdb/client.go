@@ -131,7 +131,7 @@ func (c *Client) request(ctx context.Context, target string, authenticated bool,
 		} else {
 			req.Header.Set("Accept", "image/jpeg, image/png")
 		}
-		req.Header.Set("User-Agent", "Piratarr/0.2")
+		req.Header.Set("User-Agent", "Louro/0.2")
 		response, err := c.http.Do(req)
 		if err != nil {
 			last = failure("metadata-unavailable")

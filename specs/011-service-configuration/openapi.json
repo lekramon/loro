@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.1",
   "info": {
-    "title": "Piratarr service credential API",
+    "title": "Louro service credential API",
     "version": "0.2.0",
     "description": "Backend-first catalog slice. Same loopback Host/Origin and mutation protections as foundation. All responses are local; metadata errors are sanitized. Registered titles and cached artwork remain browsable offline. Metadata/catalog JSON responses link to the About attribution resource."
   },

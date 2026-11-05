@@ -33,7 +33,7 @@ func (h *Handler) catalogAPI(w http.ResponseWriter, r *http.Request) bool {
 	}
 	w.Header().Set("Link", `</api/v1/about>; rel="describedby"`)
 	if route == "/api/v1/about" {
-		writeJSON(w, 200, map[string]string{"name": "Piratarr", "attribution": catalog.Attribution, "providerUrl": "https://www.themoviedb.org", "logoUrl": "/tmdb.svg"})
+		writeJSON(w, 200, map[string]string{"name": "Louro", "attribution": catalog.Attribution, "providerUrl": "https://www.themoviedb.org", "logoUrl": "/tmdb.svg"})
 		return true
 	}
 	if h.stopping.Load() {

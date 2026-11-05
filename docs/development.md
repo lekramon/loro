@@ -1,4 +1,6 @@
-# Development
+# Louro development
+
+Current product name: Louro. Build the current executable with `go build -o bin/louro.exe ./cmd/louro` on Windows (or `-o bin/louro` on Linux). Existing command entry points and persisted Piratarr identifiers remain compatible; [the rename decision](adr/0003-louro-product-name.md) explains why. The current local distribution image is `louro:local`. Earlier slice artifacts below record their historical names.
 
 ## Toolchain
 
@@ -11,15 +13,15 @@ pnpm install --frozen-lockfile
 pnpm run check:api
 pnpm run build
 go test ./...
-go build -o bin/piratarr.exe ./cmd/piratarr
+go build -o bin/louro.exe ./cmd/louro
 ```
 
-The frontend build must precede Go build/tests because the backend embeds its generated assets. Build output is ignored by Git. On Linux, use `-o bin/piratarr` instead.
+The frontend build must precede Go build/tests because the backend embeds its generated assets. Build output is ignored by Git. On Linux, use `-o bin/louro` instead.
 
 ## Run
 
 ```powershell
-go run ./cmd/piratarr
+go run ./cmd/louro
 ```
 
 Open `http://127.0.0.1:8080` and follow **Start setup**. Supply separate existing absolute download/movie directories, choose accepted/preferred resolutions, and rank audio languages or original audio. Saving validates paths and persists one profile. Use **Edit settings** to change it; every save carries the loaded revision, and a stale tab must explicitly reload before editing again. Folder changes update configuration only and never relocate existing media. Catalog, search, and downloads belong to subsequent tickets and are unavailable.
@@ -61,7 +63,7 @@ To cross-build for the first deployment target:
 $env:GOOS = 'linux'
 $env:GOARCH = 'amd64'
 $env:CGO_ENABLED = '0'
-go build -o bin/piratarr-linux-amd64 ./cmd/piratarr
+go build -o bin/piratarr-linux-amd64 ./cmd/louro
 Remove-Item Env:GOOS, Env:GOARCH, Env:CGO_ENABLED
 ```
 

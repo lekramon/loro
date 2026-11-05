@@ -22,11 +22,11 @@ type Config struct {
 
 func Parse(args []string, getenv func(string) string) (Config, error) {
 	container := false
-	if value := getenv("PIRATARR_CONTAINER"); value != "" {
+	if value := Environment(getenv, "CONTAINER"); value != "" {
 		var err error
 		container, err = strconv.ParseBool(value)
 		if err != nil {
-			return Config{}, errors.New("PIRATARR_CONTAINER must be a boolean")
+			return Config{}, errors.New("container setting must be a boolean")
 		}
 	}
 	dataDefault := "/var/lib/piratarr"
@@ -42,17 +42,17 @@ func Parse(args []string, getenv func(string) string) (Config, error) {
 		dataDefault, listenDefault = "/config", "0.0.0.0:8080"
 	}
 	envOr := func(name, fallback string) string {
-		if v := getenv(name); v != "" {
+		if v := Environment(getenv, name); v != "" {
 			return v
 		}
 		return fallback
 	}
-	flags := flag.NewFlagSet("piratarr", flag.ContinueOnError)
+	flags := flag.NewFlagSet("louro", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
-	tokenFile := flags.String("tmdb-token-file", envOr("PIRATARR_TMDB_TOKEN_FILE", ""), "private application metadata credential file")
-	data := flags.String("data-dir", envOr("PIRATARR_DATA_DIR", dataDefault), "private data directory")
-	listen := flags.String("listen", envOr("PIRATARR_LISTEN", listenDefault), "HTTP listener")
-	workers := flags.String("workers", envOr("PIRATARR_WORKERS", "4"), "future worker count (1-8)")
+	tokenFile := flags.String("tmdb-token-file", envOr("TMDB_TOKEN_FILE", ""), "private application metadata credential file")
+	data := flags.String("data-dir", envOr("DATA_DIR", dataDefault), "private data directory")
+	listen := flags.String("listen", envOr("LISTEN", listenDefault), "HTTP listener")
+	workers := flags.String("workers", envOr("WORKERS", "4"), "future worker count (1-8)")
 	if err := flags.Parse(args); err != nil {
 		return Config{}, errors.New("invalid command-line options")
 	}
@@ -97,4 +97,12 @@ func PrepareDataDir(path string) (string, error) {
 		return "", fmt.Errorf("secure data directory: %w", err)
 	}
 	return canonical, nil
+}
+
+// Environment keeps Louro configuration compatible with existing deployments.
+func Environment(getenv func(string) string, key string) string {
+	if value := getenv("LOURO_" + key); value != "" {
+		return value
+	}
+	return getenv("PIRATARR_" + key)
 }

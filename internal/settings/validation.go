@@ -171,7 +171,7 @@ func probeDirectory(path string) error {
 	if err != nil {
 		return err
 	}
-	_, writeErr := probe.WriteString("Piratarr directory validation\n")
+	_, writeErr := probe.WriteString("Louro directory validation\n")
 	closeErr = probe.Close()
 	removeErr := os.Remove(probe.Name())
 	return errors.Join(writeErr, closeErr, removeErr)

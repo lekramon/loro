@@ -1,6 +1,6 @@
 """Verify the Linux distribution through Compose, HTTP and disposable bind mounts.
 
-Build the image first: docker compose build (or docker build -t piratarr:local .).
+Build the image first: docker compose build (or docker build -t louro:local .).
 Requires a running Linux Docker engine and an unused loopback port (--port).
 Only fresh temporary directories are initialized; existing user media is untouched.
 """
@@ -109,10 +109,13 @@ def verify(image, port):
         mode_before = execute("stat", "-c", "%a:%u:%g", "/data/media/movies/existing.mkv")
         execute("ffprobe", "-version")
         execute("sh", "-ec", "! command -v node; ! command -v npm; test -s /etc/ssl/certs/ca-certificates.crt")
+        execute("/usr/local/bin/louro", "healthcheck")
         execute("/usr/local/bin/piratarr", "healthcheck")
         assert json.loads(request("/api/v1/setup"))["completed"] is False
         html = request("/")
         assert b"<html" in html.lower()
+        assert b"<title>Louro</title>" in html
+        assert json.loads(request("/api/v1/about"))["name"] == "Louro"
         assets = re.findall(rb'(?:src|href)="(/assets/[^" ]+)"', html)
         assert assets, "Embedded page references no production assets"
         for asset in assets:
@@ -161,7 +164,7 @@ def verify(image, port):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--image", default="piratarr:local")
+    parser.add_argument("--image", default="louro:local")
     parser.add_argument("--port", type=int, default=8080)
     options = parser.parse_args()
     if not 1 <= options.port <= 65535:

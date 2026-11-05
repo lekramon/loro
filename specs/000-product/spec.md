@@ -1,10 +1,12 @@
-# Piratarr — Product Specification
+# Louro — Product Specification
 
 Status: accepted product direction; published to the local Markdown tracker.
 Label: ready-for-agent
 State: specified
 
 This specification synthesizes the conversation and approved development-preparation plan. It defines product behavior and the first usable milestone; implementation proceeds through separately specified vertical slices. Architecture defaults are accepted in the ADRs. The user confirmed the testing strategy. Conversation and specifications use English. Foundation startup, first-run setup, revision-safe settings editing and Linux Docker distribution are implemented; the movie metadata/registration backend is implemented, while file scanning, acquisitions and imports remain planned.
+
+The product name is **Louro**, selected on 2026-11-05. Historical Piratarr registrations and persistent technical identifiers retain their compatibility meaning; see [rename contract](../012-louro-name/spec.md).
 
 ## Problem Statement
 

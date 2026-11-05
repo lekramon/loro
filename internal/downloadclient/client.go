@@ -97,7 +97,7 @@ func (s session) request(ctx context.Context, method, route, body string) (strin
 	req.Header.Set("Origin", origin)
 	req.Header.Set("Referer", strings.TrimRight(s.base.String(), "/")+"/")
 	req.Header.Set("Accept", "text/plain")
-	req.Header.Set("User-Agent", "Piratarr/0.5")
+	req.Header.Set("User-Agent", "Louro/0.5")
 	if method == "POST" {
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	}

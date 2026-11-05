@@ -3,9 +3,11 @@ package healthcheck
 
 import (
 	"context"
+
 	"encoding/json"
 	"errors"
 	"flag"
+	"github.com/lekramon/piratarr/internal/bootstrap"
 	"io"
 	"net"
 	"net/http"
@@ -16,7 +18,7 @@ import (
 // Run performs a bounded loopback-only readiness check. It never takes the
 // data-directory lock and ignores proxy configuration and redirects.
 func Run(ctx context.Context, args []string, getenv func(string) string) error {
-	listen := getenv("PIRATARR_LISTEN")
+	listen := bootstrap.Environment(getenv, "LISTEN")
 	if listen == "" {
 		listen = "127.0.0.1:8080"
 	}

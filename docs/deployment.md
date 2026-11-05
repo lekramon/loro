@@ -1,4 +1,6 @@
-# Linux Docker Compose deployment
+# Louro deployment
+
+Build `louro:local` and use `/usr/local/bin/louro`; the image also provides the legacy `piratarr` executable. Compose deliberately retains its existing project/service identity and PIRATARR mount settings to preserve current deployments. Program bootstrap accepts preferred `LOURO_*` environment values with `PIRATARR_*` fallback. Existing default data folders, SQLite names, locks, browser storage and credentials remain in place. See [compatibility](adr/0003-louro-product-name.md).
 
 This is the initial Linux amd64 distribution. Build/runtime verification status is recorded in [foundation evidence](../specs/001-foundation/verification.md). A stopped or failed Docker engine prevents container verification; native build success does not establish Linux compatibility.
 
@@ -34,7 +36,7 @@ During setup use container paths, for example `/data/downloads` and `/data/media
 Production React assets are embedded in the Go executable. The runtime includes CA certificates and ffprobe but no Node.js server or Go compiler. The image and Compose drop Linux capabilities and prohibit gaining new privileges. Container restart policy is `unless-stopped`; graceful stop allows the application's shutdown deadline.
 
 ```sh
-docker compose exec piratarr piratarr healthcheck
+docker compose exec piratarr louro healthcheck
 docker compose restart piratarr
 docker compose up -d --force-recreate --wait
 docker compose down
@@ -45,7 +47,7 @@ Stopping/removing the container does not delete the bind-mounted configuration o
 ## Native readiness command
 
 ```powershell
-.\bin\piratarr-next.exe healthcheck --listen 127.0.0.1:8081
+.\bin\louro.exe healthcheck --listen 127.0.0.1:8081
 ```
 
 Use the name of the executable you built and the running service's port. The command accepts `--listen`, then `PIRATARR_LISTEN`, then `127.0.0.1:8080`. Wildcard container addresses map to loopback. It times out within three seconds, follows no redirects, ignores HTTP proxies, rejects non-local targets, and exits nonzero unless the readiness API returns its expected JSON. It does not acquire the instance lock or access SQLite. Readiness is independent of onboarding.
@@ -69,7 +71,7 @@ Choose an empty output directory outside this checkout and inspect `/context` be
 With the image built and Linux Docker running, choose an unused local port and run:
 
 ```sh
-python scripts/verify_container.py --image piratarr:local --port 18082
+python scripts/verify_container.py --image louro:local --port 18082
 ```
 
 This creates a unique temporary fixture and Compose project, prepares only those new directories using a short-lived root helper, and runs the service as 10001:10001. It verifies real HTTP setup, readiness before/after onboarding, inaccessible/overlapping/symlinked roots, second-instance exclusion, embedded assets, ffprobe, unchanged media content/mode, and settings across restart/recreation. It stops its own Compose project and removes only its verified temporary fixture. Existing user libraries are never mounted by this verifier.

@@ -26,7 +26,7 @@ RUN --mount=type=secret,id=tmdb_token,uid=10001,gid=10001,mode=0400 \
     : "$TMDB_BUILD_REVISION" \
  && if [ -s /run/secrets/tmdb_token ]; then cp /run/secrets/tmdb_token internal/tmdb/release-credential.txt; fi \
  && go test ./... && go vet ./... \
- && go build -trimpath -ldflags="-s -w" -o /out/piratarr ./cmd/piratarr \
+ && go build -trimpath -ldflags="-s -w" -o /out/louro ./cmd/louro \
  && : > internal/tmdb/release-credential.txt
 
 FROM debian:trixie-slim@sha256:f6b08b09a05725f9431502d3b5714f5c4576e82c1a84fa1debe0c24a7e0c3ec4 AS runtime
@@ -46,11 +46,12 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked rm -f /etc/apt/sourc
  && useradd --uid 10001 --gid 10001 --create-home --shell /usr/sbin/nologin piratarr \
  && install -d -o 10001 -g 10001 -m 0700 /config \
  && install -d -o 10001 -g 10001 -m 0755 /data /data/downloads /data/media /data/media/movies
-COPY --from=backend /out/piratarr /usr/local/bin/piratarr
+COPY --from=backend /out/louro /usr/local/bin/louro
+RUN ln -s louro /usr/local/bin/piratarr
 ENV PIRATARR_CONTAINER=true PIRATARR_LISTEN=0.0.0.0:8080 PIRATARR_DATA_DIR=/config HOME=/home/piratarr
 WORKDIR /app
 USER 10001:10001
 EXPOSE 8080
 STOPSIGNAL SIGTERM
-HEALTHCHECK --interval=15s --timeout=5s --start-period=15s --retries=3 CMD ["/usr/local/bin/piratarr", "healthcheck"]
-ENTRYPOINT ["/usr/local/bin/piratarr"]
+HEALTHCHECK --interval=15s --timeout=5s --start-period=15s --retries=3 CMD ["/usr/local/bin/louro", "healthcheck"]
+ENTRYPOINT ["/usr/local/bin/louro"]

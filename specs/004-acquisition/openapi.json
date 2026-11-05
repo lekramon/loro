@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.1",
   "info": {
-    "title": "Piratarr download-client configuration API",
+    "title": "Louro download-client configuration API",
     "version": "0.5.0"
   },
   "servers": [

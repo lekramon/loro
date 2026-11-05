@@ -24,3 +24,5 @@ The first usable milestone requires 001–006. Subsequent milestones add automat
 - [Service configuration and Jellyfin layout](011-service-configuration/spec.md): token configuration/testing, live movie search and persistent navigation implemented and verified.
 
 Ticket 03 of service configuration adds a unified library/settings header, library-contained search, one initial viewer and local profile photo/pencil editing; implemented and verified.
+
+- [Louro product name and compatibility](012-louro-name/spec.md): product branding, current executable/image and preferred LOURO environment variables preserve existing data identities.

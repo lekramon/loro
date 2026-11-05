@@ -1,0 +1,16 @@
+# Louro rename verification — 2026-11-05
+
+NAME-001–NAME-004 implemented. Branding is Louro; persistent Piratarr identities remain intentional compatibility boundaries.
+
+- Production TypeScript/Vite build and all six OpenAPI lint checks pass. Public contract titles use Louro; no routes/fields/mutation headers were renamed. Dependency versions/lockfiles are unchanged.
+- Full Linux Go suite and vet pass, including both cmd/louro and cmd/piratarr. The shared internal CLI preserves startup/shutdown/healthcheck behavior. Preferred LOURO environment values, legacy fallback, flag precedence, invalid-preferred rejection and unchanged default data roots are verified. Healthcheck uses the same listener precedence.
+- Native Windows bootstrap and healthcheck test executables pass. Both native command entry points cross-build. A container-mode test fixture was adjusted to use an absolute Windows data path on Windows; Linux still verifies the /config default. Production default directory logic is unchanged.
+- All 26 browser journeys pass against bin/louro.exe with the real disposable service. About API returns name=Louro, browser title and About heading are Louro, and the approved TMDB logo/notice survive locale changes. Existing old-key viewer/photo/preference migrations and media/source/client workflows remain passing. Playwright intentionally supplies the legacy data environment variable, proving startup compatibility.
+- Demo poster SVG watermarks also use LOURO; after updating those final assets, all six focused About/mock journeys passed again and the About journey verifies the served artwork. Reviewed the Portuguese About screenshot showing Louro and required TMDB attribution. Shared layout and PT/EN controls remain intact.
+- docker build -t louro:local . passes full non-root Go tests/vet and embeds the production UI. Disposable Compose verifies both /usr/local/bin/louro and the piratarr compatibility alias, legacy-command instance exclusion, readiness/setup, ffprobe, path validation, restart/recreation persistence and unchanged fixture media/cleanup. Compose service/project identity and UID/GID stay unchanged.
+
+No schema migration, directory move, credential change or running-user-service upgrade was performed. All runtime checks use disposable roots outside the repository. Browser storage/event keys, SQLite/lock names, default paths and request header remain intact. The original GitHub/module/workspace paths and historical provider registration records are preserved. The native SDK is unavailable; Docker provides the pinned compiler for Windows artifacts.
+
+Artifacts: ignored bin/louro.exe and compatibility bin/piratarr-compat.exe, local image louro:local. Use the same data directory when switching the existing preview to the Louro executable. Rollback requires no schema transformation; both names address the same existing schema 7 and locks. No real provider credentials were accessed for this rename.
+
+Final renamed-image Compose run also asserts the served HTML title and About API name are Louro and passes all lifecycle checks. Final documentation/reference verification: 60 Markdown files, 27 API operations and 22 tickets; git diff whitespace check passes. Public artwork scan finds no former product name. Only the named compiler fixture is removed after verification.

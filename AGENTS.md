@@ -1,8 +1,10 @@
-# Piratarr
+# Louro
 
 Use English for conversation, specifications, code, and project documentation.
 
 Before implementation, read the feature specification, its API contract, and the ticket being implemented. Keep changes within that ticket's acceptance criteria. Update specifications when behavior changes; report verification evidence separately from intended behavior.
+
+When changing branding, bootstrap settings or stored identifiers, read [name compatibility](docs/adr/0003-louro-product-name.md). Historical Piratarr storage/deployment identifiers intentionally remain compatible.
 
 ## Agent skills
 

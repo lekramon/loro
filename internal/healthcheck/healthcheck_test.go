@@ -35,6 +35,23 @@ func TestLocalReadinessContract(t *testing.T) {
 		})
 	}
 }
+
+func TestLouroListenerOverridesLegacyHealthcheckEnvironment(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.Write([]byte(`{"status":"ready"}`)) }))
+	defer server.Close()
+	getenv := func(key string) string {
+		if key == "LOURO_LISTEN" {
+			return strings.TrimPrefix(server.URL, "http://")
+		}
+		if key == "PIRATARR_LISTEN" {
+			return "127.0.0.1:1"
+		}
+		return ""
+	}
+	if err := Run(context.Background(), nil, getenv); err != nil {
+		t.Fatal("healthcheck did not use Louro listener", err)
+	}
+}
 func TestInvalidTargetsAndTimeout(t *testing.T) {
 	for _, target := range []string{"example.com:8080", "192.0.2.1:8080", "127.0.0.1:0", "127.0.0.1:65536", "http://localhost:8080", ""} {
 		if Run(context.Background(), []string{"--listen", target}, func(string) string { return "" }) == nil {

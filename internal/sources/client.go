@@ -62,7 +62,7 @@ func (c *Client) request(ctx context.Context, config Config, query url.Values) (
 			return nil, failed("source-invalid-response")
 		}
 		req.Header.Set("Accept", "application/xml, text/xml")
-		req.Header.Set("User-Agent", "Piratarr/0.4")
+		req.Header.Set("User-Agent", "Louro/0.4")
 		response, err := c.http.Do(req)
 		if err != nil {
 			last = failed("source-unavailable")

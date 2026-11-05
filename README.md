@@ -1,4 +1,6 @@
-# Piratarr
+# Louro
+
+Louro is the local movie-management application formerly named Piratarr. The product rename preserves existing installations. See [name compatibility](docs/adr/0003-louro-product-name.md).
 
 A local, self-hosted movie and TV library manager with original catalog, search, acquisition, and import modules.
 
@@ -20,7 +22,7 @@ The selected stack is Go, React/TypeScript/Vite, and SQLite. The first supported
 
 The first usable milestone is manual movie acquisition through import. TMDB, a user-configured Torznab endpoint, and qBittorrent are the initial integrations. Credentials are not needed to develop against simulators.
 
-TMDB access will use application credentials registered for Piratarr, supplied by release packaging. Setup/settings allow saving a TMDB Read Access Token locally; provisioned releases can still supply a fallback credential. The development credential is privately provisioned and verified; the metadata adapter and private-file/BuildKit release provisioning hooks are implemented. Source-only builds need an available private credential file for new live provider queries. See [maintainer registration instructions](docs/tmdb-registration.md).
+TMDB access uses application credentials registered under the former Piratarr name, supplied by release packaging. Setup/settings allow saving a TMDB Read Access Token locally; provisioned releases can still supply a fallback credential. The development credential is privately provisioned and verified; the metadata adapter and private-file/BuildKit release provisioning hooks are implemented. Source-only builds need an available private credential file for new live provider queries. See [maintainer registration instructions](docs/tmdb-registration.md).
 
 ## Development preparation verification
 
