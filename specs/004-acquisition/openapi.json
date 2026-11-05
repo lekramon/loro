@@ -1,0 +1,451 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Piratarr download-client configuration API",
+    "version": "0.5.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080"
+    }
+  ],
+  "paths": {
+    "/api/v1/download-client": {
+      "get": {
+        "operationId": "getDownloadClient",
+        "summary": "Read public qBittorrent configuration",
+        "responses": {
+          "200": {
+            "description": "Public configuration or fresh connection evidence. Password and SID omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DownloadClient"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure. See DCL-001\u2013DCL-006 for error codes. 429 includes bounded Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure. See DCL-001\u2013DCL-006 for error codes. 429 includes bounded Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized failure. See DCL-001\u2013DCL-006 for error codes. 429 includes bounded Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized failure. See DCL-001\u2013DCL-006 for error codes. 429 includes bounded Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "saveDownloadClient",
+        "summary": "Save qBittorrent base URL and private password",
+        "parameters": [
+          {
+            "name": "X-Piratarr-Request",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "const": "1"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectionInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Public configuration or fresh connection evidence. Password and SID omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DownloadClient"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure. See DCL-001\u2013DCL-006 for error codes. 429 includes bounded Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure. See DCL-001\u2013DCL-006 for error codes. 429 includes bounded Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized failure. See DCL-001\u2013DCL-006 for error codes. 429 includes bounded Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized failure. See DCL-001\u2013DCL-006 for error codes. 429 includes bounded Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized failure. See DCL-001\u2013DCL-006 for error codes. 429 includes bounded Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized failure. See DCL-001\u2013DCL-006 for error codes. 429 includes bounded Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized failure. See DCL-001\u2013DCL-006 for error codes. 429 includes bounded Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/download-client/test": {
+      "post": {
+        "operationId": "testDownloadClient",
+        "summary": "Authenticate with qBittorrent and verify supported versions",
+        "description": "Explicit test only. Fresh private session, best-effort logout, no retries or torrent mutations. Does not verify submission or path mapping.",
+        "parameters": [
+          {
+            "name": "X-Piratarr-Request",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "const": "1"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {},
+                "required": []
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Public configuration or fresh connection evidence. Password and SID omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionTest"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure. See DCL-001\u2013DCL-006 for error codes. 429 includes bounded Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure. See DCL-001\u2013DCL-006 for error codes. 429 includes bounded Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized failure. See DCL-001\u2013DCL-006 for error codes. 429 includes bounded Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized failure. See DCL-001\u2013DCL-006 for error codes. 429 includes bounded Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized failure. See DCL-001\u2013DCL-006 for error codes. 429 includes bounded Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized failure. See DCL-001\u2013DCL-006 for error codes. 429 includes bounded Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized failure. See DCL-001\u2013DCL-006 for error codes. 429 includes bounded Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Sanitized failure. See DCL-001\u2013DCL-006 for error codes. 429 includes bounded Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized failure. See DCL-001\u2013DCL-006 for error codes. 429 includes bounded Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Sanitized failure. See DCL-001\u2013DCL-006 for error codes. 429 includes bounded Retry-After.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "DownloadClient": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "configured": {
+            "type": "boolean"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "url": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "hasPassword": {
+            "type": "boolean"
+          },
+          "appVersion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "apiVersion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "checkedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "configured",
+          "revision",
+          "url",
+          "username",
+          "hasPassword",
+          "appVersion",
+          "apiVersion",
+          "checkedAt"
+        ]
+      },
+      "ConnectionInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "username": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 1024,
+            "writeOnly": true,
+            "description": "UTF-8 byte bound; blank or omitted preserves only when URL and username are unchanged. Initial save requires a password."
+          }
+        },
+        "required": [
+          "revision",
+          "url",
+          "username"
+        ]
+      },
+      "ConnectionTest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "connected": {
+            "const": true
+          },
+          "clientRevision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "appVersion": {
+            "type": "string"
+          },
+          "apiVersion": {
+            "type": "string"
+          },
+          "checkedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "connected",
+          "clientRevision",
+          "appVersion",
+          "apiVersion",
+          "checkedAt"
+        ]
+      }
+    }
+  }
+}

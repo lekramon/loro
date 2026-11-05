@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/lekramon/piratarr/internal/catalog"
+	"github.com/lekramon/piratarr/internal/downloadclient"
 	"github.com/lekramon/piratarr/internal/library"
 	"github.com/lekramon/piratarr/internal/settings"
 	"github.com/lekramon/piratarr/internal/sources"
@@ -29,15 +30,16 @@ type Storage interface {
 }
 
 type Handler struct {
-	catalog     *catalog.Service
-	library     *library.Service
-	source      *sources.Service
-	defaultRoot string
-	storage     Storage
-	assets      fs.FS
-	port        string
-	stopping    atomic.Bool
-	settings    settings.Service
+	downloadClient *downloadclient.Service
+	catalog        *catalog.Service
+	library        *library.Service
+	source         *sources.Service
+	defaultRoot    string
+	storage        Storage
+	assets         fs.FS
+	port           string
+	stopping       atomic.Bool
+	settings       settings.Service
 }
 
 type apiError struct {
@@ -57,6 +59,9 @@ func New(storage Storage, assets fs.FS, listen string, services ...*catalog.Serv
 	}
 	if repo, ok := storage.(sources.Repository); ok {
 		handler.source = sources.New(repo)
+	}
+	if repo, ok := storage.(downloadclient.Repository); ok {
+		handler.downloadClient = downloadclient.New(repo)
 	}
 	return handler
 }
@@ -139,6 +144,10 @@ func methodNotAllowed(w http.ResponseWriter, allow string) {
 }
 
 func (h *Handler) api(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "/api/v1/download-client" || r.URL.Path == "/api/v1/download-client/test" {
+		h.downloadClientAPI(w, r)
+		return
+	}
 	if r.URL.Path == "/api/v1/releases" {
 		h.releaseSearch(w, r)
 		return

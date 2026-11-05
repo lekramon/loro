@@ -1,0 +1,20 @@
+# Download-client connection verification
+
+## Ticket 01 — 2026-11-05
+
+Implemented DCL-001–DCL-006. Source submission and worker recovery are subsequent tickets, not outcomes of this connection check.
+
+- Frontend build/type checking, six OpenAPI contract lint checks, local Markdown/dependency/API consistency and git diff whitespace checks pass. No dependencies or toolchains changed.
+- Full Linux Go suite and vet pass using the pinned compiler as UID/GID 10001. Native Windows API and storage test executables pass. After preserving encoded proxy prefixes, focused Linux and native Windows client checks pass again. The shared strict flat-JSON decoder retains source configuration regression coverage.
+- Public API tests use real disposable SQLite/directories and an HTTP qBittorrent simulator. Verified save without network, password spaces/UTF-8/form encoding, blank preservation, rotation, mandatory replacement for endpoint/user changes, stale-write exclusion, historical success retention after failure and restart persistence. No real user data/credentials are used.
+- Verified fresh login/no previous cookie on each test, matching Origin/Referer, usable SID propagation, version reads, attempted logout on success/invalid version/timeout/cancellation, explicit ten-second operation/two-second attempt budgets, no automatic login retries and no torrent/category/tag/settings calls. Logout failure is best effort and does not invalidate successful authentication/version evidence.
+- Verified HTTP/semantic authentication failures, missing cookie, redirect refusal, invalid/oversized bodies, stable supported/unsupported versions, timeout/cancellation, sanitized diagnostics, 429 cooldown and revision isolation, concurrent test exclusion and config changes while checking. Remote outages preserve local readiness. Encoded reverse-proxy paths retain their identity.
+- Migration 6 → 7 preserves settings, catalog identity, verified file associations, source credentials/capabilities and a dummy private TMDB file. An injected migration failure rolls back the new table and leaves v6 readable; retry upgrades successfully. Injected save failure leaves no partial configuration. Prior readers reject schema 7, stale evidence/writes fail, and readiness detects a missing required client column. No destructive Down migration ran.
+- All 26 browser journeys pass. New journey uses the real public configuration/test APIs and a local Node qBittorrent simulator: save/test/reload, masked and write-only password, no localStorage secret, fresh sessions, rejected identity changes without replacement, localized auth failure retaining old evidence and mobile overflow checks. A focused final journey also verifies failure-message translation on language changes.
+- Dark desktop and light pt-BR mobile connection settings screenshots reviewed. The password field is empty after save/reload; shared navigation/header remain consistent and mobile has no horizontal overflow.
+
+Native Go SDK is unavailable; Docker supplies pinned compilation and cross-built Windows test executables. No live qBittorrent endpoint/credentials were supplied, so live transfer permissions/path mapping are not claimed. The running user preview, database, credentials and media were untouched. Runtime data remains outside the synchronized checkout.
+
+Artifacts: ignored bin/piratarr-client.exe and local image piratarr:client. Schema 7 requires a matching pre-upgrade stopped-service backup for rollback to old binaries. Sessions/cooldowns are transient; saved configuration and successful version evidence persist.
+
+Final `docker build -t piratarr:client .` passes full non-root Go tests/vet and embeds the production frontend. `python scripts/verify_container.py --image piratarr:client --port 18082` passes non-root runtime, ffprobe, health/setup, path validation, instance exclusion, restart/recreation persistence, unchanged fixture media and fixture cleanup. Final documentation check covers 55 Markdown files, 27 operations and 20 tickets.

@@ -161,3 +161,23 @@ Invoke-RestMethod "$base/releases?movieId=$movieId&limit=25&offset=0"
 ```
 
 No schema change accompanies release search; source configuration still uses schema 6. The preview executable for this slice is `bin/piratarr-releases.exe`. Start it from the repository root with the same external data directory used by your previous preview; stop that preview process first. Do not run two instances against the same data directory.
+
+## qBittorrent connection preparation
+
+After onboarding, open Settings → Download client · qBittorrent. Supply the WebUI base URL, username and password, then Save download client and Test download client. Use the base URL rather than `/api/v2`; a reverse-proxy prefix is supported. In Docker, localhost addresses that container; Docker Desktop can reach host services through host.docker.internal when configured accordingly. HTTP supports local services and HTTPS validates certificates.
+
+A blank password preserves the existing password only when URL and username stay the same. Initial configuration and changing either field require a replacement password. Password spaces are preserved. Passwords are write-only local SQLite data, so backups contain secrets. They are never prefilled or saved in browser storage. Sessions are private to each test; the backend logs in, reads app/WebAPI versions, then attempts bounded logout. It does not retry logins or change torrents, categories, tags or client settings. Standard credential login with a usable SID cookie is required; connection testing is not validation of download permission or shared-folder mapping.
+
+Last successful versions/time remain visible after a failed test; saving configuration clears them. Client outages do not affect local readiness. Revision conflicts require Reload download client. The next acquisition ticket must define durable selection, override confirmation, torrent identity and reconciliation before adding submission controls. Existing mock Downloads remains simulated.
+
+Migration 7 adds download-client configuration and preserves settings/catalog/associations/source configuration. Older binaries reject schema 7. Before upgrading real data, retain a matching stopped-service data-directory backup for rollback; do not run SQL Down migrations. The Windows preview executable for this slice is `bin/piratarr-client.exe`, image `piratarr:client`. Use your existing external data directory and stop its previous service first.
+
+Public API example (after saving through Settings):
+
+```powershell
+$base = 'http://127.0.0.1:18084/api/v1'
+Invoke-RestMethod "$base/download-client"
+Invoke-RestMethod "$base/download-client/test" -Method Post -Headers @{ 'X-Piratarr-Request' = '1' } -ContentType 'application/json' -Body '{}'
+```
+
+Live validation requires your own accessible qBittorrent WebUI credentials. Disposable HTTP simulators cover development without them.

@@ -1,15 +1,11 @@
 package httpapi
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
-	"io"
 	"net/http"
 	"strconv"
 	"time"
-	"unicode/utf8"
 
 	"github.com/lekramon/piratarr/internal/sources"
 )
@@ -59,53 +55,9 @@ func (h *Handler) sourceAPI(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 200, config)
 		return
 	}
-	data, err := io.ReadAll(r.Body)
-	var large *http.MaxBytesError
-	if errors.As(err, &large) {
-		fail(w, 413, "request-too-large", "Request exceeds 64 KiB.")
-		return
-	}
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	first, decodeErr := decoder.Token()
-	fields := map[string]json.RawMessage{}
-	if err != nil || !utf8.Valid(data) || decodeErr != nil || first != json.Delim('{') {
-		fail(w, 400, "invalid-request", "Provide a source configuration object.")
-		return
-	}
-	for decoder.More() {
-		key, e := decoder.Token()
-		if e != nil {
-			decodeErr = e
-			break
-		}
-		name, ok := key.(string)
-		if !ok || fields[name] != nil || (name != "revision" && name != "name" && name != "url" && name != "apiKey" && name != "clearApiKey") {
-			decodeErr = errors.New("invalid field")
-			break
-		}
-		var value json.RawMessage
-		if e = decoder.Decode(&value); e != nil {
-			decodeErr = e
-			break
-		}
-		fields[name] = value
-	}
-	if decodeErr == nil {
-		_, decodeErr = decoder.Token()
-	}
-	if decodeErr == nil {
-		if _, e := decoder.Token(); e != io.EOF {
-			decodeErr = errors.New("trailing input")
-		}
-	}
 	var input sources.Input
-	for _, raw := range fields {
-		if bytes.Equal(raw, []byte("null")) {
-			decodeErr = errors.New("null field")
-		}
-	}
-	if decodeErr != nil || json.Unmarshal(data, &input) != nil {
-		fail(w, 400, "invalid-request", "Use unique recognized source fields with the expected types.")
+	fields, ok := decodeConfiguration(w, r, &input, "revision", "name", "url", "apiKey", "clearApiKey")
+	if !ok {
 		return
 	}
 	if fields["revision"] == nil {
