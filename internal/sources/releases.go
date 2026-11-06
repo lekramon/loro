@@ -153,6 +153,35 @@ func parseReleases(data []byte, config Config, limit, offset int) (ReleasePage, 
 			sizes = append(sizes, item.Enclosure.Length)
 		}
 		candidate := Candidate{ID: id, Title: title, SizeBytes: numberEvidence(sizes), Seeders: numberEvidence(attributes["seeders"]), AudioLanguages: audioLanguages(attributes["language"])}
+		candidate.DownloadReference = strings.TrimSpace(item.Enclosure.URL)
+		if candidate.DownloadReference == "" {
+			candidate.DownloadReference = strings.TrimSpace(item.Link)
+		}
+		if magnets := attributes["magneturl"]; len(magnets) > 0 {
+			if magnet := unique(magnets); magnet != nil {
+				candidate.DownloadReference = *magnet
+			} else {
+				candidate.ReferenceIssue = "ambiguous-reference"
+			}
+		}
+		if len(candidate.DownloadReference) > 8192 {
+			candidate.DownloadReference = ""
+			candidate.ReferenceIssue = "unsupported-reference"
+		}
+		if candidate.DownloadReference == "" && candidate.ReferenceIssue == "" {
+			candidate.ReferenceIssue = "missing-reference"
+		}
+		if claims := attributes["infohash"]; len(claims) > 0 {
+			if claim := unique(claims); claim != nil {
+				candidate.HashClaim = *claim
+				if len(candidate.HashClaim) > 128 {
+					candidate.HashClaim = ""
+					candidate.ReferenceIssue = "identity-mismatch"
+				}
+			} else {
+				candidate.ReferenceIssue = "identity-mismatch"
+			}
+		}
 		if date, err := time.Parse(time.RFC1123Z, item.Date); err == nil {
 			at := date.UTC().Format(time.RFC3339)
 			candidate.PublishedAt = &at

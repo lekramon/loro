@@ -33,3 +33,7 @@ Additional errors: 404 catalog movie absent; 409 setup-required/source-capabilit
 ## References
 
 [Torznab specification](https://torznab.github.io/spec-1.3-draft/torznab/Specification-v1.3.html), [Jackett interface](https://github.com/Jackett/Jackett#torznab). Caps may be public even when searches require credentials.
+
+## Durable selection integration
+
+[Acquisition ticket 02](../004-acquisition/spec.md) extends successful searches with persisted, expiring observationId values and private download-reference evidence. Candidate IDs/profile explanations remain unchanged; references/claims never become public URLs. Schema 8 and selection/preparation/review contracts are owned by that feature, superseding this original slice's transient-observation boundary.

@@ -15,7 +15,7 @@ func (h *Handler) releaseSearch(w http.ResponseWriter, r *http.Request) {
 		methodNotAllowed(w, "GET")
 		return
 	}
-	if h.stopping.Load() || h.source == nil || h.catalog == nil {
+	if h.stopping.Load() || h.source == nil || h.catalog == nil || h.acquisitions == nil {
 		fail(w, 503, "not-ready", "Release search is unavailable.")
 		return
 	}
@@ -81,6 +81,11 @@ func (h *Handler) releaseSearch(w http.ResponseWriter, r *http.Request) {
 	}
 	if current.Revision != profile.Revision {
 		fail(w, 409, "preferences-changed", "Preferences changed during search. Search again.")
+		return
+	}
+	page, err = h.acquisitions.Remember(ctx, page, movie, profile)
+	if err != nil {
+		acquisitionFailure(w, err)
 		return
 	}
 	writeJSON(w, 200, page)

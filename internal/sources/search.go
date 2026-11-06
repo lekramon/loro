@@ -21,6 +21,10 @@ type ProfileCheck struct {
 	Accepted  []string `json:"accepted"`
 }
 type Candidate struct {
+	ObservationID       string         `json:"observationId"`
+	DownloadReference   string         `json:"-"`
+	HashClaim           string         `json:"-"`
+	ReferenceIssue      string         `json:"-"`
 	ID                  string         `json:"id"`
 	Title               string         `json:"title"`
 	SizeBytes           *int64         `json:"sizeBytes"`
@@ -36,6 +40,7 @@ type Candidate struct {
 	Checks              []ProfileCheck `json:"checks"`
 }
 type ReleasePage struct {
+	SourceURL       string      `json:"-"`
 	MovieID         int64       `json:"movieId"`
 	SourceName      string      `json:"sourceName"`
 	SourceRevision  int         `json:"sourceRevision"`
@@ -123,6 +128,7 @@ func (s *Service) Search(ctx context.Context, movie catalog.Movie, profile setti
 		return ReleasePage{}, ErrChanged
 	}
 	page.MovieID = movie.ID
+	page.SourceURL = config.URL
 	page.SourceName = config.Name
 	page.SourceRevision = config.Revision
 	page.ProfileRevision = profile.Revision

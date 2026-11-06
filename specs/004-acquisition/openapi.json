@@ -315,6 +315,604 @@
           }
         }
       }
+    },
+    "/api/v1/acquisitions": {
+      "get": {
+        "operationId": "listAcquisitions",
+        "summary": "listAcquisitions",
+        "responses": {
+          "200": {
+            "description": "Public local acquisition state. No private references or payload bytes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcquisitionList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 25
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10000,
+              "default": 0
+            }
+          },
+          {
+            "name": "movieId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9223372036854775807
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "selectAcquisition",
+        "summary": "selectAcquisition",
+        "responses": {
+          "200": {
+            "description": "Public local acquisition state. No private references or payload bytes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SelectionResult"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "New durable selection; no network request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SelectionResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-Piratarr-Request",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "const": "1"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelectionInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/acquisitions/{id}": {
+      "get": {
+        "operationId": "getAcquisition",
+        "summary": "getAcquisition",
+        "responses": {
+          "200": {
+            "description": "Public local acquisition state. No private references or payload bytes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Acquisition"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/acquisitions/{id}/prepare": {
+      "post": {
+        "operationId": "prepareAcquisition",
+        "summary": "prepareAcquisition",
+        "responses": {
+          "200": {
+            "description": "Public local acquisition state. No private references or payload bytes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Acquisition"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-Piratarr-Request",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "const": "1"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "revision"
+                ],
+                "properties": {
+                  "revision": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/acquisitions/{id}/cancel": {
+      "post": {
+        "operationId": "cancelAcquisition",
+        "summary": "cancelAcquisition",
+        "responses": {
+          "200": {
+            "description": "Public local acquisition state. No private references or payload bytes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Acquisition"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-Piratarr-Request",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "const": "1"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "revision"
+                ],
+                "properties": {
+                  "revision": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -445,6 +1043,353 @@
           "apiVersion",
           "checkedAt"
         ]
+      },
+      "Candidate": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title",
+          "sizeBytes",
+          "seeders",
+          "publishedAt",
+          "resolution",
+          "format",
+          "container",
+          "audioLanguages",
+          "preferredResolution",
+          "audioPreferenceRank",
+          "status",
+          "checks",
+          "observationId"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "title": {
+            "type": "string"
+          },
+          "sizeBytes": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "seeders": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "publishedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "resolution": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "format": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "container": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "audioLanguages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "preferredResolution": {
+            "type": "boolean"
+          },
+          "audioPreferenceRank": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "status": {
+            "enum": [
+              "match",
+              "mismatch",
+              "unknown"
+            ]
+          },
+          "checks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProfileCheck"
+            },
+            "minItems": 4,
+            "maxItems": 4
+          },
+          "observationId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$",
+            "description": "Private durable observation selector; valid for new selection for 30 minutes."
+          }
+        }
+      },
+      "ProfileCheck": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "dimension",
+          "status",
+          "accepted"
+        ],
+        "properties": {
+          "dimension": {
+            "enum": [
+              "resolution",
+              "format",
+              "container",
+              "audio"
+            ]
+          },
+          "status": {
+            "enum": [
+              "match",
+              "mismatch",
+              "unknown"
+            ]
+          },
+          "accepted": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Profile": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "acceptedResolutions",
+          "preferredResolution",
+          "acceptedFormats",
+          "acceptedContainers",
+          "audioPreferences"
+        ],
+        "properties": {
+          "acceptedResolutions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "preferredResolution": {
+            "type": "string"
+          },
+          "acceptedFormats": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "acceptedContainers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "audioPreferences": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Acquisition": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "movieId",
+          "movieTitle",
+          "sourceName",
+          "sourceRevision",
+          "profileRevision",
+          "candidate",
+          "profile",
+          "overrideConfirmed",
+          "state",
+          "revision",
+          "infoHash",
+          "kind",
+          "reviewCode",
+          "createdAt",
+          "updatedAt",
+          "originalLanguage"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "movieId": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "movieTitle": {
+            "type": "string"
+          },
+          "sourceName": {
+            "type": "string"
+          },
+          "sourceRevision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "profileRevision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "candidate": {
+            "$ref": "#/components/schemas/Candidate"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/Profile"
+          },
+          "overrideConfirmed": {
+            "type": "boolean"
+          },
+          "state": {
+            "enum": [
+              "selected",
+              "preparing",
+              "ready",
+              "needs-review",
+              "cancelled"
+            ]
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "infoHash": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[a-f0-9]{40}$"
+          },
+          "kind": {
+            "enum": [
+              "magnet",
+              "torrent",
+              null
+            ]
+          },
+          "reviewCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "originalLanguage": {
+            "type": "string"
+          }
+        }
+      },
+      "SelectionInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "observationId",
+          "idempotencyKey",
+          "confirmOverride"
+        ],
+        "properties": {
+          "observationId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{16,80}$"
+          },
+          "confirmOverride": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SelectionResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "acquisition",
+          "created"
+        ],
+        "properties": {
+          "acquisition": {
+            "$ref": "#/components/schemas/Acquisition"
+          },
+          "created": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AcquisitionList": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "maxItems": 50,
+            "items": {
+              "$ref": "#/components/schemas/Acquisition"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
       }
     }
   }

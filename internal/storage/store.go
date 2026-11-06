@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gofrs/flock"
 	"github.com/pressly/goose/v3"
@@ -23,15 +24,16 @@ import (
 var migrations embed.FS
 
 type Store struct {
-	catalogSchema   bool
-	inventorySchema bool
-	reviewSchema    bool
-	sourceSchema    bool
-	clientSchema    bool
-	write           *sql.DB
-	read            *sql.DB
-	lock            *flock.Flock
-	path            string
+	acquisitionSchema bool
+	catalogSchema     bool
+	inventorySchema   bool
+	reviewSchema      bool
+	sourceSchema      bool
+	clientSchema      bool
+	write             *sql.DB
+	read              *sql.DB
+	lock              *flock.Flock
+	path              string
 }
 
 func Open(ctx context.Context, directory string) (*Store, error) {
@@ -50,6 +52,9 @@ func open(ctx context.Context, directory string, source fs.FS) (_ *Store, result
 		return nil, errors.New("another instance is using this data directory")
 	}
 	s := &Store{lock: lock, path: filepath.Join(directory, "piratarr.db")}
+	if _, err := fs.Stat(source, "migrations/00008_acquisitions.sql"); err == nil {
+		s.acquisitionSchema = true
+	}
 	if _, err := fs.Stat(source, "migrations/00007_download_client.sql"); err == nil {
 		s.clientSchema = true
 	}
@@ -112,6 +117,11 @@ func open(ctx context.Context, directory string, source fs.FS) (_ *Store, result
 	}
 	if _, err = provider.Up(ctx); err != nil {
 		return nil, fmt.Errorf("apply migrations: %w", err)
+	}
+	if s.acquisitionSchema {
+		if _, err = s.write.ExecContext(ctx, "UPDATE acquisitions SET state='needs-review',revision=revision+1,review_code='preparation-interrupted',updated_at=? WHERE state='preparing'", time.Now().UTC().Format(time.RFC3339Nano)); err != nil {
+			return nil, errors.New("recover acquisition preparation")
+		}
 	}
 	s.read, err = sql.Open("sqlite", uri.String())
 	if err != nil {
@@ -193,6 +203,9 @@ func (s *Store) Ready(ctx context.Context) error {
 	}
 	if s.clientSchema {
 		query += " + (SELECT count(revision)+count(endpoint)+count(username)+count(password)+count(app_version)+count(api_version)+count(checked_at) FROM download_client_configuration)"
+	}
+	if s.acquisitionSchema {
+		query += " + (SELECT count(snapshot)+count(reference) FROM release_observations) + (SELECT count(state)+count(revision)+count(payload) FROM acquisitions) + (SELECT count(request_key) FROM acquisition_requests)"
 	}
 	return s.read.QueryRowContext(ctx, query).Scan(&value)
 }

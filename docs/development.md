@@ -189,3 +189,35 @@ Live validation requires your own accessible qBittorrent WebUI credentials. Disp
 The shared header uses a rounded PT/EN selector: PT is Brazilian Portuguese and EN is US English. Click either segment or use Tab with Space/Enter. The active segment is inset, with contrast adapted to the theme. Display choice keeps its existing browser-local storage key and does not change the media profile. The sun/moon buttons retain their behavior.
 
 The combined preview with qBittorrent connection settings and this control is `bin/piratarr-language.exe`, Linux image `piratarr:language`. Restart with the same external data directory; the connection feature uses schema 7 and this presentation change adds no migration.
+
+## Manual acquisition selection and identity
+
+In Library → Releases, search a registered movie and select a result. The confirmation dialog shows the saved candidate attributes and profile checks; mismatches or unknowns require an explicit exception for this acquisition only. Prepare acquisition first saves the choice, then validates its torrent identity. Preferences stay unchanged. A lost selection response can be retried with the same request key; refresh Saved acquisitions after any uncertain preparation response.
+
+Saved acquisitions lists each movie's selected/preparing/ready/review/cancelled choices. Retry identity preparation repeats only a bounded read/parse operation. Cancel acquisition is local and terminal; it never removes media or client torrents. Cancel/research when a source reference or profile has changed. A restart changes an interrupted preparing record to review without automatically repeating work. Existing ready/selected records remain intact.
+
+New selections use immutable source/profile observations valid for 30 minutes. Source or profile edits require a fresh search before a new selection. Existing intents retain the profile snapshot the user accepted. Magnets support one v1 btih identity in hexadecimal or base32. Metainfo retrieval permits the source's same HTTP(S) origin only, refuses redirects, never appends the saved API key, and is bounded to four seconds/4 MiB. The v1 identity digest uses the original encoded info dictionary. Unsupported/v2/hybrid/ambiguous/invalid results enter review; no peers/trackers are contacted and no payload media is downloaded. Source claims and a valid torrent hash do not prove movie identity.
+
+All private URLs/magnets, tracker tokens and metainfo bytes stay in owner-private SQLite; data-directory backups therefore contain secrets. APIs expose opaque observation/acquisition IDs and normalized hashes, never raw download references. Search observation persistence can fail independently of source connectivity; a failed storage write returns an error rather than an unusable selection.
+
+Schema 8 adds observations, acquisitions and request mappings. Preserve a matching stopped-service schema-7 data-directory copy before upgrading real data if rollback to an old build is needed; older binaries refuse schema 8. No SQL Down migration or media move is performed. The current ignored preview is bin/louro.exe and image louro:local; stop the prior preview and use the same external data directory. Live tracker credentials remain optional for simulator-based development.
+
+Public API example using an existing registered movie (PowerShell):
+
+```powershell
+$base = 'http://127.0.0.1:18084/api/v1'
+$movieId = (Invoke-RestMethod "$base/catalog/movies?limit=25&offset=0").items[0].id
+$page = Invoke-RestMethod "$base/releases?movieId=$movieId"
+$headers = @{ 'X-Piratarr-Request' = '1' }
+$key = [guid]::NewGuid().ToString()
+$page.items[0].checks | Format-Table
+$confirmOverride = $false # Set true only after reviewing mismatches or unknown attributes.
+$body = @{ observationId=$page.items[0].observationId; idempotencyKey=$key; confirmOverride=$confirmOverride } | ConvertTo-Json
+$selection = Invoke-RestMethod "$base/acquisitions" -Method Post -Headers $headers -ContentType 'application/json' -Body $body
+$id = $selection.acquisition.id
+$prepare = @{ revision=$selection.acquisition.revision } | ConvertTo-Json
+Invoke-RestMethod "$base/acquisitions/$id/prepare" -Method Post -Headers $headers -ContentType 'application/json' -Body $prepare
+Invoke-RestMethod "$base/acquisitions?movieId=$movieId"
+```
+
+Inspect profile differences before choosing confirmOverride=true. Reuse the original selection body/key after a lost response; do not generate another key as an automatic retry. Submission/category/tag/worker/polling behavior is not implemented by these operations.

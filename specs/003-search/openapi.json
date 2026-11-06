@@ -697,7 +697,8 @@
           "preferredResolution",
           "audioPreferenceRank",
           "status",
-          "checks"
+          "checks",
+          "observationId"
         ],
         "properties": {
           "id": {
@@ -778,6 +779,11 @@
             },
             "minItems": 4,
             "maxItems": 4
+          },
+          "observationId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$",
+            "description": "Private durable observation selector; valid for new selection for 30 minutes."
           }
         }
       },
