@@ -13,7 +13,9 @@ import (
 
 	"github.com/lekramon/piratarr/internal/bootstrap"
 	"github.com/lekramon/piratarr/internal/catalog"
+	"github.com/lekramon/piratarr/internal/downloads"
 	"github.com/lekramon/piratarr/internal/httpapi"
+	"github.com/lekramon/piratarr/internal/jobs"
 	"github.com/lekramon/piratarr/internal/storage"
 	"github.com/lekramon/piratarr/internal/submissions"
 	"github.com/lekramon/piratarr/internal/tmdb"
@@ -52,7 +54,10 @@ func Open(ctx context.Context, config bootstrap.Config, assets fs.FS) (*Applicat
 		count = 4
 	}
 	app.workers.Add(1)
-	go func() { defer app.workers.Done(); (&submissions.Engine{Repo: store}).Run(workerCtx, count) }()
+	go func() {
+		defer app.workers.Done()
+		jobs.Run(workerCtx, count, (&submissions.Engine{Repo: store}).Step, (&downloads.Engine{Repo: store}).Step)
+	}()
 	return app, nil
 }
 

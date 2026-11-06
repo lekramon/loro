@@ -20,6 +20,7 @@ import (
 )
 
 type submissionFixture struct {
+	pollHandler atomic.Value
 	*acquisitionFixture
 	qb                                          *httptest.Server
 	mode, adds, calls, logins, logouts, creates atomic.Int32
@@ -45,6 +46,9 @@ func newSubmissionFixture(t *testing.T, torrent bool) *submissionFixture {
 			if c, e := r.Cookie("SID"); e != nil || c.Value != "simulated-session" {
 				t.Error("missing session")
 			}
+		}
+		if hook := f.pollHandler.Load(); hook != nil && hook.(func(http.ResponseWriter, *http.Request) bool)(w, r) {
+			return
 		}
 		switch route {
 		case "auth/login":

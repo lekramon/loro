@@ -4,11 +4,11 @@ package submissions
 import (
 	"context"
 	"errors"
-	"sync"
 	"time"
 
 	"github.com/lekramon/piratarr/internal/acquisitions"
 	"github.com/lekramon/piratarr/internal/downloadclient"
+	"github.com/lekramon/piratarr/internal/jobs"
 )
 
 type Job struct {
@@ -32,31 +32,7 @@ type Repository interface {
 type Engine struct{ Repo Repository }
 
 // Run owns workers until cancellation, including any in-flight bounded operation.
-func (e *Engine) Run(ctx context.Context, count int) {
-	var workers sync.WaitGroup
-	for i := 0; i < count; i++ {
-		workers.Add(1)
-		go func() {
-			defer workers.Done()
-			ticker := time.NewTicker(500 * time.Millisecond)
-			defer ticker.Stop()
-			for {
-				if ctx.Err() != nil {
-					return
-				}
-				worked, _ := e.Step(ctx)
-				if !worked {
-					select {
-					case <-ctx.Done():
-						return
-					case <-ticker.C:
-					}
-				}
-			}
-		}()
-	}
-	workers.Wait()
-}
+func (e *Engine) Run(ctx context.Context, count int) { jobs.Run(ctx, count, e.Step) }
 
 // Step is the same claim/effect/finish path used by production workers and API simulator checks.
 func (e *Engine) Step(parent context.Context) (bool, error) {

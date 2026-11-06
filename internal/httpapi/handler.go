@@ -16,6 +16,7 @@ import (
 	"github.com/lekramon/piratarr/internal/acquisitions"
 	"github.com/lekramon/piratarr/internal/catalog"
 	"github.com/lekramon/piratarr/internal/downloadclient"
+	"github.com/lekramon/piratarr/internal/downloads"
 	"github.com/lekramon/piratarr/internal/library"
 	"github.com/lekramon/piratarr/internal/settings"
 	"github.com/lekramon/piratarr/internal/sources"
@@ -32,6 +33,7 @@ type Storage interface {
 }
 
 type Handler struct {
+	downloadRepo   downloads.Repository
 	submissionRepo submissions.Repository
 	acquisitions   *acquisitions.Service
 	downloadClient *downloadclient.Service
@@ -72,6 +74,9 @@ func New(storage Storage, assets fs.FS, listen string, services ...*catalog.Serv
 	}
 	if repo, ok := storage.(submissions.Repository); ok {
 		handler.submissionRepo = repo
+	}
+	if repo, ok := storage.(downloads.Repository); ok {
+		handler.downloadRepo = repo
 	}
 	return handler
 }
@@ -154,6 +159,10 @@ func methodNotAllowed(w http.ResponseWriter, allow string) {
 }
 
 func (h *Handler) api(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "/api/v1/downloads" || strings.HasPrefix(r.URL.Path, "/api/v1/downloads/") {
+		h.downloadAPI(w, r)
+		return
+	}
 	if r.URL.Path == "/api/v1/acquisitions" || strings.HasPrefix(r.URL.Path, "/api/v1/acquisitions/") {
 		h.acquisitionAPI(w, r)
 		return

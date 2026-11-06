@@ -5,6 +5,7 @@ import { AppHeader } from './AppHeader';
 import { LibraryFiles } from './LibraryFiles';
 import { MovieSearch } from './MovieSearch';
 import { ReleaseSearch } from './ReleaseSearch';
+import { DownloadsPage } from './Downloads';
 import { ProfileForm, ProfileAvatar, Pencil } from './ProfileForm';
 import { useUI } from './ui';
 import './mock.css';
@@ -20,7 +21,7 @@ function Icon({ name }: {name:string}) {return <svg width="22" height="22" viewB
 function routeNow(){return window.location.hash.slice(1)||'/profiles'}
 const normalize=(s:string)=>s.normalize('NFD').replace(/\p{Diacritic}/gu,'').toLowerCase();
 function go(path:string){window.location.hash=path}
-type QueueItem={id:string;progress:number;paused:boolean};
+
 
 export function MockApp(){
  const {t,locale}=useUI();
@@ -32,7 +33,6 @@ export function MockApp(){
  const [genre,setGenre]=useState('all');
  const [sort,setSort]=useState('title');
  const [notice,setNotice]=useState('');
- const [queue,setQueue]=useState<QueueItem[]>([{id:'orbit',progress:64,paused:false},{id:'wild-north',progress:28,paused:true},{id:'afterlight',progress:100,paused:false}]);
  const active=state.viewers.find(v=>v.id===state.activeId);
  useEffect(()=>{const changed=()=>{setRoute(routeNow());setNotice('');window.scrollTo(0,0)};window.addEventListener('hashchange',changed);return()=>window.removeEventListener('hashchange',changed)},[]);
  useEffect(()=>{setStorageFailed(!persistDemoState(state))},[state]);
@@ -41,7 +41,7 @@ export function MockApp(){
  const selectViewer=(id:string)=>{setState(current=>({...current,activeId:id}));go('/home')};
  const selectedMovie=demoMovies.find(m=>m.id===route.split('/')[2]);
  const editingViewer=state.viewers.find(v=>v.id===route.split('/')[3]);
- const isProfiles=route.startsWith('/profiles')||(!active&&route!=='/search'&&route!=='/files'&&!route.startsWith('/releases'));
+ const isProfiles=route.startsWith('/profiles')||(!active&&route!=='/search'&&route!=='/files'&&!route.startsWith('/releases')&&!route.startsWith('/downloads'));
  const favoriteMovies=demoMovies.filter(m=>active?.favorites.includes(m.id));
  const filtered=demoMovies.filter(m=>(genre==='all'||m.genre===genre)&&normalize(m.title).includes(normalize(query))).sort((a,b)=>sort==='year'?b.year-a.year:sort==='rating'?Number(b.rating)-Number(a.rating):a.title.localeCompare(b.title,locale));
  const visibleMovies=route==='/favorites'?favoriteMovies:filtered;
@@ -50,14 +50,14 @@ export function MockApp(){
  return <main className="demo-app">
   <SideNavigation />
   <AppHeader title="Library" viewer={active??null}/>
-  <div className="demo-indicator"><span>{t(route.startsWith('/releases')?'Live release search':route==='/search'?'Live movie metadata':route==='/files'?'Local file inventory':'Mock data · Local prototype')}</span></div>
+  <div className="demo-indicator"><span>{t(route.startsWith('/downloads')?'Live download tracking':route.startsWith('/releases')?'Live release search':route==='/search'?'Live movie metadata':route==='/files'?'Local file inventory':'Mock data · Local prototype')}</span></div>
   {storageFailed&&<p className="demo-notice" role="alert">{t('Browser storage is unavailable. Changes will last only until this page closes.')}</p>}
   {notice&&<p className="demo-notice" role="status">{notice}</p>}
   {isProfiles?<section className="profile-screen">
    {route.startsWith('/profiles/edit/')&&editingViewer?<ProfileForm initial={editingViewer} onCancel={()=>go('/profiles')} onSave={(name,photo)=>{setState(current=>({...current,viewers:current.viewers.map(v=>v.id===editingViewer.id?{...v,name,photo}:v)}));go('/profiles')}}/>:route==='/profiles/new'&&state.viewers.length<12?<ProfileForm onCancel={()=>go('/profiles')} onSave={(name,photo)=>{const id='viewer-'+crypto.randomUUID();setState(current=>({...current,viewers:[...current.viewers,{id,name,photo,color:'#237eaa',favorites:[],watched:[]}],activeId:id}));go('/home')}}/>:<>
     <h1>{t('Who is watching?')}</h1><p>{t('Choose a viewer to explore the prototype.')}</p><div className={'profile-grid'+(managing?' managing':'')}>{state.viewers.map(v=><div className="profile-entry" key={v.id}><button className="profile-choice" onClick={()=>managing?go('/profiles/edit/'+v.id):selectViewer(v.id)}><ProfileAvatar viewer={v}/><span>{v.name}</span></button><button className="profile-edit" aria-label={t('Edit profile for {name}',{name:v.name})} onClick={()=>go('/profiles/edit/'+v.id)}><Pencil/></button></div>)}{state.viewers.length<12&&<a className="profile-choice add-profile" href="#/profiles/new"><span className="profile-avatar"><Icon name="plus"/></span><span>{t('Add profile')}</span></a>}</div><button className="manage-profiles secondary" onClick={()=>setManaging(value=>!value)}>{t(managing?'Done':'Manage profiles')}</button><p className="profile-disclaimer">{t('Demo profiles personalize this browser only. They are not accounts or access controls.')}</p><a className="demo-text-link" href="/settings">{t('Real settings')}</a>
    </>}
-  </section>:route.startsWith('/releases')?<ReleaseSearch/>:route==='/search'?<MovieSearch/>:route==='/files'?<LibraryFiles/>:!active?null:route==='/home'?<div className="demo-content">
+  </section>:route.startsWith('/downloads')?<DownloadsPage key={route} acquisitionId={route.split('/')[2]}/>:route.startsWith('/releases')?<ReleaseSearch/>:route==='/search'?<MovieSearch/>:route==='/files'?<LibraryFiles/>:!active?null:route==='/home'?<div className="demo-content">
    <section className="media-section"><h1>{t('My media')}</h1><div className="library-tiles"><a href="#/movies" className="library-tile"><img src="/mock-art/wild-north-wide.svg" alt=""/><strong>{t('Movies')}</strong></a><a href="#/favorites" className="library-tile"><img src="/mock-art/deep-blue-wide.svg" alt=""/><strong>{t('Favorites')}</strong></a><a href="#/downloads" className="library-tile download-tile"><Icon name="download"/><strong>{t('Downloads')}</strong></a></div></section>
    {row('Continue watching',demoMovies.filter(m=>m.progress&&!active.watched.includes(m.id)),true)}
    {row('Latest movies',demoMovies)}
@@ -68,10 +68,9 @@ export function MockApp(){
    <p className="result-count">{t(visibleMovies.length===1?'{count} movie':'{count} movies',{count:visibleMovies.length})}</p>
    {visibleMovies.length?<div className="poster-grid">{visibleMovies.map(m=>portrait(m))}</div>:<div className="demo-empty"><Icon name={route==='/favorites'?'heart':'search'}/><h2>{t(route==='/favorites'?'No favorites yet':'No movies found')}</h2><p>{t(route==='/favorites'?'Add favorites from a movie’s details.':'Try a different title or genre.')}</p><a href="#/movies" className="button">{t('Browse movies')}</a></div>}
   </div>:route.startsWith('/movie/')&&selectedMovie?<>
-   <div className="movie-backdrop"><img src={'/mock-art/'+selectedMovie.id+'-wide.svg'} alt=""/></div><section className="movie-details"><img className="detail-poster" src={'/mock-art/'+selectedMovie.id+'.svg'} alt=""/><div className="detail-copy"><a href="#/movies" className="detail-back"><Icon name="back"/>{t('Movies')}</a><h1>{selectedMovie.title}</h1><div className="detail-meta"><span>{selectedMovie.year}</span><span>{selectedMovie.minutes} min</span><span className="quality-tag">{selectedMovie.resolution}</span><span className="quality-tag">{selectedMovie.format}</span><span>★ {selectedMovie.rating}</span></div><p className="detail-genre">{t(selectedMovie.genre)}</p><div className="detail-actions"><a className="button demo-primary" href={'#/player/'+selectedMovie.id}><Icon name="play"/>{t('Play')}</a><button className="round-action" aria-label={t('Favorite')} aria-pressed={active.favorites.includes(selectedMovie.id)} onClick={()=>toggle('favorites',selectedMovie.id)}><Icon name="heart"/></button><button className="round-action" aria-label={t('Watched')} aria-pressed={active.watched.includes(selectedMovie.id)} onClick={()=>toggle('watched',selectedMovie.id)}><Icon name="check"/></button><button className="round-action" aria-label={t('Add to mock downloads')} disabled={queue.some(q=>q.id===selectedMovie.id)} onClick={()=>{setQueue(q=>[...q,{id:selectedMovie.id,progress:0,paused:true}]);setNotice(t('Added to mock queue.'))}}><Icon name="download"/></button></div><p className="synopsis">{selectedMovie.synopsis[locale]}</p><dl className="media-info"><dt>{t('Video')}</dt><dd>HEVC · {selectedMovie.resolution} · {selectedMovie.format}</dd><dt>{t('Audio')}</dt><dd>{selectedMovie.audio}</dd><dt>{t('Subtitles')}</dt><dd>English · Português (Brasil)</dd></dl></div></section>
+   <div className="movie-backdrop"><img src={'/mock-art/'+selectedMovie.id+'-wide.svg'} alt=""/></div><section className="movie-details"><img className="detail-poster" src={'/mock-art/'+selectedMovie.id+'.svg'} alt=""/><div className="detail-copy"><a href="#/movies" className="detail-back"><Icon name="back"/>{t('Movies')}</a><h1>{selectedMovie.title}</h1><div className="detail-meta"><span>{selectedMovie.year}</span><span>{selectedMovie.minutes} min</span><span className="quality-tag">{selectedMovie.resolution}</span><span className="quality-tag">{selectedMovie.format}</span><span>★ {selectedMovie.rating}</span></div><p className="detail-genre">{t(selectedMovie.genre)}</p><div className="detail-actions"><a className="button demo-primary" href={'#/player/'+selectedMovie.id}><Icon name="play"/>{t('Play')}</a><button className="round-action" aria-label={t('Favorite')} aria-pressed={active.favorites.includes(selectedMovie.id)} onClick={()=>toggle('favorites',selectedMovie.id)}><Icon name="heart"/></button><button className="round-action" aria-label={t('Watched')} aria-pressed={active.watched.includes(selectedMovie.id)} onClick={()=>toggle('watched',selectedMovie.id)}><Icon name="check"/></button></div><p className="synopsis">{selectedMovie.synopsis[locale]}</p><dl className="media-info"><dt>{t('Video')}</dt><dd>HEVC · {selectedMovie.resolution} · {selectedMovie.format}</dd><dt>{t('Audio')}</dt><dd>{selectedMovie.audio}</dd><dt>{t('Subtitles')}</dt><dd>English · Português (Brasil)</dd></dl></div></section>
    <div className="demo-content related-content">{row('More like this',demoMovies.filter(m=>m.genre===selectedMovie.genre&&m.id!==selectedMovie.id))}</div>
-  </>:route==='/downloads'?<div className="demo-content"><h1>{t('Downloads')}</h1><p className="demo-muted">{t('Simulated transfers. No files are downloaded.')}</p><div className="download-list">{queue.map(q=>{const movie=demoMovies.find(m=>m.id===q.id)!;return <article className="download-card" key={q.id}><a href={'#/movie/'+q.id}><img src={'/mock-art/'+q.id+'.svg'} alt=""/></a><div><h2><a href={'#/movie/'+q.id}>{movie.title}</a></h2><p>{movie.resolution} · {movie.format}</p><progress value={q.progress} max="100" aria-label={movie.title}/><p>{q.progress}% · {t(q.progress===100?'Completed':q.paused?'Paused':'Downloading')}</p></div>{q.progress<100?<button className="secondary" onClick={()=>setQueue(current=>current.map(item=>item.id===q.id?{...item,paused:!item.paused}:item))}>{t(q.paused?'Resume':'Pause')}</button>:<a className="demo-text-link" href={'#/movie/'+q.id}>{t('View movie')}</a>}</article>})}</div></div>
-  :route==='/profile'?<div className="demo-content viewer-settings"><h1>{t('Viewer profile')}</h1><ProfileForm key={active.id} initial={active} onCancel={()=>go('/home')} onSave={(name,photo)=>{updateViewer({name,photo});setNotice(t('Profile saved in this browser.'))}}/><a className="button secondary" href="#/profiles">{t('Switch profile')}</a><p className="profile-disclaimer">{t('Demo profiles personalize this browser only. They are not accounts or access controls.')}</p></div>
+  </>:route==='/profile'?<div className="demo-content viewer-settings"><h1>{t('Viewer profile')}</h1><ProfileForm key={active.id} initial={active} onCancel={()=>go('/home')} onSave={(name,photo)=>{updateViewer({name,photo});setNotice(t('Profile saved in this browser.'))}}/><a className="button secondary" href="#/profiles">{t('Switch profile')}</a><p className="profile-disclaimer">{t('Demo profiles personalize this browser only. They are not accounts or access controls.')}</p></div>
   :route.startsWith('/player/')&&selectedMovie?<DemoPlayer key={selectedMovie.id} movie={selectedMovie}/>
   :<div className="demo-content demo-empty"><h1>{t('Page not found')}</h1><a href="#/home" className="button">{t('Home')}</a></div>}
  </main>;

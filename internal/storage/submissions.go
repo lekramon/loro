@@ -225,6 +225,11 @@ func (s *Store) FinishSubmission(ctx context.Context, j submissions.Job, out sub
 	if _, err = tx.ExecContext(ctx, "UPDATE acquisitions SET revision=revision+1,updated_at=? WHERE id=?", stamp, j.ID); err != nil {
 		return acquisitions.ErrUnavailable
 	}
+	if s.downloadSchema && out.State == "succeeded" {
+		if err = createDownloadTask(ctx, tx, j.ID, now); err != nil {
+			return acquisitions.ErrUnavailable
+		}
+	}
 	if tx.Commit() != nil {
 		return acquisitions.ErrUnavailable
 	}

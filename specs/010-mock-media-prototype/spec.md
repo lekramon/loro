@@ -23,3 +23,7 @@ Official [Jellyfin screenshots](https://jellyfin.org/) were inspected as visual 
 ## Updated viewer and shell behavior
 
 [Unified library requirements](../011-service-configuration/spec.md) supersede the original multiple demo seeds and duplicate drawer/header: one initial viewer, explicit additional profiles, local photo editing, shared application header/sidebar and library-contained live metadata search. Viewer state remains browser-local and mock library records remain separate from real metadata.
+
+## Live download tracking update
+
+[Acquisition ticket 04](../004-acquisition/spec.md#ticket-04-download-tracking-and-import-evidence) replaces the prototype Downloads queue with real service-backed tracking and removes Add to mock downloads from unregistered prototype titles. Movie browsing/playback remains mocked; download checks never simulate pause/resume or claim import.

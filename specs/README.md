@@ -1,6 +1,6 @@
 # Specification roadmap
 
-Specifications and tickets are the local tracker. Foundation, movie metadata, file inventory and explicit association/review are implemented. Torznab source configuration, manual release search and profile explanations are implemented. Durable selection, v1 identity preparation and leased qBittorrent submission/reconciliation are implemented; completion polling and import remain subsequent slices.
+Specifications and tickets are the local tracker. Foundation, movie metadata, file inventory and explicit association/review are implemented. Torznab source configuration, manual release search and profile explanations are implemented. Durable selection, v1 identity preparation and leased qBittorrent submission/reconciliation are implemented; completion tracking/file evidence are implemented; verified imports remain the next slice.
 
 | Feature | Outcome | Depends on | Planning state |
 |---|---|---|---|
@@ -8,7 +8,7 @@ Specifications and tickets are the local tracker. Foundation, movie metadata, fi
 | 001-foundation | Healthy local application, onboarding, profile, persistence, embedded UI | none | Implemented and verified, including Linux Docker distribution |
 | 002-catalog | TMDB movie registration, cached metadata, existing-file scan and manual association | 001 | Metadata/registration, local artwork/offline APIs, inventory and ffprobe association/review implemented; real Movies presentation remains mocked |
 | 003-search | Native Torznab capabilities, manual search, normalized candidates and profile explanations | 002 | Source configuration, manual registered-movie search, normalization and profile explanations implemented and verified |
-| 004-acquisition | qBittorrent submission, persistent workers, tracking and uncertain-send reconciliation | 003 | Connection checks, durable selection/override confirmation, v1 identity preparation and restart review implemented; submission jobs/reconciliation implemented; completion polling and import handoff remain the next contract |
+| 004-acquisition | qBittorrent submission, persistent workers, tracking and uncertain-send reconciliation | 003 | Connection checks, durable selection/override confirmation, v1 identity preparation and restart review implemented; submission jobs/reconciliation, scheduled tracking and provisional file handoff implemented; local validation/import remains the next feature contract |
 | 005-import | ffprobe validation, hardlink/copy, review, replacement and restart recovery | 004 | Deferred specification |
 | 006-operations | Stopped-service backup/restore, installation and upgrade verification | 005 | Deferred specification |
 | 007-interface-preferences | Light/dark themes and pt-BR/en-US interface copy | 001 tickets 01–03 | Implemented, including shared rounded PT/EN control; display preferences remain separate from media profiles |

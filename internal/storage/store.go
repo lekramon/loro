@@ -24,6 +24,7 @@ import (
 var migrations embed.FS
 
 type Store struct {
+	downloadSchema    bool
 	submissionSchema  bool
 	acquisitionSchema bool
 	catalogSchema     bool
@@ -53,6 +54,9 @@ func open(ctx context.Context, directory string, source fs.FS) (_ *Store, result
 		return nil, errors.New("another instance is using this data directory")
 	}
 	s := &Store{lock: lock, path: filepath.Join(directory, "piratarr.db")}
+	if _, err := fs.Stat(source, "migrations/00010_download_tracking.sql"); err == nil {
+		s.downloadSchema = true
+	}
 	if _, err := fs.Stat(source, "migrations/00009_submission_jobs.sql"); err == nil {
 		s.submissionSchema = true
 	}
@@ -130,6 +134,11 @@ func open(ctx context.Context, directory string, source fs.FS) (_ *Store, result
 	if s.submissionSchema {
 		if _, err = s.write.ExecContext(ctx, "UPDATE submission_jobs SET state='queued',lease_token=NULL,lease_expires=NULL WHERE state='running'"); err != nil {
 			return nil, errors.New("recover submission jobs")
+		}
+	}
+	if s.downloadSchema {
+		if _, err = s.write.ExecContext(ctx, "UPDATE download_tasks SET poll_state='queued',lease_token=NULL,lease_expires=NULL WHERE poll_state='running'"); err != nil {
+			return nil, errors.New("recover download checks")
 		}
 	}
 	s.read, err = sql.Open("sqlite", uri.String())
@@ -218,6 +227,9 @@ func (s *Store) Ready(ctx context.Context) error {
 	}
 	if s.submissionSchema {
 		query += " + (SELECT count(kind)+count(payload_version)+count(client_revision)+count(settings_revision)+count(download_directory)+count(state)+count(due_at)+count(attempts)+count(lease_token)+count(lease_expires)+count(add_attempted)+count(error_code)+count(updated_at)+count(info_hash)+count(acquisition_id) FROM submission_jobs)"
+	}
+	if s.downloadSchema {
+		query += " + (SELECT count(acquisition_id)+count(kind)+count(payload_version)+count(revision)+count(state)+count(snapshot)+count(error_code)+count(checked_at)+count(observed_at)+count(completed_at)+count(handoff)+count(poll_state)+count(due_at)+count(attempts)+count(lease_token)+count(lease_expires)+count(updated_at) FROM download_tasks) + (SELECT count(id)+count(acquisition_id)+count(state)+count(code)+count(progress)+count(handoff_state)+count(created_at) FROM download_events)"
 	}
 	return s.read.QueryRowContext(ctx, query).Scan(&value)
 }

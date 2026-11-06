@@ -1199,6 +1199,381 @@
         },
         "description": "SUB-001–SUB-009: persisted leased work; never blindly resubmit an uncertain add."
       }
+    },
+    "/api/v1/downloads": {
+      "get": {
+        "operationId": "listDownloads",
+        "summary": "Read local download tracking",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 25
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10000,
+              "default": 0
+            }
+          },
+          {
+            "name": "movieId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Local list; no network effects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DownloadList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Fixed sanitized POL-007 failure; no upstream body or credential.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Fixed sanitized POL-007 failure; no upstream body or credential.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Fixed sanitized POL-007 failure; no upstream body or credential.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Fixed sanitized POL-007 failure; no upstream body or credential.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Fixed sanitized POL-007 failure; no upstream body or credential.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Fixed sanitized POL-007 failure; no upstream body or credential.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Fixed sanitized POL-007 failure; no upstream body or credential.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Fixed sanitized POL-007 failure; no upstream body or credential.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/downloads/{acquisitionId}": {
+      "get": {
+        "operationId": "getDownload",
+        "summary": "Read task and latest transition history",
+        "parameters": [
+          {
+            "name": "acquisitionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Local download and latest 50 events.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DownloadDetail"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Fixed sanitized POL-007 failure; no upstream body or credential.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Fixed sanitized POL-007 failure; no upstream body or credential.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Fixed sanitized POL-007 failure; no upstream body or credential.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Fixed sanitized POL-007 failure; no upstream body or credential.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Fixed sanitized POL-007 failure; no upstream body or credential.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Fixed sanitized POL-007 failure; no upstream body or credential.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Fixed sanitized POL-007 failure; no upstream body or credential.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Fixed sanitized POL-007 failure; no upstream body or credential.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/downloads/{acquisitionId}/check": {
+      "post": {
+        "operationId": "checkDownload",
+        "summary": "Queue read-only client observation",
+        "responses": {
+          "202": {
+            "description": "Queued/existing task, no torrent mutation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Download"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Fixed sanitized POL-007 failure; no upstream body or credential.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Fixed sanitized POL-007 failure; no upstream body or credential.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Fixed sanitized POL-007 failure; no upstream body or credential.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Fixed sanitized POL-007 failure; no upstream body or credential.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Fixed sanitized POL-007 failure; no upstream body or credential.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Fixed sanitized POL-007 failure; no upstream body or credential.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Fixed sanitized POL-007 failure; no upstream body or credential.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Fixed sanitized POL-007 failure; no upstream body or credential.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "acquisitionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "name": "X-Piratarr-Request",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "const": "1"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "revision"
+                ],
+                "properties": {
+                  "revision": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1717,6 +2092,314 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "DownloadHandoff": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "additionalProperties": false,
+        "required": [
+          "version",
+          "state",
+          "reasonCode",
+          "file"
+        ],
+        "properties": {
+          "version": {
+            "const": 1
+          },
+          "state": {
+            "enum": [
+              "awaiting-validation",
+              "needs-review"
+            ]
+          },
+          "reasonCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "file": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+              "index",
+              "relativePath",
+              "sizeBytes"
+            ],
+            "properties": {
+              "index": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9999
+              },
+              "relativePath": {
+                "type": "string",
+                "maxLength": 4096
+              },
+              "sizeBytes": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              }
+            }
+          }
+        }
+      },
+      "Download": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "acquisitionId",
+          "movieId",
+          "movieTitle",
+          "releaseTitle",
+          "infoHash",
+          "clientRevision",
+          "revision",
+          "state",
+          "pollState",
+          "nextCheckAt",
+          "progress",
+          "sizeBytes",
+          "remainingBytes",
+          "downloadSpeed",
+          "clientState",
+          "errorCode",
+          "lastCheckedAt",
+          "completedAt",
+          "handoff",
+          "updatedAt",
+          "lastObservedAt"
+        ],
+        "properties": {
+          "acquisitionId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "movieId": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "movieTitle": {
+            "type": "string"
+          },
+          "releaseTitle": {
+            "type": "string"
+          },
+          "infoHash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{40}$"
+          },
+          "clientRevision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "state": {
+            "enum": [
+              "pending",
+              "queued",
+              "downloading",
+              "paused",
+              "unavailable",
+              "completed",
+              "failed",
+              "needs-review"
+            ]
+          },
+          "pollState": {
+            "enum": [
+              "queued",
+              "running",
+              "idle"
+            ]
+          },
+          "nextCheckAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "progress": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 1
+          },
+          "sizeBytes": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "remainingBytes": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "downloadSpeed": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "clientState": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "errorCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lastCheckedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "handoff": {
+            "$ref": "#/components/schemas/DownloadHandoff"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastObservedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "DownloadEvent": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "state",
+          "code",
+          "progress",
+          "handoffState",
+          "createdAt"
+        ],
+        "properties": {
+          "state": {
+            "type": "string"
+          },
+          "code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "progress": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 1
+          },
+          "handoffState": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "DownloadDetail": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "download",
+          "events",
+          "eventTotal"
+        ],
+        "properties": {
+          "download": {
+            "$ref": "#/components/schemas/Download"
+          },
+          "events": {
+            "type": "array",
+            "maxItems": 50,
+            "items": {
+              "$ref": "#/components/schemas/DownloadEvent"
+            }
+          },
+          "eventTotal": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "DownloadList": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Download"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000
           }
         }
       }
