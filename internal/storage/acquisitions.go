@@ -81,7 +81,11 @@ func readAcquisition(row scanner) (acquisitions.Record, error) {
 	return record, nil
 }
 func (s *Store) GetAcquisition(ctx context.Context, id string) (acquisitions.Record, error) {
-	return readAcquisition(s.read.QueryRowContext(ctx, "SELECT "+acquisitionColumns+acquisitionJoin+" WHERE a.id=?", id))
+	record, err := readAcquisition(s.read.QueryRowContext(ctx, "SELECT "+acquisitionColumns+acquisitionJoin+" WHERE a.id=?", id))
+	if err == nil && s.submissionSchema {
+		record.Submission, err = readSubmission(s.read.QueryRowContext(ctx, submissionSelect, id))
+	}
+	return record, err
 }
 func (s *Store) ListAcquisitions(ctx context.Context, limit, offset int, movie int64) (acquisitions.List, error) {
 	result := acquisitions.List{Items: []acquisitions.Acquisition{}, Limit: limit, Offset: offset}
@@ -103,6 +107,15 @@ func (s *Store) ListAcquisitions(ctx context.Context, limit, offset int, movie i
 	}
 	if rows.Err() != nil {
 		return result, acquisitions.ErrUnavailable
+	}
+	rows.Close()
+	if s.submissionSchema {
+		for i := range result.Items {
+			result.Items[i].Submission, err = readSubmission(s.read.QueryRowContext(ctx, submissionSelect, result.Items[i].ID))
+			if err != nil {
+				return result, err
+			}
+		}
 	}
 	return result, nil
 }
@@ -180,6 +193,15 @@ func (s *Store) BeginPreparation(ctx context.Context, id string, revision int, n
 	record, err := readAcquisition(tx.QueryRowContext(ctx, "SELECT "+acquisitionColumns+acquisitionJoin+" WHERE a.id=?", id))
 	if err != nil {
 		return record, err
+	}
+	if s.submissionSchema {
+		var count int
+		if tx.QueryRowContext(ctx, "SELECT count(*) FROM submission_jobs WHERE acquisition_id=?", id).Scan(&count) != nil {
+			return record, acquisitions.ErrUnavailable
+		}
+		if count > 0 {
+			return record, acquisitions.Error("submission-exists")
+		}
 	}
 	if record.Revision != revision {
 		return record, acquisitions.ErrChanged
@@ -268,6 +290,15 @@ func (s *Store) CancelAcquisition(ctx context.Context, id string, revision int, 
 	record, err := readAcquisition(tx.QueryRowContext(ctx, "SELECT "+acquisitionColumns+acquisitionJoin+" WHERE a.id=?", id))
 	if err != nil {
 		return record.Acquisition, err
+	}
+	if s.submissionSchema {
+		var count int
+		if tx.QueryRowContext(ctx, "SELECT count(*) FROM submission_jobs WHERE acquisition_id=?", id).Scan(&count) != nil {
+			return record.Acquisition, acquisitions.ErrUnavailable
+		}
+		if count > 0 {
+			return record.Acquisition, acquisitions.Error("submission-exists")
+		}
 	}
 	if record.Revision != revision {
 		return record.Acquisition, acquisitions.ErrChanged

@@ -10,7 +10,7 @@ func TestReverseProxyEscapesPreserveEndpointIdentity(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	s := session{base: base}
+	s := Session{base: base}
 	if request := s.endpoint("auth/login").String(); request != "https://localhost:8081/qbit%2Fproxy/api/v2/auth/login" {
 		t.Fatal("encoded reverse-proxy path changed", request)
 	}

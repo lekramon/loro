@@ -47,7 +47,15 @@ type Observation struct {
 	ReferenceIssue   string `json:"-"`
 	ExpiresAt        string
 }
+type Submission struct {
+	State          string  `json:"state"`
+	ClientRevision int     `json:"clientRevision"`
+	Attempts       int     `json:"attempts"`
+	ErrorCode      *string `json:"errorCode"`
+	UpdatedAt      string  `json:"updatedAt"`
+}
 type Acquisition struct {
+	Submission        *Submission       `json:"submission,omitempty"`
 	ID                string            `json:"id"`
 	MovieID           int64             `json:"movieId"`
 	MovieTitle        string            `json:"movieTitle"`

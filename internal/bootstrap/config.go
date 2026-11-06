@@ -52,7 +52,7 @@ func Parse(args []string, getenv func(string) string) (Config, error) {
 	tokenFile := flags.String("tmdb-token-file", envOr("TMDB_TOKEN_FILE", ""), "private application metadata credential file")
 	data := flags.String("data-dir", envOr("DATA_DIR", dataDefault), "private data directory")
 	listen := flags.String("listen", envOr("LISTEN", listenDefault), "HTTP listener")
-	workers := flags.String("workers", envOr("WORKERS", "4"), "future worker count (1-8)")
+	workers := flags.String("workers", envOr("WORKERS", "4"), "submission worker count (1-8)")
 	if err := flags.Parse(args); err != nil {
 		return Config{}, errors.New("invalid command-line options")
 	}

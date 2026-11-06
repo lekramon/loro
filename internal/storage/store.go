@@ -24,6 +24,7 @@ import (
 var migrations embed.FS
 
 type Store struct {
+	submissionSchema  bool
 	acquisitionSchema bool
 	catalogSchema     bool
 	inventorySchema   bool
@@ -52,6 +53,9 @@ func open(ctx context.Context, directory string, source fs.FS) (_ *Store, result
 		return nil, errors.New("another instance is using this data directory")
 	}
 	s := &Store{lock: lock, path: filepath.Join(directory, "piratarr.db")}
+	if _, err := fs.Stat(source, "migrations/00009_submission_jobs.sql"); err == nil {
+		s.submissionSchema = true
+	}
 	if _, err := fs.Stat(source, "migrations/00008_acquisitions.sql"); err == nil {
 		s.acquisitionSchema = true
 	}
@@ -121,6 +125,11 @@ func open(ctx context.Context, directory string, source fs.FS) (_ *Store, result
 	if s.acquisitionSchema {
 		if _, err = s.write.ExecContext(ctx, "UPDATE acquisitions SET state='needs-review',revision=revision+1,review_code='preparation-interrupted',updated_at=? WHERE state='preparing'", time.Now().UTC().Format(time.RFC3339Nano)); err != nil {
 			return nil, errors.New("recover acquisition preparation")
+		}
+	}
+	if s.submissionSchema {
+		if _, err = s.write.ExecContext(ctx, "UPDATE submission_jobs SET state='queued',lease_token=NULL,lease_expires=NULL WHERE state='running'"); err != nil {
+			return nil, errors.New("recover submission jobs")
 		}
 	}
 	s.read, err = sql.Open("sqlite", uri.String())
@@ -206,6 +215,9 @@ func (s *Store) Ready(ctx context.Context) error {
 	}
 	if s.acquisitionSchema {
 		query += " + (SELECT count(snapshot)+count(reference) FROM release_observations) + (SELECT count(state)+count(revision)+count(payload) FROM acquisitions) + (SELECT count(request_key) FROM acquisition_requests)"
+	}
+	if s.submissionSchema {
+		query += " + (SELECT count(kind)+count(payload_version)+count(client_revision)+count(settings_revision)+count(download_directory)+count(state)+count(due_at)+count(attempts)+count(lease_token)+count(lease_expires)+count(add_attempted)+count(error_code)+count(updated_at)+count(info_hash)+count(acquisition_id) FROM submission_jobs)"
 	}
 	return s.read.QueryRowContext(ctx, query).Scan(&value)
 }

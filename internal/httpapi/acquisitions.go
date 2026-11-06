@@ -22,7 +22,7 @@ func (h *Handler) acquisitionAPI(w http.ResponseWriter, r *http.Request) {
 		id = parts[0]
 		if len(parts) == 2 {
 			action = parts[1]
-			if action != "prepare" && action != "cancel" {
+			if action != "prepare" && action != "cancel" && action != "submit" && action != "reconcile" {
 				fail(w, 404, "not-found", "Resource does not exist.")
 				return
 			}
@@ -124,18 +124,30 @@ func (h *Handler) acquisitionAPI(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var input struct {
-		Revision int `json:"revision"`
+		Revision         int `json:"revision"`
+		ClientRevision   int `json:"clientRevision"`
+		SettingsRevision int `json:"settingsRevision"`
 	}
-	fields, ok := decodeConfiguration(w, r, &input, "revision")
+	allowed := []string{"revision"}
+	if action == "submit" {
+		allowed = append(allowed, "clientRevision", "settingsRevision")
+	}
+	fields, ok := decodeConfiguration(w, r, &input, allowed...)
 	if !ok {
 		return
 	}
-	if fields["revision"] == nil || input.Revision < 1 {
+	if fields["revision"] == nil || input.Revision < 1 || action == "submit" && (fields["clientRevision"] == nil || input.ClientRevision < 1 || fields["settingsRevision"] == nil || input.SettingsRevision < 1) {
 		acquisitionFailure(w, acquisitions.ErrValidation)
 		return
 	}
 	var value acquisitions.Acquisition
-	if action == "prepare" {
+	if action == "submit" || action == "reconcile" {
+		if h.submissionRepo == nil {
+			acquisitionFailure(w, acquisitions.ErrUnavailable)
+			return
+		}
+		value, err = h.submissionRepo.EnqueueSubmission(ctx, id, input.Revision, input.ClientRevision, input.SettingsRevision, action == "reconcile")
+	} else if action == "prepare" {
 		value, err = h.acquisitions.Prepare(ctx, id, input.Revision)
 	} else {
 		value, err = h.acquisitions.Repo.CancelAcquisition(ctx, id, input.Revision, time.Now().UTC().Format(time.RFC3339Nano))
@@ -144,7 +156,11 @@ func (h *Handler) acquisitionAPI(w http.ResponseWriter, r *http.Request) {
 		acquisitionFailure(w, err)
 		return
 	}
-	writeJSON(w, 200, value)
+	status := 200
+	if action == "submit" || action == "reconcile" {
+		status = 202
+	}
+	writeJSON(w, status, value)
 }
 func acquisitionFailure(w http.ResponseWriter, err error) {
 	var domain acquisitions.Error

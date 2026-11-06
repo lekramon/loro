@@ -19,6 +19,7 @@ import (
 	"github.com/lekramon/piratarr/internal/library"
 	"github.com/lekramon/piratarr/internal/settings"
 	"github.com/lekramon/piratarr/internal/sources"
+	"github.com/lekramon/piratarr/internal/submissions"
 )
 
 type Storage interface {
@@ -31,6 +32,7 @@ type Storage interface {
 }
 
 type Handler struct {
+	submissionRepo submissions.Repository
 	acquisitions   *acquisitions.Service
 	downloadClient *downloadclient.Service
 	catalog        *catalog.Service
@@ -67,6 +69,9 @@ func New(storage Storage, assets fs.FS, listen string, services ...*catalog.Serv
 	}
 	if repo, ok := storage.(acquisitions.Repository); ok {
 		handler.acquisitions = acquisitions.New(repo)
+	}
+	if repo, ok := storage.(submissions.Repository); ok {
+		handler.submissionRepo = repo
 	}
 	return handler
 }

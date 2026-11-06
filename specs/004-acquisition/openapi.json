@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.1",
   "info": {
-    "title": "Lôro download-client configuration API",
+    "title": "Lôro acquisition and download-client API",
     "version": "0.5.0"
   },
   "servers": [
@@ -913,6 +913,292 @@
           }
         }
       }
+    },
+    "/api/v1/acquisitions/{id}/submit": {
+      "post": {
+        "operationId": "submitAcquisition",
+        "summary": "Queue submit work without network effects in the request",
+        "responses": {
+          "400": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Durable job queued or existing public state returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Acquisition"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-Piratarr-Request",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "const": "1"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "revision",
+                  "clientRevision",
+                  "settingsRevision"
+                ],
+                "properties": {
+                  "revision": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "clientRevision": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "settingsRevision": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "SUB-001–SUB-009: persisted leased work; never blindly resubmit an uncertain add."
+      }
+    },
+    "/api/v1/acquisitions/{id}/reconcile": {
+      "post": {
+        "operationId": "reconcileAcquisition",
+        "summary": "Queue reconcile work without network effects in the request",
+        "responses": {
+          "400": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized diagnostic; see ACQ-001–ACQ-009.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Durable job queued or existing public state returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Acquisition"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-Piratarr-Request",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "const": "1"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "revision"
+                ],
+                "properties": {
+                  "revision": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "SUB-001–SUB-009: persisted leased work; never blindly resubmit an uncertain add."
+      }
     }
   },
   "components": {
@@ -1319,6 +1605,9 @@
           },
           "originalLanguage": {
             "type": "string"
+          },
+          "submission": {
+            "$ref": "#/components/schemas/Submission"
           }
         }
       },
@@ -1388,6 +1677,46 @@
           "offset": {
             "type": "integer",
             "minimum": 0
+          }
+        }
+      },
+      "Submission": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "state",
+          "clientRevision",
+          "attempts",
+          "errorCode",
+          "updatedAt"
+        ],
+        "properties": {
+          "state": {
+            "enum": [
+              "queued",
+              "running",
+              "submitted",
+              "uncertain",
+              "needs-review"
+            ]
+          },
+          "clientRevision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "attempts": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "errorCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       }
