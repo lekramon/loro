@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api, ApiError } from './api';
 import { useUI } from './ui';
 import { AcquisitionHistory, ReleaseSelection } from './Acquisitions';
@@ -12,6 +12,8 @@ type Page = { items: Candidate[]; sourceName: string; sourceRevision: number; pr
 
 export function ReleaseSearch() {
   const { t, locale } = useUI();
+  const pendingSearch = useRef<AbortController | null>(null);
+  useEffect(() => () => { pendingSearch.current?.abort(); pendingSearch.current = null; }, []);
   const [catalog, setCatalog] = useState<Catalog>(); const [query, setQuery] = useState(''); const [filter, setFilter] = useState('');
   const [movie, setMovie] = useState<Movie>(); const [source, setSource] = useState<Source>(); const [category, setCategory] = useState('');
   const [selected, setSelected] = useState<Candidate>(); const [historyVersion, setHistoryVersion] = useState(0);
@@ -27,6 +29,7 @@ export function ReleaseSearch() {
         case 'source-authentication-failed': return t('The source rejected its credentials. Check the API key.');
         case 'source-timeout': return t('The source timed out. Check its address and connectivity.');
         case 'source-rate-limited': return t('The source is rate limiting requests. Wait before searching again.');
+        case 'source-challenge-required': return t('The source requires browser verification. Check the source in Settings.');
         case 'source-invalid-response': return t('The source returned an invalid release feed.');
         case 'source-changed': case 'preferences-changed': return t('Source or preferences changed. Reload and search again.');
         case 'source-test-in-progress': return t('A source operation is running. Try again shortly.');
@@ -62,9 +65,10 @@ export function ReleaseSearch() {
     setBusy(true); setError(''); setResults(undefined);
     const params = new URLSearchParams({ movieId: String(movie.id), limit: '25', offset: String(offset) });
     if (category) params.set('category', category);
-    try { setResults(await api<Page>('/releases?' + params)); }
-    catch (value) { setError(failure(value)); }
-    finally { setBusy(false); }
+    const controller = new AbortController(); pendingSearch.current = controller;
+    try { const page = await api<Page>('/releases?' + params, { signal: controller.signal }); if (!controller.signal.aborted) setResults(page); }
+    catch (value) { if (!controller.signal.aborted) setError(failure(value)); }
+    finally { if (pendingSearch.current === controller) { pendingSearch.current = null; setBusy(false); } }
   }
   function valueFor(candidate: Candidate, dimension: Check['dimension']) {
     if (dimension === 'audio') return candidate.audioLanguages.length ? candidate.audioLanguages.join(', ') : t('Unknown');
@@ -81,6 +85,7 @@ export function ReleaseSearch() {
       <section className="release-results" aria-label={t('Release results')}>
         {movie ? <><h2>{movie.title} <span className="demo-muted">{movie.year ?? t('Unknown year')}</span></h2><form onSubmit={event => { event.preventDefault(); void search(); }}><fieldset disabled={busy}><p>{t('Release source')}: {source?.name || t('No source configured')}</p><label htmlFor="release-category">{t('Category')}</label><select id="release-category" value={category} onChange={event => { setCategory(event.target.value); setResults(undefined); }}><option value="">{t('All categories')}</option>{source?.capabilities?.categories.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select><div className="actions"><button>{t(busy ? 'Searching…' : 'Search releases')}</button><button type="button" className="secondary" onClick={() => void loadSource()}>{t('Reload source')}</button></div></fieldset></form></> : <p>{t('Choose a registered movie to search for releases.')}</p>}
         {busy && <p role="status">{t('Loading…')}</p>}
+        {pendingSearch.current && <button type="button" className="secondary" onClick={() => { pendingSearch.current?.abort(); pendingSearch.current = null; setBusy(false); }}>{t('Cancel search')}</button>}
         {results && <><p role="status" className="demo-muted">{results.sourceName} · {results.items.length} {t('results on this page')}</p><p className="hint">{t('Source claims do not verify movie identity. Unknown attributes stay unknown.')}</p>{!results.items.length && <p>{t('No releases found.')}</p>}
           <div className="release-list">{results.items.map(candidate => <article className="release-card" key={candidate.id}><div className="release-heading"><h3>{candidate.title}</h3><span className={'release-status ' + candidate.status}>{t(statusLabel[candidate.status])}</span></div><p className="demo-muted">{t('Size')}: {candidate.sizeBytes === null ? t('Unknown') : `${(candidate.sizeBytes / 1073741824).toLocaleString(locale, { maximumFractionDigits: 2 })} GiB`} · {t('Seeders')}: {candidate.seeders ?? t('Unknown')}{candidate.publishedAt && <> · {new Date(candidate.publishedAt).toLocaleDateString(locale)}</>}</p>{candidate.preferredResolution && <p className="release-preferred">{t('Preferred resolution')}</p>}<dl className="release-checks">{candidate.checks.map(check => <div key={check.dimension}><dt>{t(dimensionLabel[check.dimension])}</dt><dd><strong>{valueFor(candidate, check.dimension)}</strong><span className={'release-status ' + check.status}>{t(statusLabel[check.status])}</span><small>{t('Profile')}: {check.accepted.map(value => value === 'original' ? t('Original audio') : value).join(', ')}</small></dd></div>)}</dl>{candidate.audioPreferenceRank !== null && <p className="hint">{t('Audio preference rank')}: {candidate.audioPreferenceRank}</p>}<button className="secondary" disabled={busy || !candidate.observationId} onClick={() => setSelected(candidate)}>{t('Select release')}</button></article>)}</div>
           <div className="actions"><button className="secondary" disabled={busy || results.offset === 0} onClick={() => void search(Math.max(0, results.offset - results.limit))}>{t('Previous releases')}</button><span>{results.items.length ? results.offset + 1 : results.offset}–{results.offset + results.items.length}{results.total !== null ? ` / ${results.total}` : ''}</span><button className="secondary" disabled={busy || results.nextOffset === null} onClick={() => void search(results.nextOffset!)}>{t('Next releases')}</button></div>

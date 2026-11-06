@@ -109,6 +109,9 @@ func sourceFailure(w http.ResponseWriter, err error) {
 		case "source-invalid-response":
 			status = 502
 			message = "The source returned an invalid response."
+		case "source-challenge-required":
+			status = 502
+			message = "The source requires browser verification."
 		case "source-rate-limited":
 			status = 429
 			message = "The source is rate limiting requests."

@@ -30,6 +30,12 @@ Ticket 01 configures one Torznab-compatible source and discovers capabilities. T
 
 Additional errors: 404 catalog movie absent; 409 setup-required/source-capabilities-required/source-search-unsupported/source-test-in-progress/source-changed/preferences-changed; 422 validation-failed. Other source error statuses retain the ticket 01 contract. Search results are uncached observations; no schema migration or new dependency is needed.
 
+## Slow-source reliability amendment
+
+- REL-007: Release queries use a 65-second per-attempt deadline within a 70-second API budget and a route-specific 75-second write deadline. A timed-out release query is not automatically replayed; immediate transient network/5xx failures retain at most three retries and existing backoff/cooldown. Capability discovery retains SRC-003's short deadlines. Client cancellation aborts upstream work and releases source exclusion. The release UI offers Cancel and aborts on navigation. Explicit `cf-mitigated: challenge` or recognizable Cloudflare challenge HTML yields 502 `source-challenge-required`, distinct from authentication failure; generic 403 remains authentication failure. Never publish upstream HTML, cookies or credentials.
+
+This supersedes REL-002's shared deadline policy. A longer deadline does not guarantee an upstream service will respond. Native direct adapters and managed browser handling are separate work.
+
 ## References
 
 [Torznab specification](https://torznab.github.io/spec-1.3-draft/torznab/Specification-v1.3.html), [Jackett interface](https://github.com/Jackett/Jackett#torznab). Caps may be public even when searches require credentials.

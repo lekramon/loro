@@ -35,7 +35,12 @@ func (h *Handler) releaseSearch(w http.ResponseWriter, r *http.Request) {
 		fail(w, 422, "validation-failed", "Provide a catalog movie ID, limit 1–50, offset 0–10000 and a discovered category.")
 		return
 	}
-	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	// The server's default write deadline is shorter than a slow source search.
+	if err := http.NewResponseController(w).SetWriteDeadline(time.Now().Add(75 * time.Second)); err != nil && !errors.Is(err, http.ErrNotSupported) {
+		fail(w, 503, "source-unavailable", "Unable to start release search.")
+		return
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), sources.SearchTimeout)
 	defer cancel()
 	if h.storage.Ready(ctx) != nil {
 		fail(w, 503, "storage-unavailable", "Local storage is unavailable.")

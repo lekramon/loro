@@ -1,5 +1,9 @@
 import { expect, test } from '@playwright/test';
 
+test.beforeEach(async ({ page }) => {
+  await page.route('**/api/v1/acquisitions?**', route => route.fulfill({ json: { items: [], total: 0, offset: 0, limit: 25 } }));
+});
+
 const movie = { id: 7, tmdbId: 42, title: 'The Example', year: 2024 };
 const source = { configured: true, name: 'Local source', capabilities: { categories: [{ id: 2000, name: 'Movies' }] } };
 const checks = [
@@ -9,6 +13,27 @@ const checks = [
   { dimension: 'audio', status: 'unknown', accepted: ['original', 'pt'] },
 ];
 const candidate = { id: 'a'.repeat(64), title: 'The.Example.2024.1080p.Remux', sizeBytes: 1234000000, seeders: 12, publishedAt: null, resolution: '1080p', format: 'remux', container: null, audioLanguages: [], status: 'unknown', preferredResolution: true, audioPreferenceRank: null, checks };
+
+test('slow search can be cancelled and a challenge has a distinct localized error', async ({ page }) => {
+  let searching = false; let release!: () => void;
+  const hold = new Promise<void>(resolve => { release = resolve; });
+  await page.route('**/api/v1/catalog/movies?**', route => route.fulfill({ json: { items: [movie], total: 1, offset: 0, limit: 25 } }));
+  await page.route('**/api/v1/source', route => route.fulfill({ json: source }));
+  await page.route('**/api/v1/releases?**', async route => {
+    if (!searching) { searching = true; await hold; }
+    await route.fulfill({ status: 502, json: { code: 'source-challenge-required', message: 'Sanitized' } }).catch(() => {});
+  });
+  await page.goto('/preview#/releases');
+  await page.getByRole('button', { name: 'The Example 2024', exact: true }).click();
+  await page.getByRole('button', { name: 'Search releases', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Cancel search', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Cancel search', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Search releases', exact: true })).toBeEnabled();
+  release();
+  await page.getByRole('button', { name: 'Português (Brasil)', exact: true }).click();
+  await page.getByRole('button', { name: 'Buscar lançamentos', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('A fonte exige verificação pelo navegador.');
+});
 
 test('TMDB registration leads to release search with profile explanations and localized layout', async ({ page }) => {
   let registrations = 0; const searches: URL[] = [];

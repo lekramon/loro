@@ -65,6 +65,14 @@ func newSourceFixture(t *testing.T) *sourceFixture {
 		case 6:
 			fmt.Fprint(w, `<html>private dummy-source-key</html>`)
 			return
+		case 7:
+			w.Header().Set("Cf-Mitigated", "challenge")
+			w.WriteHeader(403)
+			fmt.Fprint(w, sourceKey)
+			return
+		case 8:
+			fmt.Fprint(w, `<html><title>Just a moment</title>Cloudflare dummy-source-key</html>`)
+			return
 		}
 		fmt.Fprint(w, sourceCaps)
 	}))
@@ -143,7 +151,7 @@ func TestSourceFailureClassificationAndRetryBounds(t *testing.T) {
 		mode          int32
 		status, calls int
 		code          string
-	}{{401, 503, 1, "source-authentication-failed"}, {1, 503, 1, "source-authentication-failed"}, {429, 429, 1, "source-rate-limited"}, {503, 503, 4, "source-unavailable"}, {3, 502, 1, "source-invalid-response"}, {4, 502, 1, "source-invalid-response"}, {5, 502, 1, "source-invalid-response"}, {6, 502, 1, "source-invalid-response"}} {
+	}{{401, 503, 1, "source-authentication-failed"}, {1, 503, 1, "source-authentication-failed"}, {429, 429, 1, "source-rate-limited"}, {503, 503, 4, "source-unavailable"}, {3, 502, 1, "source-invalid-response"}, {4, 502, 1, "source-invalid-response"}, {5, 502, 1, "source-invalid-response"}, {6, 502, 1, "source-invalid-response"}, {7, 502, 1, "source-challenge-required"}, {8, 502, 1, "source-challenge-required"}} {
 		t.Run(fmt.Sprint(scenario.mode), func(t *testing.T) {
 			f := newSourceFixture(t)
 			f.save(t, 0, sourceKey)

@@ -1,4 +1,6 @@
 export const english = {
+  "Cancel search": "Cancel search",
+  "The source requires browser verification. Check the source in Settings.": "The source requires browser verification. Check the source in Settings.",
   "Live download tracking": "Live download tracking",
   "Waiting for download check": "Waiting for download check",
   "Queued": "Queued",
@@ -764,6 +766,8 @@ export const portuguese: Record<MessageKey, string> = {
   "Real movie metadata. This search is separate from the mock library.": "Metadados reais dos filmes. Esta pesquisa é separada da biblioteca simulada.",
   "Movie title": "Título do filme",
   "Year (optional)": "Ano (opcional)",
+  "Cancel search": "Cancelar pesquisa",
+  "The source requires browser verification. Check the source in Settings.": "A fonte exige verificação pelo navegador. Confira a fonte nas Configurações.",
   "Searching…": "Pesquisando…",
   "Showing cached results because TMDB is unavailable.": "Exibindo resultados em cache porque o TMDB está indisponível.",
   "Unknown year": "Ano desconhecido",

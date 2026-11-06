@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -21,15 +22,19 @@ func (e *ProviderError) Error() string { return e.Code }
 func failed(code string) error         { return &ProviderError{Code: code} }
 
 type Client struct {
-	http     *http.Client
-	mu       sync.Mutex
-	cooldown time.Time
-	revision int
+	http       *http.Client
+	searchHTTP *http.Client
+	mu         sync.Mutex
+	cooldown   time.Time
+	revision   int
 }
 
+const SearchTimeout = 70 * time.Second
+
 func NewClient() *Client {
-	transport := &http.Transport{Proxy: http.ProxyFromEnvironment, DialContext: (&net.Dialer{Timeout: 2 * time.Second}).DialContext, TLSHandshakeTimeout: 2 * time.Second, ResponseHeaderTimeout: 2 * time.Second, MaxIdleConns: 4, MaxIdleConnsPerHost: 2, IdleConnTimeout: 30 * time.Second}
-	return &Client{http: &http.Client{Transport: transport, Timeout: 2 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}
+	transport := &http.Transport{Proxy: http.ProxyFromEnvironment, DialContext: (&net.Dialer{Timeout: 2 * time.Second}).DialContext, TLSHandshakeTimeout: 2 * time.Second, MaxIdleConns: 4, MaxIdleConnsPerHost: 2, IdleConnTimeout: 30 * time.Second}
+	noRedirect := func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
+	return &Client{http: &http.Client{Transport: transport, Timeout: 2 * time.Second, CheckRedirect: noRedirect}, searchHTTP: &http.Client{Transport: transport, Timeout: 65 * time.Second, CheckRedirect: noRedirect}}
 }
 func (c *Client) Capabilities(ctx context.Context, config Config) (Capabilities, error) {
 	data, err := c.request(ctx, config, url.Values{"t": {"caps"}})
@@ -40,6 +45,11 @@ func (c *Client) Capabilities(ctx context.Context, config Config) (Capabilities,
 }
 
 func (c *Client) request(ctx context.Context, config Config, query url.Values) ([]byte, error) {
+	search := query.Get("t") != "caps"
+	client := c.http
+	if search {
+		client = c.searchHTTP
+	}
 	var last error
 	for attempt := 0; attempt < 4; attempt++ {
 		c.mu.Lock()
@@ -63,7 +73,7 @@ func (c *Client) request(ctx context.Context, config Config, query url.Values) (
 		}
 		req.Header.Set("Accept", "application/xml, text/xml")
 		req.Header.Set("User-Agent", "Louro/0.4")
-		response, err := c.http.Do(req)
+		response, err := client.Do(req)
 		if err != nil {
 			last = failed("source-unavailable")
 			var network net.Error
@@ -79,6 +89,9 @@ func (c *Client) request(ctx context.Context, config Config, query url.Values) (
 					return nil, failed("source-invalid-response")
 				}
 				if readErr == nil {
+					if challenge(response.Header, bytes) {
+						return nil, failed("source-challenge-required")
+					}
 					return bytes, nil
 				}
 				last = failed("source-unavailable")
@@ -87,7 +100,11 @@ func (c *Client) request(ctx context.Context, config Config, query url.Values) (
 					last = failed("source-timeout")
 				}
 			} else {
+				body, _ := io.ReadAll(io.LimitReader(response.Body, 65536))
 				response.Body.Close()
+				if challenge(response.Header, body) {
+					return nil, failed("source-challenge-required")
+				}
 				switch {
 				case status == 401 || status == 403:
 					return nil, failed("source-authentication-failed")
@@ -120,6 +137,11 @@ func (c *Client) request(ctx context.Context, config Config, query url.Values) (
 				}
 			}
 		}
+		// A slow query may still be executing upstream. Do not multiply that work.
+		var provider *ProviderError
+		if search && errors.As(last, &provider) && provider.Code == "source-timeout" {
+			return nil, last
+		}
 		if ctx.Err() != nil {
 			return nil, failed("source-timeout")
 		}
@@ -134,4 +156,12 @@ func (c *Client) request(ctx context.Context, config Config, query url.Values) (
 		}
 	}
 	return nil, last
+}
+
+func challenge(headers http.Header, body []byte) bool {
+	if strings.EqualFold(headers.Get("Cf-Mitigated"), "challenge") {
+		return true
+	}
+	text := strings.ToLower(string(body))
+	return strings.Contains(text, "<html") && (strings.Contains(text, "/cdn-cgi/challenge-platform/") || strings.Contains(text, "cf-chl-") || strings.Contains(text, "just a moment") && strings.Contains(text, "cloudflare"))
 }

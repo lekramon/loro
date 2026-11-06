@@ -258,7 +258,7 @@
             }
           },
           "502": {
-            "description": "Sanitized diagnostic; no key, endpoint or upstream body.",
+            "description": "Invalid capabilities or source-challenge-required; sanitized response with no upstream content.",
             "content": {
               "application/json": {
                 "schema": {
@@ -336,7 +336,7 @@
       "get": {
         "operationId": "searchMovieReleases",
         "summary": "Search source releases for a registered movie",
-        "description": "Requires setup and tested source capabilities. Accepts no body. Candidate IDs are observations, not verified torrent identity or persisted selections. See REL-001–REL-006 for evidence rules.",
+        "description": "Bounded synchronous search: 65-second upstream attempts within a 70-second API budget; a timed-out query is not replayed. Disconnect cancels upstream work. Explicit browser challenges return 502 source-challenge-required.",
         "parameters": [
           {
             "name": "movieId",
@@ -457,7 +457,7 @@
             }
           },
           "502": {
-            "description": "Sanitized failure. 409 includes missing capabilities, unsupported search, busy source, setup or revision change. 429 supplies Retry-After.",
+            "description": "Invalid release feed or source-challenge-required; sanitized response with no upstream content.",
             "content": {
               "application/json": {
                 "schema": {
