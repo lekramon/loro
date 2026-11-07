@@ -1,5 +1,7 @@
 # Lôro
 
+[![CI](https://github.com/lekramon/piratarr/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/lekramon/piratarr/actions/workflows/ci.yml)
+
 Lôro is the local movie-management application formerly named Piratarr. The product rename preserves existing installations. See [name compatibility](docs/adr/0003-louro-product-name.md).
 
 A local, self-hosted movie and TV library manager with original catalog, search, acquisition, and import modules.
@@ -16,6 +18,7 @@ The interface supports light/dark themes and English (US)/Português (Brasil), s
 - [Implementation roadmap](specs/README.md)
 - [Agent instructions](AGENTS.md)
 - [Build, run, and verification commands](docs/development.md)
+- [Branching and release workflow](docs/branching.md)
 - [Linux Docker Compose deployment](docs/deployment.md)
 
 The selected stack is Go, React/TypeScript/Vite, and SQLite. The first supported deployment is Linux x64 using Docker Compose, published only on the host loopback interface. Windows is a development environment.

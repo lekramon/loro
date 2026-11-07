@@ -22,9 +22,9 @@ Single-context repository. Read [GLOSSARY.md](GLOSSARY.md) and relevant [ADRs](d
 
 ## Engineering
 
-- Implement each ticket on its own `feature/<ticket>-<description>` branch created from the latest `main`; the user's branch naming convention overrides the default `codex/` prefix.
-- After the ticket's required checks pass, commit its code, specification updates, and evidence together, push its feature branch, integrate it into `main`, and push `main` before starting the next ticket. Use fast-forward integration for sequential work; never force-push shared history.
-- Keep incomplete work off `main`. Record unavailable checks and apply the ticket's completion criteria before integration. Leave the checkout on `main` after publishing a completed step.
+- Implement each ticket on its own `feature/<ticket>-<description>` branch created from the latest `develop`; the user's branch naming convention overrides the default `codex/` prefix.
+- After the ticket's required checks and CI pass, commit its code, specification updates, and evidence together, push its feature branch, and integrate it into `develop`. Never force-push shared history.
+- Keep incomplete work off `develop` and `main`. Promote tested release candidates from `develop` to `main`; do not merge ordinary feature branches directly into `main`. See [branching workflow](docs/branching.md).
 
 - Product requirements: [product specification](specs/000-product/spec.md).
 - Foundation work: [foundation specification](specs/001-foundation/spec.md).

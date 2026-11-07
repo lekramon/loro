@@ -17,7 +17,7 @@ The user authorized local tracking and adapting the plugin convention to the exi
 - Label: edit its `Label:` line using the triage vocabulary.
 - Dependencies: `Blocked by:` contains repo-relative ticket paths, comma-separated, or `none`. A ready ticket may still be blocked by unfinished prerequisites.
 - Claim: select the lowest-numbered unblocked ticket, set `State: in-progress`, and record the claimant under `## Comments`.
-- Complete: set `State: done` only after acceptance evidence is recorded under `## Verification`; include commands, results, and limitations. Commit the ticket on its own `feature/<ticket>-<description>` branch, push that branch, integrate into `main`, and push `main` before starting the next ticket. No PR is required for this user-authorized direct integration workflow.
+- Complete: set `State: done` only after acceptance evidence is recorded under `## Verification`; include commands, results, and limitations. Commit the ticket on its own `feature/<ticket>-<description>` branch created from `develop`, push it, and integrate it into `develop` after CI passes. Promote `develop` to `main` only as a tested release. See [branching workflow](../branching.md).
 - Failed or incomplete verification leaves the ticket open or in progress. `ready-for-agent` describes specification readiness, not implementation success.
 - Comments: append under `## Comments`; preserve earlier evidence.
 

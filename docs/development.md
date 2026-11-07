@@ -2,6 +2,8 @@
 
 Current product name: Lôro. Build the current executable with `go build -o bin/louro.exe ./cmd/louro` on Windows (or `-o bin/louro` on Linux). Existing command entry points and persisted Piratarr identifiers remain compatible; [the rename decision](adr/0003-louro-product-name.md) explains why. The current local distribution image is `louro:local`. Earlier slice artifacts below record their historical names.
 
+Development uses `develop` as the integration branch. Create ticket branches from its latest remote state and merge them back only after required checks pass. `main` is the stable release branch. See [branching workflow](branching.md).
+
 ## Toolchain
 
 Pinned versions are Go 1.27.3, Node.js 24.22.1, and pnpm 11.25.0. Dependency versions are recorded in `go.mod`, `go.sum`, `package.json`, and `pnpm-lock.yaml`. Place Go, Node.js, and pnpm on PATH. The local development setup downloaded a checksum-verified Go archive to `%LOCALAPPDATA%/PiratarrToolchains/go1.27.3/go`; add its `bin` directory to the current shell PATH if using that installation.
@@ -56,6 +58,8 @@ pnpm run test:browser
 Go tests use temporary local directories, real SQLite, and child processes for instance exclusion and process-death recovery. They do not use real external credentials. Shut down with Ctrl+C. Startup errors are structured JSON on stderr and stop the process before an HTTP listener is opened.
 
 Browser tests launch their own temporary-data backend on port 18080 and require Chromium installed with `pnpm exec playwright install chromium`. Keep that port available. Playwright stores screenshots and other results in ignored `test-results/`.
+
+GitHub Actions runs the same frontend, OpenAPI, specification, Go, browser, and Linux container checks for pushes and pull requests. Windows and Linux Go jobs protect platform-specific behavior. Failed Playwright runs retain their diagnostics for seven days. Local evidence is still required for tests that need private credentials or real external services.
 
 To cross-build for the first deployment target:
 
