@@ -1,6 +1,6 @@
 # Lôro
 
-[![CI](https://github.com/lekramon/piratarr/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/lekramon/piratarr/actions/workflows/ci.yml)
+[![CI](https://github.com/lekramon/loro/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/lekramon/loro/actions/workflows/ci.yml)
 
 Lôro is the local movie-management application formerly named Piratarr. The product rename preserves existing installations. See [name compatibility](docs/adr/0003-louro-product-name.md).
 
