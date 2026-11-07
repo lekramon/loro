@@ -34,6 +34,7 @@ type Capabilities struct {
 	Categories   []Category       `json:"categories"`
 }
 type Public struct {
+	Kind         string        `json:"kind"`
 	Configured   bool          `json:"configured"`
 	Revision     int           `json:"revision"`
 	Name         string        `json:"name"`
@@ -47,6 +48,7 @@ type Config struct {
 	APIKey string `json:"-"`
 }
 type Input struct {
+	Kind        string `json:"kind,omitempty"`
 	Revision    int    `json:"revision"`
 	Name        string `json:"name"`
 	URL         string `json:"url"`
@@ -61,7 +63,7 @@ type TestResult struct {
 }
 type Repository interface {
 	GetSource(context.Context) (Config, error)
-	SaveSource(context.Context, int, string, string, string) (Config, error)
+	SaveSource(context.Context, int, string, string, string, ...string) (Config, error)
 	SaveSourceCapabilities(context.Context, int, Capabilities, string) error
 }
 type Service struct {
@@ -78,6 +80,12 @@ func (s *Service) Get(ctx context.Context) (Public, error) {
 	return config.Public, err
 }
 func (s *Service) Save(ctx context.Context, input Input) (Public, error) {
+	if input.Kind == "" {
+		input.Kind = "torznab"
+	}
+	if input.Kind != "torznab" && input.Kind != "1337x" {
+		return Public{}, ErrValidation
+	}
 	input.Name = strings.TrimSpace(input.Name)
 	input.URL = strings.TrimSpace(input.URL)
 	input.APIKey = strings.TrimSpace(input.APIKey)
@@ -104,6 +112,9 @@ func (s *Service) Save(ctx context.Context, input Input) (Public, error) {
 			return Public{}, ErrValidation
 		}
 	}
+	if input.Kind == "1337x" && (endpoint.Path != "" && endpoint.Path != "/" || endpoint.RawPath != "" || input.APIKey != "") {
+		return Public{}, ErrValidation
+	}
 	current, err := s.repo.GetSource(ctx)
 	if err != nil {
 		return Public{}, err
@@ -111,7 +122,7 @@ func (s *Service) Save(ctx context.Context, input Input) (Public, error) {
 	if current.Revision != input.Revision {
 		return Public{}, ErrChanged
 	}
-	if current.Configured && current.URL != input.URL && input.APIKey == "" && !input.ClearAPIKey {
+	if current.Configured && (current.URL != input.URL || current.Kind != input.Kind) && input.APIKey == "" && !input.ClearAPIKey {
 		return Public{}, ErrValidation
 	}
 	key := current.APIKey
@@ -121,7 +132,10 @@ func (s *Service) Save(ctx context.Context, input Input) (Public, error) {
 	if input.ClearAPIKey {
 		key = ""
 	}
-	saved, err := s.repo.SaveSource(ctx, input.Revision, input.Name, input.URL, key)
+	if input.Kind == "1337x" && key != "" {
+		return Public{}, ErrValidation
+	}
+	saved, err := s.repo.SaveSource(ctx, input.Revision, input.Name, input.URL, key, input.Kind)
 	return saved.Public, err
 }
 func (s *Service) Test(ctx context.Context) (TestResult, error) {
@@ -138,7 +152,12 @@ func (s *Service) Test(ctx context.Context) (TestResult, error) {
 	if !config.Configured {
 		return TestResult{}, ErrUnconfigured
 	}
-	caps, err := s.client.Capabilities(ctx, config)
+	var caps Capabilities
+	if config.Kind == "1337x" {
+		caps, err = test1337x(ctx, config)
+	} else {
+		caps, err = s.client.Capabilities(ctx, config)
+	}
 	if err != nil {
 		return TestResult{}, err
 	}

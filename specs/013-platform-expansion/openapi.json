@@ -1,0 +1,297 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Lôro communication diagnostics API",
+    "version": "0.1.0",
+    "description": "Phase-zero platform expansion contract; future settings/media/subtitle APIs require separate amendments."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080"
+    }
+  ],
+  "paths": {
+    "/api/v1/system/communications": {
+      "get": {
+        "operationId": "listCommunicationEvents",
+        "summary": "Read bounded sanitized application communication history",
+        "description": "Read-only local diagnostics. No upstream request is made. With no after cursor return the newest matching window in chronological order. A cursor from another recorder session returns reset=true. A cursor older than retained history returns truncated=true. Viewer polling is not recorded. No raw URL, request/response body, credential, cookie, or private path is included.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "after",
+            "schema": {
+              "type": "string",
+              "maxLength": 40,
+              "pattern": "^[a-f0-9]{16}:[0-9]+$"
+            },
+            "description": "Optional cursor returned by an earlier page."
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 100
+            }
+          },
+          {
+            "in": "query",
+            "name": "integration",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "api",
+                "metadata",
+                "source",
+                "torrent",
+                "download-client",
+                "browser",
+                "jobs",
+                "system"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "requestId",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chronological sanitized events, next cursor and persistence status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommunicationPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown/duplicate query keys or a request body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Host or Origin denied.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid limit, integration, cursor or correlation ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service stopping or diagnostics unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CommunicationEvent": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "timestamp",
+          "requestId",
+          "integration",
+          "operation",
+          "phase",
+          "level",
+          "status",
+          "elapsedMs",
+          "retryAfterSeconds",
+          "code",
+          "count"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "requestId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "integration": {
+            "type": "string",
+            "enum": [
+              "api",
+              "metadata",
+              "source",
+              "torrent",
+              "download-client",
+              "browser",
+              "jobs",
+              "system"
+            ]
+          },
+          "operation": {
+            "type": "string",
+            "maxLength": 80,
+            "pattern": "^[a-z][a-z0-9.-]*$"
+          },
+          "phase": {
+            "type": "string",
+            "enum": [
+              "request.started",
+              "response.received",
+              "request.failed",
+              "operation.started",
+              "operation.completed",
+              "operation.failed",
+              "browser.started",
+              "browser.navigation",
+              "browser.response",
+              "browser.challenge.detected",
+              "browser.widget.found",
+              "browser.interaction",
+              "browser.challenge.cleared",
+              "browser.parsed",
+              "browser.stopped",
+              "browser.failed",
+              "storage.degraded"
+            ]
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "info",
+              "warning",
+              "error"
+            ]
+          },
+          "status": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 100,
+            "maximum": 599
+          },
+          "elapsedMs": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "retryAfterSeconds": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 3600
+          },
+          "code": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 64
+          },
+          "count": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        }
+      },
+      "CommunicationPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sessionId",
+          "entries",
+          "cursor",
+          "reset",
+          "truncated",
+          "storageAvailable"
+        ],
+        "properties": {
+          "sessionId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{16}$"
+          },
+          "entries": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "$ref": "#/components/schemas/CommunicationEvent"
+            }
+          },
+          "cursor": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{16}:[0-9]+$"
+          },
+          "reset": {
+            "type": "boolean"
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "storageAvailable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

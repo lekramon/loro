@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/lekramon/piratarr/internal/acquisitions"
+	"github.com/lekramon/piratarr/internal/communications"
 	"github.com/lekramon/piratarr/internal/downloadclient"
 	"time"
 )
@@ -24,6 +25,9 @@ func (e *Engine) Step(parent context.Context) (bool, error) {
 	if err != nil || job == nil {
 		return false, err
 	}
+	parent = communications.Correlate(parent)
+	start := time.Now()
+	communications.Emit(parent, communications.Event{Integration: "jobs", Operation: "jobs.download-poll", Phase: "operation.started"})
 	ctx, cancel := context.WithTimeout(parent, 25*time.Second)
 	defer cancel()
 	stopped := make(chan struct{})
@@ -48,7 +52,20 @@ func (e *Engine) Step(parent context.Context) (bool, error) {
 	<-stopped
 	finish, done := context.WithTimeout(context.Background(), 5*time.Second)
 	defer done()
-	return true, e.Repo.FinishDownloadPoll(finish, *job, result, e.now())
+	err = e.Repo.FinishDownloadPoll(finish, *job, result, e.now())
+	event := communications.Event{Integration: "jobs", Operation: "jobs.download-poll", Phase: "operation.completed", ElapsedMS: communications.Ptr(time.Since(start).Milliseconds())}
+	if result.Code != "" {
+		event.Phase = "operation.failed"
+		event.Level = "warning"
+		event.Code = &result.Code
+	}
+	if err != nil {
+		event.Phase = "operation.failed"
+		event.Level = "warning"
+		event.Code = communications.Ptr("storage-unavailable")
+	}
+	communications.Emit(ctx, event)
+	return true, err
 }
 func (e *Engine) observe(ctx context.Context, j Job) Result {
 	config, err := e.Repo.GetDownloadClient(ctx)

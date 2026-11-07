@@ -11,7 +11,7 @@
     "dev": "vite --config web/vite.config.ts",
     "build": "tsc --noEmit && vite build --config web/vite.config.ts",
     "typecheck": "tsc --noEmit",
-    "check:api": "redocly lint specs/001-foundation/openapi.json specs/002-catalog/openapi.json specs/002-catalog/library-openapi.json specs/011-service-configuration/openapi.json specs/003-search/openapi.json specs/004-acquisition/openapi.json --config redocly.yaml",
+    "check:api": "redocly lint specs/001-foundation/openapi.json specs/002-catalog/openapi.json specs/002-catalog/library-openapi.json specs/011-service-configuration/openapi.json specs/003-search/openapi.json specs/004-acquisition/openapi.json specs/013-platform-expansion/openapi.json --config redocly.yaml",
     "test:go": "go test ./...",
     "vet:go": "go vet ./...",
     "test:browser": "playwright test"

@@ -114,6 +114,14 @@
                   },
                   "clearApiKey": {
                     "type": "boolean"
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "torznab",
+                      "1337x"
+                    ],
+                    "default": "torznab"
                   }
                 }
               }
@@ -329,14 +337,15 @@
               }
             }
           }
-        }
+        },
+        "description": " Direct 1337x uses a managed ephemeral local browser (60-second budget); missing runtime: 503 source-browser-unavailable. Unresolved challenge: 502 source-challenge-required. Direct search has fixed page size 20 and offset multiple of 20."
       }
     },
     "/api/v1/releases": {
       "get": {
         "operationId": "searchMovieReleases",
         "summary": "Search source releases for a registered movie",
-        "description": "Bounded synchronous search: 65-second upstream attempts within a 70-second API budget; a timed-out query is not replayed. Disconnect cancels upstream work. Explicit browser challenges return 502 source-challenge-required.",
+        "description": "Bounded synchronous search: 65-second upstream attempts within a 70-second API budget; a timed-out query is not replayed. Disconnect cancels upstream work. Explicit browser challenges return 502 source-challenge-required. Direct 1337x uses a managed ephemeral local browser (60-second budget); missing runtime: 503 source-browser-unavailable. Unresolved challenge: 502 source-challenge-required. Direct search has fixed page size 20 and offset multiple of 20.",
         "parameters": [
           {
             "name": "movieId",
@@ -646,6 +655,14 @@
               "null"
             ],
             "format": "date-time"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "torznab",
+              "1337x"
+            ],
+            "default": "torznab"
           }
         }
       },
@@ -823,7 +840,8 @@
             "enum": [
               "movie-tmdb",
               "movie-query",
-              "search-query"
+              "search-query",
+              "1337x-query"
             ]
           },
           "limit": {

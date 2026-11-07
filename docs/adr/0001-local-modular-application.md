@@ -37,3 +37,7 @@ An explicit `piratarr backup --output <archive>` command acquires the same exclu
 ## Service credential configuration update — 2026-11-05
 
 By user instruction, setup/settings now allow explicit saving or replacement of a TMDB Read Access Token. This supersedes earlier statements that onboarding must not offer token configuration. The service-local write-only token takes precedence over bootstrap/private-file and bundled credentials; those remain fallbacks. Empty input preserves the credential. See [service configuration](../../specs/011-service-configuration/spec.md).
+
+## Direct-source browser update — 2026-11-06
+
+The user chose direct indexer adapters to remove Prowlarr from the search path. The first protected-site adapter is 1337x; Torznab remains supported. Source configuration gains an explicit kind, defaulting existing installations to Torznab. Lôro manages an optional ephemeral Python/Firefox browser child runtime for the direct adapter, with bounded execution and process-tree cleanup, rather than calling a separate solver service. See [source contract](../../specs/003-search/spec.md) and [runtime installation](../browser-runtime.md). Browser failures do not affect readiness or offline catalog access.

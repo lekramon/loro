@@ -13,7 +13,7 @@ RUN pnpm run build
 
 FROM golang:1.27.3-trixie@sha256:d9fa6e7ba43678ee1e5d1617007db9a134612032a74e2d86b44a9f582f1564cc AS backend
 WORKDIR /src
-ENV CGO_ENABLED=0 GOTOOLCHAIN=local GOCACHE=/tmp/go-build-cache HOME=/tmp
+ENV CGO_ENABLED=0 GOTOOLCHAIN=local GOCACHE=/tmp/go-build-cache HOME=/tmp GOMAXPROCS=2
 COPY go.mod go.sum ./
 RUN go mod download
 COPY cmd ./cmd
@@ -25,7 +25,7 @@ ARG TMDB_BUILD_REVISION=none
 RUN --mount=type=secret,id=tmdb_token,uid=10001,gid=10001,mode=0400 \
     : "$TMDB_BUILD_REVISION" \
  && if [ -s /run/secrets/tmdb_token ]; then cp /run/secrets/tmdb_token internal/tmdb/release-credential.txt; fi \
- && go test ./... && go vet ./... \
+ && go test -p 2 ./... && go vet -p 2 ./... \
  && go build -trimpath -ldflags="-s -w" -o /out/louro ./cmd/louro \
  && : > internal/tmdb/release-credential.txt
 
@@ -33,12 +33,13 @@ FROM debian:trixie-slim@sha256:f6b08b09a05725f9431502d3b5714f5c4576e82c1a84fa1de
 ARG DEBIAN_SNAPSHOT=20261104T000000Z
 ARG FFMPEG_VERSION=7:7.1.5-0+deb13u1
 ARG CA_CERTIFICATES_VERSION=20250419+deb13u1
+ARG PYTHON_VERSION=3.13.5-1
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked rm -f /etc/apt/sources.list.d/debian.sources /etc/apt/apt.conf.d/docker-clean \
  && printf 'Acquire::Retries "0";\nAcquire::http::Pipeline-Depth "0";\nAcquire::http::Timeout "25";\nAcquire::https::Timeout "25";\n' > /etc/apt/apt.conf.d/99piratarr-build \
  && printf 'deb [check-valid-until=no] http://snapshot.debian.org/archive/debian/%s trixie main\ndeb [check-valid-until=no] http://snapshot.debian.org/archive/debian-security/%s trixie-security main\n' "$DEBIAN_SNAPSHOT" "$DEBIAN_SNAPSHOT" > /etc/apt/sources.list \
  && apt-get -o APT::Update::Error-Mode=any update \
  && for attempt in 1 2 3; do \
-      if apt-get install --yes --no-install-recommends "ca-certificates=$CA_CERTIFICATES_VERSION" "ffmpeg=$FFMPEG_VERSION"; then break; fi; \
+      if apt-get install --yes --no-install-recommends "ca-certificates=$CA_CERTIFICATES_VERSION" "ffmpeg=$FFMPEG_VERSION" "python3=$PYTHON_VERSION" "python3-venv=$PYTHON_VERSION" libgtk-3-0t64 libasound2t64 libdbus-glib-1-2 libnss3 libx11-xcb1 libxt6t64 fonts-liberation xvfb xauth; then break; fi; \
       if [ "$attempt" = 3 ]; then exit 1; fi; sleep 3; \
     done \
  && rm -rf /var/lib/apt/lists/* \
@@ -47,6 +48,14 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked rm -f /etc/apt/sourc
  && install -d -o 10001 -g 10001 -m 0700 /config \
  && install -d -o 10001 -g 10001 -m 0755 /data /data/downloads /data/media /data/media/movies
 COPY --from=backend /out/louro /usr/local/bin/louro
+COPY browser-requirements.txt /opt/louro-browser-requirements.txt
+ENV INVISIBLE_PLAYWRIGHT_CACHE_DIR=/opt/louro-browser-cache
+RUN python3 -m venv /opt/louro-browser \
+ && /opt/louro-browser/bin/python -m pip install --no-cache-dir --disable-pip-version-check -r /opt/louro-browser-requirements.txt \
+ && /opt/louro-browser/bin/python -m invisible_playwright fetch \
+ && /opt/louro-browser/bin/python -m pip check \
+ && chmod -R a+rX /opt/louro-browser /opt/louro-browser-cache \
+ && chown -R 10001:10001 /opt/louro-browser-cache
 RUN ln -s louro /usr/local/bin/piratarr
 ENV PIRATARR_CONTAINER=true PIRATARR_LISTEN=0.0.0.0:8080 PIRATARR_DATA_DIR=/config HOME=/home/piratarr
 WORKDIR /app

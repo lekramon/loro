@@ -15,6 +15,7 @@ import (
 
 	"github.com/lekramon/piratarr/internal/acquisitions"
 	"github.com/lekramon/piratarr/internal/catalog"
+	"github.com/lekramon/piratarr/internal/communications"
 	"github.com/lekramon/piratarr/internal/downloadclient"
 	"github.com/lekramon/piratarr/internal/downloads"
 	"github.com/lekramon/piratarr/internal/library"
@@ -33,6 +34,7 @@ type Storage interface {
 }
 
 type Handler struct {
+	communications *communications.Recorder
 	downloadRepo   downloads.Repository
 	submissionRepo submissions.Repository
 	acquisitions   *acquisitions.Service
@@ -56,7 +58,7 @@ type apiError struct {
 
 func New(storage Storage, assets fs.FS, listen string, services ...*catalog.Service) *Handler {
 	_, port, _ := net.SplitHostPort(listen)
-	handler := &Handler{storage: storage, assets: assets, port: port, settings: settings.Service{Repository: storage, DataDirectory: storage.DataDirectory()}}
+	handler := &Handler{communications: communications.New(storage.DataDirectory()), storage: storage, assets: assets, port: port, settings: settings.Service{Repository: storage, DataDirectory: storage.DataDirectory()}}
 	if len(services) > 0 {
 		handler.catalog = services[0]
 	}
@@ -70,7 +72,7 @@ func New(storage Storage, assets fs.FS, listen string, services ...*catalog.Serv
 		handler.downloadClient = downloadclient.New(repo)
 	}
 	if repo, ok := storage.(acquisitions.Repository); ok {
-		handler.acquisitions = acquisitions.New(repo)
+		handler.acquisitions = acquisitions.New(repo, handler.source)
 	}
 	if repo, ok := storage.(submissions.Repository); ok {
 		handler.submissionRepo = repo
@@ -91,6 +93,9 @@ func writeJSON(w http.ResponseWriter, status int, value any) {
 }
 
 func fail(w http.ResponseWriter, status int, code, message string) {
+	if recorder, ok := w.(interface{ diagnosticCode(string) }); ok {
+		recorder.diagnosticCode(code)
+	}
 	writeJSON(w, status, apiError{Code: code, Message: message})
 }
 
@@ -143,7 +148,11 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		r.Body = http.MaxBytesReader(w, r.Body, 65536)
 	}
 	if r.URL.Path == "/api" || strings.HasPrefix(r.URL.Path, "/api/") {
-		h.api(w, r)
+		if r.URL.Path == "/api/v1/system/communications" || strings.HasPrefix(r.URL.Path, "/api/v1/health/") {
+			h.api(w, r)
+		} else {
+			h.recordAPI(w, r)
+		}
 		return
 	}
 	if r.Method != http.MethodGet && r.Method != http.MethodHead {
@@ -159,6 +168,10 @@ func methodNotAllowed(w http.ResponseWriter, allow string) {
 }
 
 func (h *Handler) api(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "/api/v1/system/communications" {
+		h.communicationsAPI(w, r)
+		return
+	}
 	if r.URL.Path == "/api/v1/downloads" || strings.HasPrefix(r.URL.Path, "/api/v1/downloads/") {
 		h.downloadAPI(w, r)
 		return

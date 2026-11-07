@@ -10,12 +10,12 @@ import (
 )
 
 func (s *Store) GetSource(ctx context.Context) (sources.Config, error) {
-	return readSource(s.read.QueryRowContext(ctx, "SELECT revision,name,endpoint,api_key,capabilities,checked_at FROM source_configuration WHERE id=1"))
+	return readSource(s.read.QueryRowContext(ctx, s.sourceQuery()))
 }
 func readSource(row scanner) (sources.Config, error) {
-	var result sources.Config
+	result := sources.Config{Public: sources.Public{Kind: "torznab"}}
 	var caps, at sql.NullString
-	err := row.Scan(&result.Revision, &result.Name, &result.URL, &result.APIKey, &caps, &at)
+	err := row.Scan(&result.Revision, &result.Name, &result.URL, &result.APIKey, &caps, &at, &result.Kind)
 	if errors.Is(err, sql.ErrNoRows) {
 		return result, nil
 	}
@@ -34,13 +34,20 @@ func readSource(row scanner) (sources.Config, error) {
 	}
 	return result, nil
 }
-func (s *Store) SaveSource(ctx context.Context, revision int, name, endpoint, key string) (sources.Config, error) {
+func (s *Store) SaveSource(ctx context.Context, revision int, name, endpoint, key string, kinds ...string) (sources.Config, error) {
+	kind := "torznab"
+	if len(kinds) > 0 {
+		kind = kinds[0]
+	}
+	if kind != "torznab" && (kind != "1337x" || !s.nativeSourceSchema) {
+		return sources.Config{}, sources.ErrValidation
+	}
 	tx, err := s.write.BeginTx(ctx, nil)
 	if err != nil {
 		return sources.Config{}, sources.ErrUnavailable
 	}
 	defer tx.Rollback()
-	current, err := readSource(tx.QueryRowContext(ctx, "SELECT revision,name,endpoint,api_key,capabilities,checked_at FROM source_configuration WHERE id=1"))
+	current, err := readSource(tx.QueryRowContext(ctx, s.sourceQuery()))
 	if err != nil {
 		return current, err
 	}
@@ -51,7 +58,12 @@ func (s *Store) SaveSource(ctx context.Context, revision int, name, endpoint, ke
 	if err != nil {
 		return sources.Config{}, sources.ErrUnavailable
 	}
-	result, err := readSource(tx.QueryRowContext(ctx, "SELECT revision,name,endpoint,api_key,capabilities,checked_at FROM source_configuration WHERE id=1"))
+	if s.nativeSourceSchema {
+		if _, err = tx.ExecContext(ctx, "UPDATE source_configuration SET kind=? WHERE id=1", kind); err != nil {
+			return sources.Config{}, sources.ErrUnavailable
+		}
+	}
+	result, err := readSource(tx.QueryRowContext(ctx, s.sourceQuery()))
 	if err != nil {
 		return result, err
 	}
@@ -77,4 +89,12 @@ func (s *Store) SaveSourceCapabilities(ctx context.Context, revision int, caps s
 		return sources.ErrChanged
 	}
 	return nil
+}
+
+func (s *Store) sourceQuery() string {
+	kind := "'torznab'"
+	if s.nativeSourceSchema {
+		kind = "kind"
+	}
+	return "SELECT revision,name,endpoint,api_key,capabilities,checked_at," + kind + " FROM source_configuration WHERE id=1"
 }

@@ -24,7 +24,15 @@ func (h *Handler) sourceAPI(w http.ResponseWriter, r *http.Request) {
 		fail(w, 503, "not-ready", "Source configuration is unavailable.")
 		return
 	}
-	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	budget := 10 * time.Second
+	if test {
+		budget = sources.SearchTimeout
+		if err := http.NewResponseController(w).SetWriteDeadline(time.Now().Add(75 * time.Second)); err != nil && !errors.Is(err, http.ErrNotSupported) {
+			fail(w, 503, "source-unavailable", "Unable to start source test.")
+			return
+		}
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), budget)
 	defer cancel()
 	if h.storage.Ready(ctx) != nil {
 		fail(w, 503, "storage-unavailable", "Local source storage is unavailable.")
@@ -56,7 +64,7 @@ func (h *Handler) sourceAPI(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var input sources.Input
-	fields, ok := decodeConfiguration(w, r, &input, "revision", "name", "url", "apiKey", "clearApiKey")
+	fields, ok := decodeConfiguration(w, r, &input, "revision", "name", "url", "apiKey", "clearApiKey", "kind")
 	if !ok {
 		return
 	}
@@ -112,6 +120,8 @@ func sourceFailure(w http.ResponseWriter, err error) {
 		case "source-challenge-required":
 			status = 502
 			message = "The source requires browser verification."
+		case "source-browser-unavailable":
+			message = "Install or repair the local browser runtime for this source."
 		case "source-rate-limited":
 			status = 429
 			message = "The source is rate limiting requests."

@@ -25,6 +25,8 @@ function reviewText(code: string, t: (key: MessageKey) => string) {
     case 'source-changed': return t('Source configuration changed. Cancel this choice and search again.');
     case 'preparation-interrupted': return t('Preparation was interrupted. Retry identity preparation when ready.');
     case 'source-authentication-failed': return t('The source rejected its credentials. Check the API key.');
+    case 'source-browser-unavailable': return t('Install or repair the local browser runtime for this source.');
+    case 'source-challenge-required': return t('The source requires browser verification. Check the source in Settings.');
     case 'source-timeout': return t('The source timed out. Check its address and connectivity.');
     case 'source-rate-limited': return t('The source is rate limiting requests. Wait before searching again.');
     case 'source-unavailable': return t('The source is unavailable. Retry identity preparation later.');

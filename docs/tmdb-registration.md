@@ -41,7 +41,7 @@ The About page at `/about` serves the approved TMDB logo locally, with the exact
 An opt-in maintainer smoke check uses the registered credential against a disposable native catalog, then restarts with missing credentials and verifies durable movies and cached artwork:
 
 ```powershell
-python "C:\Users\ramon\OneDrive\Documentos\ChatGPT\piratarr\scripts\verify_catalog_live.py" --token-file "$env:LOCALAPPDATA\Piratarr\credentials\tmdb-read-token"
+python "E:\Projetos\piratarr\scripts\verify_catalog_live.py" --token-file "$env:LOCALAPPDATA\Piratarr\credentials\tmdb-read-token"
 ```
 
 Build `bin/piratarr-catalog.exe` first. The check never reads or modifies the existing configured installation and does not print credential values.

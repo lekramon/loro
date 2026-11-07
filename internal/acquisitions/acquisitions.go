@@ -108,14 +108,18 @@ type Repository interface {
 	FinishPreparation(context.Context, string, int, Preparation, string) (Acquisition, error)
 	CancelAcquisition(context.Context, string, int, string) (Acquisition, error)
 }
+type ReferenceResolver interface {
+	ResolveReference(context.Context, string, string) (string, string)
+}
 type Service struct {
-	Repo Repository
-	Now  func() time.Time
-	gate chan struct{}
+	Repo     Repository
+	Resolver ReferenceResolver
+	Now      func() time.Time
+	gate     chan struct{}
 }
 
-func New(repo Repository) *Service {
-	return &Service{Repo: repo, Now: time.Now, gate: make(chan struct{}, 1)}
+func New(repo Repository, resolver ReferenceResolver) *Service {
+	return &Service{Repo: repo, Resolver: resolver, Now: time.Now, gate: make(chan struct{}, 1)}
 }
 func Identifier() string {
 	var data [16]byte
@@ -163,12 +167,9 @@ func (s *Service) Prepare(ctx context.Context, id string, revision int) (Acquisi
 	if record.State != "preparing" {
 		return record.Acquisition, nil
 	}
-	result := resolve(ctx, record)
+	result := resolve(ctx, record, s.Resolver)
 	// A disconnected browser must not strand a completed local decision; a crash is recovered at startup.
 	deadline := time.Now().Add(5 * time.Second)
-	if requestDeadline, ok := ctx.Deadline(); ok && requestDeadline.Before(deadline) {
-		deadline = requestDeadline
-	}
 	finish, cancel := context.WithDeadline(context.Background(), deadline)
 	defer cancel()
 	return s.Repo.FinishPreparation(finish, id, record.Revision, result, s.Now().UTC().Format(time.RFC3339Nano))

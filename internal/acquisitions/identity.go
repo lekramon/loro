@@ -5,6 +5,7 @@ import (
 	"encoding/base32"
 	"encoding/hex"
 	"errors"
+	"github.com/lekramon/piratarr/internal/communications"
 	"io"
 	"net"
 	"net/http"
@@ -74,7 +75,19 @@ func origin(u *url.URL) (string, bool) {
 	}
 	return u.Scheme + "://" + strings.ToLower(u.Hostname()) + ":" + strconv.Itoa(port), true
 }
-func resolve(ctx context.Context, record Record) Preparation {
+func resolve(ctx context.Context, record Record, resolver ReferenceResolver) Preparation {
+	resolvedReference := ""
+	if strings.HasPrefix(record.Reference, "louro-1337x:") {
+		if resolver == nil {
+			return Preparation{ReviewCode: "source-browser-unavailable"}
+		}
+		magnet, code := resolver.ResolveReference(ctx, record.SourceURL, record.Reference)
+		if code != "" {
+			return Preparation{ReviewCode: code}
+		}
+		record.Reference = magnet
+		resolvedReference = magnet
+	}
 	if record.ReferenceIssue != "" {
 		return Preparation{ReviewCode: record.ReferenceIssue}
 	}
@@ -89,6 +102,9 @@ func resolve(ctx context.Context, record Record) Preparation {
 		return Preparation{ReviewCode: "unsupported-reference"}
 	}
 	result := Preparation{}
+	if resolvedReference != "" {
+		result.Payload = []byte(resolvedReference)
+	}
 	if strings.EqualFold(u.Scheme, "magnet") {
 		result.Hash, result.ReviewCode = magnetIdentity(record.Reference)
 		result.Kind = "magnet"
@@ -128,7 +144,7 @@ func resolve(ctx context.Context, record Record) Preparation {
 func fetchMetainfo(ctx context.Context, address string) ([]byte, string) {
 	transport := &http.Transport{Proxy: http.ProxyFromEnvironment, DialContext: (&net.Dialer{Timeout: 4 * time.Second}).DialContext, TLSHandshakeTimeout: 4 * time.Second, ResponseHeaderTimeout: 4 * time.Second}
 	defer transport.CloseIdleConnections()
-	client := &http.Client{Transport: transport, Timeout: 4 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+	client := &http.Client{Transport: communications.Transport{Base: transport, Integration: "torrent"}, Timeout: 4 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
 	req, err := http.NewRequestWithContext(ctx, "GET", address, nil)
 	if err != nil {
 		return nil, "unsupported-reference"

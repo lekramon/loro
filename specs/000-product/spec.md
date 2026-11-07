@@ -121,7 +121,7 @@ Automatic monitoring, upgrades, TV series, and additional integrations follow in
 - Four durable workers by default, configurable from one through eight, with renewable leases and per-acquisition and destination coordination.
 - Three retries after the initial attempt for transient metadata/search failures; download polling every 15 seconds. Uncertain sends require reconciliation.
 - TMDB API v3 with application-level read credentials registered for Piratarr, cached metadata/images, and required attribution. Release packaging supplies the application credential; normal users are not asked for a personal TMDB token. Authentication stays in the Go backend, with direct TMDB access and no Piratarr cloud backend.
-- Native Torznab-compatible endpoint support, configured by the user, without another indexer manager dependency.
+- Native Torznab-compatible endpoint support and a direct 1337x adapter, selected explicitly by the user, without another indexer manager dependency. Protected direct sources use an application-managed local browser runtime; unresolved challenges remain visible. See `specs/003-search/spec.md`.
 - qBittorrent 5.x WebUI API with a dedicated category, acquisition tags, and torrent-identity reconciliation.
 - ffprobe video-stream validation before import.
 - Detailed architecture and recovery contracts are authoritative in ADR-0001 and ADR-0002.
@@ -245,3 +245,8 @@ The user authorized a populated Jellyfin-style prototype with viewer profiles an
 ## Service credential configuration update — 2026-11-05
 
 By user instruction, setup/settings now allow explicit saving or replacement of a TMDB Read Access Token. This supersedes earlier statements that onboarding must not offer token configuration. The service-local write-only token takes precedence over bootstrap/private-file and bundled credentials; those remain fallbacks. Empty input preserves the credential. See [service configuration](../011-service-configuration/spec.md).
+
+
+## Platform expansion — 2026-11-06
+
+The user requested phased expansion with a bottom-left communication viewer, expandable Radarr-style settings, Movies/Series/Anime navigation, richer acquisition profiles/quality/custom formats, prepared Letterboxd/IMDb import-list adapters and native Bazarr-equivalent subtitle management per movie or episode file. [Platform expansion](../013-platform-expansion/spec.md) defines delivery order and acceptance; the historical movie-first milestone remains the correctness prerequisite. List removal does not delete local content. New automation remains explicitly opt-in.

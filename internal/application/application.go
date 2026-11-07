@@ -47,7 +47,7 @@ func Open(ctx context.Context, config bootstrap.Config, assets fs.FS) (*Applicat
 	}
 	handler := httpapi.New(store, assets, listener.Addr().String(), catalog.New(store, tmdb.New(tmdb.Config{TokenFile: config.TMDBTokenFile, LocalTokenFile: filepath.Join(directory, "credentials", "tmdb-read-token")}), directory))
 	server := &http.Server{Handler: handler, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16384}
-	workerCtx, stop := context.WithCancel(context.Background())
+	workerCtx, stop := context.WithCancel(handler.BackgroundContext(context.Background()))
 	app := &Application{Server: server, Handler: handler, listener: listener, store: store, stopWorkers: stop}
 	count := config.Workers
 	if count < 1 || count > 8 {

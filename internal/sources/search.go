@@ -112,11 +112,17 @@ func (s *Service) Search(ctx context.Context, movie catalog.Movie, profile setti
 	if category != 0 {
 		query.Set("cat", strconv.Itoa(category))
 	}
-	data, err := s.client.request(ctx, config, query)
-	if err != nil {
-		return ReleasePage{}, err
+	var page ReleasePage
+	if config.Kind == "1337x" {
+		page, err = search1337x(ctx, config, query, limit, offset)
+		mode = "1337x-query"
+	} else {
+		var data []byte
+		data, err = s.client.request(ctx, config, query)
+		if err == nil {
+			page, err = parseReleases(data, config, limit, offset)
+		}
 	}
-	page, err := parseReleases(data, config, limit, offset)
 	if err != nil {
 		return ReleasePage{}, err
 	}

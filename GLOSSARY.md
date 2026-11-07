@@ -22,3 +22,19 @@
 Release format describes a source or modifier such as WEB-DL or Remux. A file container is the file structure, such as MKV or MP4; it is independent of resolution and release format.
 
 A **viewer profile** is a person or viewing persona shown by the mock media interface. It is distinct from the acquisition **Profile** above. Prototype viewer names, favorites and watched markers are browser-local demonstration state, not authentication.
+
+
+## Expanded media and policy vocabulary
+
+| Term | Meaning |
+|---|---|
+| Acquisition profile | A named policy for accepted and preferred releases, assigned to a media title; distinct from a viewer profile and a subtitle profile. |
+| Quality definition | A quality class and its acceptable file-size expectations. |
+| Custom format | A release trait evaluated from available evidence and scored by an acquisition profile. |
+| Series | A title containing seasons and episodes. |
+| Episode | A separately identified installment of a series, distinct from any file that contains it. |
+| Anime classification | A classification of a movie or series used for organization; it does not replace that title's underlying identity. |
+| Import list | A source of proposed catalog additions with provenance, distinct from a release indexer. |
+| Subtitle profile | Preferred subtitle languages, accessibility flags and matching requirements. |
+| Subtitle asset | A subtitle track or sidecar associated with a specific media-file version. |
+| Communication event | A sanitized record of an application interaction or integration attempt, distinct from acquisition history. |

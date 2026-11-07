@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/lekramon/piratarr/internal/acquisitions"
@@ -74,6 +75,9 @@ func readAcquisition(row scanner) (acquisitions.Record, error) {
 	}
 	if kind.Valid {
 		record.Kind = &kind.String
+		if kind.String == "magnet" && strings.HasPrefix(record.Reference, "louro-1337x:") && strings.HasPrefix(string(record.Payload), "magnet:?") {
+			record.Reference = string(record.Payload)
+		}
 	}
 	if review.Valid {
 		record.ReviewCode = &review.String

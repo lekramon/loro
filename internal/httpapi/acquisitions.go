@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/lekramon/piratarr/internal/acquisitions"
+	"github.com/lekramon/piratarr/internal/sources"
 )
 
 func (h *Handler) acquisitionAPI(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +43,15 @@ func (h *Handler) acquisitionAPI(w http.ResponseWriter, r *http.Request) {
 		fail(w, 503, "not-ready", "Acquisitions are unavailable.")
 		return
 	}
-	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	budget := 10 * time.Second
+	if action == "prepare" {
+		budget = sources.SearchTimeout
+		if err := http.NewResponseController(w).SetWriteDeadline(time.Now().Add(75 * time.Second)); err != nil && !errors.Is(err, http.ErrNotSupported) {
+			fail(w, 503, "source-unavailable", "Unable to start identity preparation.")
+			return
+		}
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), budget)
 	defer cancel()
 	if h.storage.Ready(ctx) != nil {
 		acquisitionFailure(w, acquisitions.ErrUnavailable)

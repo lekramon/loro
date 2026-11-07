@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"github.com/lekramon/piratarr/internal/communications"
 	"io"
 	"net"
 	"net/http"
@@ -42,7 +43,7 @@ func WithSession(ctx context.Context, config Config, work func(*Session, string,
 	if err != nil {
 		return failed("invalid-response")
 	}
-	s := Session{client: &http.Client{Transport: transport, Jar: jar, Timeout: 2 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}, base: base}
+	s := Session{client: &http.Client{Transport: communications.Transport{Base: transport, Integration: "download-client"}, Jar: jar, Timeout: 2 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}, base: base}
 	login, err := s.request(ctx, "POST", "auth/login", url.Values{"username": {config.Username}, "password": {config.Password}}.Encode())
 	// Even an unexpected login body may have established a session.
 	hasSID := false
@@ -53,7 +54,7 @@ func WithSession(ctx context.Context, config Config, work func(*Session, string,
 	}
 	if hasSID {
 		defer func() {
-			cleanup, cancel := context.WithTimeout(context.Background(), time.Second)
+			cleanup, cancel := context.WithTimeout(context.WithoutCancel(ctx), time.Second)
 			defer cancel()
 			_, _ = s.request(cleanup, "POST", "auth/logout", "")
 		}()

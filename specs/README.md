@@ -7,7 +7,7 @@ Specifications and tickets are the local tracker. Foundation, movie metadata, fi
 | 000-product | Product constraints and milestone boundaries | none | Accepted direction |
 | 001-foundation | Healthy local application, onboarding, profile, persistence, embedded UI | none | Implemented and verified, including Linux Docker distribution |
 | 002-catalog | TMDB movie registration, cached metadata, existing-file scan and manual association | 001 | Metadata/registration, local artwork/offline APIs, inventory and ffprobe association/review implemented; real Movies presentation remains mocked |
-| 003-search | Native Torznab capabilities, manual search, normalized candidates and profile explanations | 002 | Source configuration, manual registered-movie search, normalization and profile explanations implemented and verified |
+| 003-search | Native Torznab capabilities, manual search, normalized candidates and profile explanations | 002 | Source configuration, manual registered-movie search, normalization and profile explanations implemented; timeout/cancellation and direct 1337x/browser integration verified |
 | 004-acquisition | qBittorrent submission, persistent workers, tracking and uncertain-send reconciliation | 003 | Connection checks, durable selection/override confirmation, v1 identity preparation and restart review implemented; submission jobs/reconciliation, scheduled tracking and provisional file handoff implemented; local validation/import remains the next feature contract |
 | 005-import | ffprobe validation, hardlink/copy, review, replacement and restart recovery | 004 | Deferred specification |
 | 006-operations | Stopped-service backup/restore, installation and upgrade verification | 005 | Deferred specification |
@@ -26,3 +26,6 @@ The first usable milestone requires 001–006. Subsequent milestones add automat
 Ticket 03 of service configuration adds a unified library/settings header, library-contained search, one initial viewer and local profile photo/pencil editing; implemented and verified.
 
 - [Lôro product identity and compatibility](012-louro-name/spec.md): product branding, current executable/image and preferred LOURO environment variables preserve existing data identities.
+
+
+- [Platform expansion](013-platform-expansion/spec.md): current-ticket communications diagnostics first; then expandable settings/library navigation, acquisition policies, import/recovery gate, series/anime, list adapters, subtitles and opt-in automation. [Research](013-platform-expansion/research.md) and [verification](013-platform-expansion/verification.md) separate reference behavior from observed implementation evidence.

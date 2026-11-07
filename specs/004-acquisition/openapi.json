@@ -774,7 +774,8 @@
               }
             }
           }
-        }
+        },
+        "description": " Direct 1337x references resolve a same-origin details page with the local browser, within a 70-second API budget. Failed resolution becomes a review code; this never submits downloads."
       }
     },
     "/api/v1/acquisitions/{id}/cancel": {

@@ -1,7 +1,7 @@
 # Movie catalog and metadata
 
 Label: ready-for-agent
-State: in-progress
+State: done
 
 ## Scope and sequence
 

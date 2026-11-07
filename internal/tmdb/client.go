@@ -6,6 +6,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"errors"
+	"github.com/lekramon/piratarr/internal/communications"
 	"io"
 	"net"
 	"net/http"
@@ -48,7 +49,7 @@ func New(config Config) *Client {
 		config.ImageBase = "https://image.tmdb.org/t/p"
 	}
 	transport := &http.Transport{Proxy: http.ProxyFromEnvironment, DialContext: (&net.Dialer{Timeout: 2 * time.Second}).DialContext, TLSHandshakeTimeout: 2 * time.Second, ResponseHeaderTimeout: 2 * time.Second, MaxIdleConns: 8, MaxIdleConnsPerHost: 4, IdleConnTimeout: 30 * time.Second}
-	return &Client{config: config, http: &http.Client{Transport: transport, Timeout: 2 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}, gate: make(chan struct{}, 4)}
+	return &Client{config: config, http: &http.Client{Transport: communications.Transport{Base: transport, Integration: "metadata"}, Timeout: 2 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}, gate: make(chan struct{}, 4)}
 }
 func (c *Client) credential() string {
 	if c.config.LocalTokenFile != "" {

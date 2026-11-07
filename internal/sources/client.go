@@ -3,6 +3,7 @@ package sources
 import (
 	"context"
 	"errors"
+	"github.com/lekramon/piratarr/internal/communications"
 	"io"
 	"net"
 	"net/http"
@@ -34,7 +35,7 @@ const SearchTimeout = 70 * time.Second
 func NewClient() *Client {
 	transport := &http.Transport{Proxy: http.ProxyFromEnvironment, DialContext: (&net.Dialer{Timeout: 2 * time.Second}).DialContext, TLSHandshakeTimeout: 2 * time.Second, MaxIdleConns: 4, MaxIdleConnsPerHost: 2, IdleConnTimeout: 30 * time.Second}
 	noRedirect := func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
-	return &Client{http: &http.Client{Transport: transport, Timeout: 2 * time.Second, CheckRedirect: noRedirect}, searchHTTP: &http.Client{Transport: transport, Timeout: 65 * time.Second, CheckRedirect: noRedirect}}
+	return &Client{http: &http.Client{Transport: communications.Transport{Base: transport, Integration: "source"}, Timeout: 2 * time.Second, CheckRedirect: noRedirect}, searchHTTP: &http.Client{Transport: communications.Transport{Base: transport, Integration: "source"}, Timeout: 65 * time.Second, CheckRedirect: noRedirect}}
 }
 func (c *Client) Capabilities(ctx context.Context, config Config) (Capabilities, error) {
 	data, err := c.request(ctx, config, url.Values{"t": {"caps"}})

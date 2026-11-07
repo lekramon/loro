@@ -29,6 +29,7 @@ export function ReleaseSearch() {
         case 'source-authentication-failed': return t('The source rejected its credentials. Check the API key.');
         case 'source-timeout': return t('The source timed out. Check its address and connectivity.');
         case 'source-rate-limited': return t('The source is rate limiting requests. Wait before searching again.');
+        case 'source-browser-unavailable': return t('Install or repair the local browser runtime for this source.');
         case 'source-challenge-required': return t('The source requires browser verification. Check the source in Settings.');
         case 'source-invalid-response': return t('The source returned an invalid release feed.');
         case 'source-changed': case 'preferences-changed': return t('Source or preferences changed. Reload and search again.');

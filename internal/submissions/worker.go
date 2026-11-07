@@ -4,6 +4,7 @@ package submissions
 import (
 	"context"
 	"errors"
+	"github.com/lekramon/piratarr/internal/communications"
 	"time"
 
 	"github.com/lekramon/piratarr/internal/acquisitions"
@@ -40,6 +41,9 @@ func (e *Engine) Step(parent context.Context) (bool, error) {
 	if err != nil || job == nil {
 		return false, err
 	}
+	parent = communications.Correlate(parent)
+	start := time.Now()
+	communications.Emit(parent, communications.Event{Integration: "jobs", Operation: "jobs.submission", Phase: "operation.started"})
 	ctx, cancel := context.WithTimeout(parent, 25*time.Second)
 	defer cancel()
 	renewed := make(chan struct{})
@@ -65,6 +69,18 @@ func (e *Engine) Step(parent context.Context) (bool, error) {
 	finish, done := context.WithTimeout(context.Background(), 5*time.Second)
 	defer done()
 	err = e.Repo.FinishSubmission(finish, *job, outcome, time.Now().UTC())
+	event := communications.Event{Integration: "jobs", Operation: "jobs.submission", Phase: "operation.completed", ElapsedMS: communications.Ptr(time.Since(start).Milliseconds())}
+	if outcome.Code != "" {
+		event.Phase = "operation.failed"
+		event.Level = "warning"
+		event.Code = &outcome.Code
+	}
+	if err != nil {
+		event.Phase = "operation.failed"
+		event.Level = "warning"
+		event.Code = communications.Ptr("storage-unavailable")
+	}
+	communications.Emit(ctx, event)
 	return true, err
 }
 func (e *Engine) execute(ctx context.Context, job Job) Outcome {

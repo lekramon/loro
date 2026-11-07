@@ -24,18 +24,19 @@ import (
 var migrations embed.FS
 
 type Store struct {
-	downloadSchema    bool
-	submissionSchema  bool
-	acquisitionSchema bool
-	catalogSchema     bool
-	inventorySchema   bool
-	reviewSchema      bool
-	sourceSchema      bool
-	clientSchema      bool
-	write             *sql.DB
-	read              *sql.DB
-	lock              *flock.Flock
-	path              string
+	nativeSourceSchema bool
+	downloadSchema     bool
+	submissionSchema   bool
+	acquisitionSchema  bool
+	catalogSchema      bool
+	inventorySchema    bool
+	reviewSchema       bool
+	sourceSchema       bool
+	clientSchema       bool
+	write              *sql.DB
+	read               *sql.DB
+	lock               *flock.Flock
+	path               string
 }
 
 func Open(ctx context.Context, directory string) (*Store, error) {
@@ -54,6 +55,9 @@ func open(ctx context.Context, directory string, source fs.FS) (_ *Store, result
 		return nil, errors.New("another instance is using this data directory")
 	}
 	s := &Store{lock: lock, path: filepath.Join(directory, "piratarr.db")}
+	if _, err := fs.Stat(source, "migrations/00011_native_source.sql"); err == nil {
+		s.nativeSourceSchema = true
+	}
 	if _, err := fs.Stat(source, "migrations/00010_download_tracking.sql"); err == nil {
 		s.downloadSchema = true
 	}
@@ -218,6 +222,9 @@ func (s *Store) Ready(ctx context.Context) error {
 	}
 	if s.sourceSchema {
 		query += " + (SELECT count(*) FROM source_configuration)"
+	}
+	if s.nativeSourceSchema {
+		query += " + (SELECT count(kind) FROM source_configuration)"
 	}
 	if s.clientSchema {
 		query += " + (SELECT count(revision)+count(endpoint)+count(username)+count(password)+count(app_version)+count(api_version)+count(checked_at) FROM download_client_configuration)"
