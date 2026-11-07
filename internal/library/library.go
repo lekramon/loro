@@ -83,6 +83,17 @@ func PathKey(value string) string {
 	}
 	return value
 }
+func sameCanonicalPath(path, canonical string) bool {
+	if PathKey(path) == PathKey(canonical) {
+		return true
+	}
+	if runtime.GOOS != "windows" {
+		return false
+	}
+	pathInfo, pathErr := os.Stat(path)
+	canonicalInfo, canonicalErr := os.Stat(canonical)
+	return pathErr == nil && canonicalErr == nil && os.SameFile(pathInfo, canonicalInfo)
+}
 func overlaps(a, b string) bool {
 	a = PathKey(a)
 	b = PathKey(b)
@@ -109,7 +120,7 @@ func (s *Service) Scan(ctx context.Context) (Snapshot, error) {
 	}
 	path := filepath.Clean(config.Directories.MovieDirectory)
 	canonical, err := filepath.EvalSymlinks(path)
-	if err != nil || PathKey(canonical) != PathKey(path) || overlaps(path, s.data) || overlaps(s.data, path) {
+	if err != nil || !sameCanonicalPath(path, canonical) || overlaps(path, s.data) || overlaps(s.data, path) {
 		return Snapshot{}, ErrUnavailable
 	}
 	before, err := os.Lstat(path)
@@ -209,7 +220,7 @@ func (s *Service) Scan(ctx context.Context) (Snapshot, error) {
 	}
 	after, err := os.Lstat(path)
 	canonical, resolveErr := filepath.EvalSymlinks(path)
-	if err != nil || resolveErr != nil || PathKey(canonical) != PathKey(path) || !os.SameFile(before, after) || ctx.Err() != nil {
+	if err != nil || resolveErr != nil || !sameCanonicalPath(path, canonical) || !os.SameFile(before, after) || ctx.Err() != nil {
 		return Snapshot{}, ErrUnavailable
 	}
 	if err = s.repo.PublishInventory(ctx, path, config.Revision, observed, skipped); err != nil {
