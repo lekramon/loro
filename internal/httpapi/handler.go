@@ -307,7 +307,7 @@ func (h *Handler) api(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) frontend(w http.ResponseWriter, r *http.Request) {
 	filename := strings.TrimPrefix(path.Clean(r.URL.Path), "/")
-	if filename == "" || filename == "." || filename == "setup" || filename == "settings" || filename == "preview" || filename == "about" || filename == "search" {
+	if filename == "" || filename == "." || filename == "setup" || filename == "settings" || strings.HasPrefix(filename, "settings/") || filename == "preview" || filename == "about" || filename == "search" {
 		filename = "index.html"
 	}
 	file, err := fs.ReadFile(h.assets, filename)
