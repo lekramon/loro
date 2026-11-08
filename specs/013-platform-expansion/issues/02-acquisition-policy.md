@@ -1,7 +1,7 @@
 # Named acquisition profiles, quality definitions and custom formats
 
 Label: ready-for-agent
-State: in-progress
+State: done
 Blocked by: specs/013-platform-expansion/issues/01-settings-and-library-navigation.md
 
 Implement POL-001–POL-004 in the [feature specification](../spec.md).
@@ -27,7 +27,13 @@ All writes use the existing mutation/header/body protections. Profiles are named
 
 ## Verification
 
-Not started. Intended behavior is specified above; no completion evidence is claimed.
+Completed on branch `feature/013-02-acquisition-policy` at commit `02a8635`.
+
+- `pnpm run build` passed locally.
+- `python scripts/verify_specs.py` passed locally (49 API operations).
+- GitHub Actions run `42501704775` passed all required jobs: Ubuntu Go tests/vet/build, Windows Go tests/vet/build, browser journeys, and non-root Linux Compose acceptance.
+- The storage integration test covers migration of the existing singleton to `Default`, revision-conflict fencing, quality/custom-format persistence and title assignment.
+- Docker-based checks were unavailable locally because the Docker Desktop engine was stopped; the required CI Linux container check passed.
 
 ## Comments
 
