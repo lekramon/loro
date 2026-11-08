@@ -180,6 +180,10 @@ func (h *Handler) api(w http.ResponseWriter, r *http.Request) {
 		h.communicationsAPI(w, r)
 		return
 	}
+	if r.URL.Path == "/api/v1/system/operations" {
+		h.operationsAPI(w, r)
+		return
+	}
 	if r.URL.Path == "/api/v1/downloads" || strings.HasPrefix(r.URL.Path, "/api/v1/downloads/") {
 		h.downloadAPI(w, r)
 		return
