@@ -32,7 +32,7 @@ func TestFoundationAPIWithRealDatabase(t *testing.T) {
 		handler.ServeHTTP(w, r)
 		return w
 	}
-	for path, status := range map[string]int{"/api/v1/health/live": 200, "/api/v1/health/ready": 200, "/api/v1/setup": 200, "/api/v1/settings": 409, "/api/v1/missing": 404, "/api/missing": 404, "/api": 404, "/": 200, "/setup": 200, "/missing.js": 404} {
+	for path, status := range map[string]int{"/api/v1/health/live": 200, "/api/v1/health/ready": 200, "/api/v1/system/operations": 200, "/api/v1/setup": 200, "/api/v1/settings": 409, "/api/v1/missing": 404, "/api/missing": 404, "/api": 404, "/": 200, "/setup": 200, "/missing.js": 404} {
 		if w := request("GET", path, "localhost:8080", "", nil); w.Code != status {
 			t.Errorf("%s: %d %s", path, w.Code, w.Body.String())
 		}
