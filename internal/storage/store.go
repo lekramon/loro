@@ -157,6 +157,11 @@ func open(ctx context.Context, directory string, source fs.FS) (_ *Store, result
 			return nil, errors.New("recover download checks")
 		}
 	}
+	if s.importSchema {
+		if _, err = s.write.ExecContext(ctx, "UPDATE import_jobs SET state='needs-review',phase='needs-review',error_code='import-interrupted',revision=revision+1,updated_at=? WHERE state IN ('planned','staging','published')", time.Now().UTC().Format(time.RFC3339Nano)); err != nil {
+			return nil, errors.New("recover imports")
+		}
+	}
 	s.read, err = sql.Open("sqlite", uri.String())
 	if err != nil {
 		return nil, err
