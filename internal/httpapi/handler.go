@@ -18,6 +18,7 @@ import (
 	"github.com/lekramon/piratarr/internal/communications"
 	"github.com/lekramon/piratarr/internal/downloadclient"
 	"github.com/lekramon/piratarr/internal/downloads"
+	"github.com/lekramon/piratarr/internal/imports"
 	"github.com/lekramon/piratarr/internal/library"
 	"github.com/lekramon/piratarr/internal/policies"
 	"github.com/lekramon/piratarr/internal/settings"
@@ -32,6 +33,7 @@ type Storage interface {
 	GetSettings(context.Context) (settings.Settings, error)
 	UpdateSettings(context.Context, int, settings.Input) (settings.Settings, error)
 	policies.Repository
+	imports.Repository
 	DataDirectory() string
 }
 
@@ -50,6 +52,7 @@ type Handler struct {
 	port           string
 	stopping       atomic.Bool
 	settings       settings.Service
+	importService  *imports.Service
 }
 
 type apiError struct {
@@ -81,6 +84,9 @@ func New(storage Storage, assets fs.FS, listen string, services ...*catalog.Serv
 	}
 	if repo, ok := storage.(downloads.Repository); ok {
 		handler.downloadRepo = repo
+	}
+	if repo, ok := storage.(imports.Repository); ok {
+		handler.importService = &imports.Service{Repo: repo, Prober: library.NewProber("ffprobe"), Now: time.Now}
 	}
 	return handler
 }
@@ -176,6 +182,10 @@ func (h *Handler) api(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.URL.Path == "/api/v1/downloads" || strings.HasPrefix(r.URL.Path, "/api/v1/downloads/") {
 		h.downloadAPI(w, r)
+		return
+	}
+	if r.URL.Path == "/api/v1/imports" || r.URL.Path == "/api/v1/imports/preview" {
+		h.importAPI(w, r)
 		return
 	}
 	if r.URL.Path == "/api/v1/acquisitions" || strings.HasPrefix(r.URL.Path, "/api/v1/acquisitions/") {
