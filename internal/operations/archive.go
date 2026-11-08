@@ -56,7 +56,10 @@ func Check(input string) (Manifest, error) {
 	archive, err := zip.OpenReader(input)
 	if err != nil { return Manifest{}, ErrInvalidArchive }
 	defer archive.Close()
-	return inspect(archive.File)
+	manifest, err := inspect(archive.File)
+	if err != nil { return Manifest{}, err }
+	if err = verifyEntries(archive.File, manifest); err != nil { return Manifest{}, err }
+	return manifest, nil
 }
 
 func Restore(input, destination string) error {
@@ -70,6 +73,7 @@ func Restore(input, destination string) error {
 	manifest, err := inspect(archive.File)
 	if err != nil { return err }
 	if manifest.SchemaVersion > SchemaVersion { return errors.New("archive schema is newer than this application") }
+	if err = verifyEntries(archive.File, manifest); err != nil { return err }
 	parent := filepath.Dir(filepath.Clean(destination))
 	if err = os.MkdirAll(parent, 0700); err != nil { return err }
 	stage := filepath.Join(parent, filepath.Base(destination)+".louro-restore-staging")
@@ -146,7 +150,34 @@ func inspect(entries []*zip.File) (Manifest, error) {
 		}
 	}
 	if manifest.FormatVersion != 1 || manifest.SchemaVersion < 1 { return Manifest{}, ErrInvalidArchive }
+	if len(manifest.Files) == 0 { return Manifest{}, ErrInvalidArchive }
+	seenManifest := map[string]bool{}
+	for _, item := range manifest.Files {
+		if item.Path == ManifestPath || item.Path == "" || filepath.IsAbs(item.Path) || strings.HasPrefix(item.Path, "../") || strings.Contains(item.Path, "/../") || seenManifest[item.Path] || item.Size < 0 || item.Size > MaxArchiveBytes || len(item.SHA256) != sha256.Size*2 { return Manifest{}, ErrInvalidArchive }
+		seenManifest[item.Path] = true
+	}
 	return manifest, nil
+}
+
+func verifyEntries(entries []*zip.File, manifest Manifest) error {
+	wanted := map[string]File{}
+	for _, item := range manifest.Files { wanted[item.Path] = item }
+	var total int64
+	for _, entry := range entries {
+		name := filepath.ToSlash(entry.Name)
+		if name == ManifestPath { continue }
+		item, ok := wanted[name]
+		if !ok || entry.FileInfo().Mode().IsDir() || entry.UncompressedSize64 > uint64(MaxArchiveBytes) { return ErrInvalidArchive }
+		total += int64(entry.UncompressedSize64)
+		if total > MaxArchiveBytes { return ErrInvalidArchive }
+		reader, err := entry.Open(); if err != nil { return ErrInvalidArchive }
+		digest := sha256.New()
+		size, copyErr := io.Copy(digest, io.LimitReader(reader, MaxArchiveBytes+1)); reader.Close()
+		if copyErr != nil || size != item.Size || hex.EncodeToString(digest.Sum(nil)) != item.SHA256 { return ErrInvalidArchive }
+		delete(wanted, name)
+	}
+	if len(wanted) != 0 { return ErrInvalidArchive }
+	return nil
 }
 
 func extractAndVerify(entries []*zip.File, root string, manifest Manifest) error {
