@@ -19,6 +19,7 @@ import (
 	"github.com/lekramon/piratarr/internal/downloadclient"
 	"github.com/lekramon/piratarr/internal/downloads"
 	"github.com/lekramon/piratarr/internal/library"
+	"github.com/lekramon/piratarr/internal/policies"
 	"github.com/lekramon/piratarr/internal/settings"
 	"github.com/lekramon/piratarr/internal/sources"
 	"github.com/lekramon/piratarr/internal/submissions"
@@ -30,6 +31,7 @@ type Storage interface {
 	CreateSettings(context.Context, settings.Input) (settings.Settings, error)
 	GetSettings(context.Context) (settings.Settings, error)
 	UpdateSettings(context.Context, int, settings.Input) (settings.Settings, error)
+	policies.Repository
 	DataDirectory() string
 }
 
@@ -194,6 +196,10 @@ func (h *Handler) api(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.URL.Path == "/api/v1/sources" || strings.HasPrefix(r.URL.Path, "/api/v1/sources/") {
 		h.sourcesAPI(w, r)
+		return
+	}
+	if r.URL.Path == "/api/v1/acquisition-profiles" || strings.HasPrefix(r.URL.Path, "/api/v1/acquisition-profiles/") || strings.HasPrefix(r.URL.Path, "/api/v1/quality-definitions") || strings.HasPrefix(r.URL.Path, "/api/v1/custom-formats") || strings.HasPrefix(r.URL.Path, "/api/v1/catalog/movies/") && strings.HasSuffix(r.URL.Path, "/acquisition-profile") {
+		h.policyAPI(w, r)
 		return
 	}
 	if r.URL.Path == "/api/v1/metadata/credential" {

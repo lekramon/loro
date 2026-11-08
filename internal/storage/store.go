@@ -34,6 +34,7 @@ type Store struct {
 	reviewSchema       bool
 	sourceSchema       bool
 	clientSchema       bool
+	policySchema       bool
 	write              *sql.DB
 	read               *sql.DB
 	lock               *flock.Flock
@@ -58,6 +59,9 @@ func open(ctx context.Context, directory string, source fs.FS) (_ *Store, result
 	s := &Store{lock: lock, path: filepath.Join(directory, "piratarr.db")}
 	if _, err := fs.Stat(source, "migrations/00012_multiple_sources.sql"); err == nil {
 		s.multiSourceSchema = true
+	}
+	if _, err := fs.Stat(source, "migrations/00013_acquisition_policies.sql"); err == nil {
+		s.policySchema = true
 	}
 	if _, err := fs.Stat(source, "migrations/00011_native_source.sql"); err == nil {
 		s.nativeSourceSchema = true
@@ -232,6 +236,9 @@ func (s *Store) Ready(ctx context.Context) error {
 	}
 	if s.multiSourceSchema {
 		query += " + (SELECT count(active)+count(id) FROM source_configuration)"
+	}
+	if s.policySchema {
+		query += " + (SELECT count(*) FROM acquisition_profiles) + (SELECT count(*) FROM quality_definitions) + (SELECT count(*) FROM custom_formats) + (SELECT count(*) FROM movie_acquisition_profiles)"
 	}
 	if s.clientSchema {
 		query += " + (SELECT count(revision)+count(endpoint)+count(username)+count(password)+count(app_version)+count(api_version)+count(checked_at) FROM download_client_configuration)"

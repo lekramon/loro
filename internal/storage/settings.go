@@ -66,6 +66,11 @@ func (s *Store) CreateSettings(ctx context.Context, input settings.Input) (setti
 	if err = saveQuality(ctx, tx, input.Profile); err != nil {
 		return settings.Settings{}, databaseError(err)
 	}
+	if s.policySchema {
+		if _, err = tx.ExecContext(ctx, "INSERT INTO acquisition_profiles(name,revision,accepted_resolutions,preferred_resolution,accepted_formats,accepted_containers,audio_preferences,created_at,updated_at) VALUES('Default',1,?,?,?,?,?, ?,?)", policyJSON(input.Profile.AcceptedResolutions), input.Profile.PreferredResolution, policyJSON(input.Profile.AcceptedFormats), policyJSON(input.Profile.AcceptedContainers), policyJSON(input.Profile.AudioPreferences), timestamp, timestamp); err != nil {
+			return settings.Settings{}, databaseError(err)
+		}
+	}
 	if err = tx.Commit(); err != nil {
 		return settings.Settings{}, databaseError(err)
 	}
