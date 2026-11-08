@@ -65,6 +65,24 @@ func TestFreshStorageRestartAndConnectionPragmas(t *testing.T) {
 	}
 }
 
+func TestImportJournalIsRecoveredAfterRestart(t *testing.T) {
+	ctx := context.Background()
+	directory := t.TempDir()
+	store, err := Open(ctx, directory)
+	if err != nil { t.Fatal(err) }
+	if _, err = store.write.ExecContext(ctx, "PRAGMA foreign_keys=OFF"); err != nil { t.Fatal(err) }
+	if _, err = store.write.ExecContext(ctx, `INSERT INTO import_jobs(id,download_id,movie_id,source_path,destination_path,relative_path,state,phase,revision,created_at,updated_at) VALUES('import-recovery-000000000000000000000000000000','download-000000000000000000000000000000',1,'source','destination','Movie/file.mkv','staging','publishing',1,'now','now')`); err != nil { t.Fatal(err) }
+	if _, err = store.write.ExecContext(ctx, "PRAGMA foreign_keys=ON"); err != nil { t.Fatal(err) }
+	if err = store.Close(); err != nil { t.Fatal(err) }
+	store, err = Open(ctx, directory)
+	if err != nil { t.Fatal(err) }
+	defer store.Close()
+	var state, phase, code string
+	var revision int
+	if err = store.read.QueryRowContext(ctx, "SELECT state,phase,error_code,revision FROM import_jobs WHERE id=?", "import-recovery-000000000000000000000000000000").Scan(&state, &phase, &code, &revision); err != nil { t.Fatal(err) }
+	if state != "needs-review" || phase != "needs-review" || code != "import-interrupted" || revision != 2 { t.Fatalf("unexpected recovery: %s %s %s %d", state, phase, code, revision) }
+}
+
 func TestUnsupportedHistoryIsNotModified(t *testing.T) {
 	directory := t.TempDir()
 	s, err := Open(context.Background(), directory)
