@@ -11,9 +11,19 @@ import (
 	"github.com/lekramon/piratarr/internal/acquisitions"
 )
 
-func revisionsMatch(ctx context.Context, tx *sql.Tx, source, profile int) error {
+func activeSourceRevisionQuery(multiple bool) string {
+	if multiple {
+		return "SELECT revision FROM source_configuration WHERE active=1"
+	}
+	return "SELECT revision FROM source_configuration WHERE id=1"
+}
+func revisionsMatch(ctx context.Context, tx *sql.Tx, source, profile int, multiple bool) error {
 	var sr, pr int
-	if err := tx.QueryRowContext(ctx, "SELECT (SELECT revision FROM source_configuration WHERE id=1),(SELECT revision FROM settings WHERE id=1)").Scan(&sr, &pr); err != nil {
+	sourceQuery := "SELECT revision FROM source_configuration WHERE id=1"
+	if multiple {
+		sourceQuery = "SELECT revision FROM source_configuration WHERE active=1"
+	}
+	if err := tx.QueryRowContext(ctx, "SELECT ("+sourceQuery+"),(SELECT revision FROM settings WHERE id=1)").Scan(&sr, &pr); err != nil {
 		return acquisitions.ErrUnavailable
 	}
 	if sr != source || pr != profile {
@@ -28,7 +38,7 @@ func (s *Store) SaveObservations(ctx context.Context, values []acquisitions.Obse
 		return acquisitions.ErrUnavailable
 	}
 	defer tx.Rollback()
-	if err = revisionsMatch(ctx, tx, source, profile); err != nil {
+	if err = revisionsMatch(ctx, tx, source, profile, s.multiSourceSchema); err != nil {
 		return err
 	}
 	if _, err = tx.ExecContext(ctx, "DELETE FROM release_observations WHERE expires_at<=? AND NOT EXISTS(SELECT 1 FROM acquisitions WHERE observation_id=release_observations.id)", instant(now)); err != nil {
@@ -155,7 +165,7 @@ func (s *Store) SelectAcquisition(ctx context.Context, input acquisitions.Select
 	if expires <= instant(now) {
 		return acquisitions.Acquisition{}, false, acquisitions.ErrExpired
 	}
-	if err = revisionsMatch(ctx, tx, observation.SourceRevision, observation.ProfileRevision); err != nil {
+	if err = revisionsMatch(ctx, tx, observation.SourceRevision, observation.ProfileRevision, s.multiSourceSchema); err != nil {
 		return acquisitions.Acquisition{}, false, err
 	}
 	if observation.Candidate.Status != "match" && !input.ConfirmOverride {
@@ -217,7 +227,7 @@ func (s *Store) BeginPreparation(ctx context.Context, id string, revision int, n
 		return record, acquisitions.ErrState
 	}
 	var source int
-	if tx.QueryRowContext(ctx, "SELECT revision FROM source_configuration WHERE id=1").Scan(&source) != nil {
+	if tx.QueryRowContext(ctx, activeSourceRevisionQuery(s.multiSourceSchema)).Scan(&source) != nil {
 		return record, acquisitions.ErrUnavailable
 	}
 	state := "preparing"
@@ -254,7 +264,7 @@ func (s *Store) FinishPreparation(ctx context.Context, id string, revision int, 
 		return record.Acquisition, acquisitions.ErrChanged
 	}
 	var source int
-	if tx.QueryRowContext(ctx, "SELECT revision FROM source_configuration WHERE id=1").Scan(&source) != nil {
+	if tx.QueryRowContext(ctx, activeSourceRevisionQuery(s.multiSourceSchema)).Scan(&source) != nil {
 		return record.Acquisition, acquisitions.ErrUnavailable
 	}
 	if source != record.SourceRevision {

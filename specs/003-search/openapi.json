@@ -10,6 +10,242 @@
     }
   ],
   "paths": {
+    "/api/v1/sources": {
+      "get": {
+        "operationId": "listSavedSources",
+        "summary": "List saved source configurations",
+        "responses": {
+          "200": {
+            "description": "Saved sources without credentials.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceList"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Local source storage is unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createSavedSource",
+        "summary": "Create an inactive saved source",
+        "parameters": [
+          {
+            "name": "X-Piratarr-Request",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "1"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "name",
+                  "url"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "url": {
+                    "type": "string",
+                    "maxLength": 2048
+                  },
+                  "apiKey": {
+                    "type": "string",
+                    "writeOnly": true,
+                    "maxLength": 1024
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "torznab",
+                      "1337x"
+                    ],
+                    "default": "torznab"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "Malformed request.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "403": {
+            "description": "Mutation request header or origin rejected.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "413": {
+            "description": "Request body exceeds the limit.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "415": {
+            "description": "JSON content type is required.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "201": {
+            "description": "Inactive source created; credential omitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedSource"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Setup is incomplete or the endpoint already exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid source configuration.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Local source storage is unavailable.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/sources/{sourceId}/active": {
+      "put": {
+        "operationId": "activateSavedSource",
+        "summary": "Make one saved source active",
+        "parameters": [
+          {
+            "name": "sourceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "X-Piratarr-Request",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "1"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "revision"
+                ],
+                "properties": {
+                  "revision": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "Malformed request.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "403": {
+            "description": "Mutation request header or origin rejected.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "413": {
+            "description": "Request body exceeds the limit.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "415": {
+            "description": "JSON content type is required.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "200": {
+            "description": "Activated source with a new global source revision.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedSource"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Saved source not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Saved source revision changed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid source identifier or revision.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "503": {
+            "description": "Local source storage is unavailable.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    },
     "/api/v1/source": {
       "get": {
         "operationId": "getSourceConfiguration",
@@ -663,6 +899,52 @@
               "1337x"
             ],
             "default": "torznab"
+          }
+        }
+      },
+      "SavedSource": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Source"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "active"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "active": {
+                "type": "boolean"
+              }
+            }
+          }
+        ]
+      },
+      "SourceList": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "activeSourceId",
+          "items"
+        ],
+        "properties": {
+          "activeSourceId": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SavedSource"
+            }
           }
         }
       },

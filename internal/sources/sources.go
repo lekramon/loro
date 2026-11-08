@@ -17,6 +17,8 @@ var ErrChanged = errors.New("source changed")
 var ErrValidation = errors.New("invalid source configuration")
 var ErrUnconfigured = errors.New("source unconfigured")
 var ErrBusy = errors.New("source test in progress")
+var ErrExists = errors.New("source already exists")
+var ErrNotFound = errors.New("source not found")
 
 type SearchCapability struct {
 	Available       bool     `json:"available"`
@@ -34,6 +36,8 @@ type Capabilities struct {
 	Categories   []Category       `json:"categories"`
 }
 type Public struct {
+	ID           int64         `json:"id,omitempty"`
+	Active       bool          `json:"active"`
 	Kind         string        `json:"kind"`
 	Configured   bool          `json:"configured"`
 	Revision     int           `json:"revision"`
@@ -61,8 +65,15 @@ type TestResult struct {
 	Capabilities   Capabilities `json:"capabilities"`
 	CheckedAt      string       `json:"checkedAt"`
 }
+type List struct {
+	ActiveSourceID *int64   `json:"activeSourceId"`
+	Items          []Public `json:"items"`
+}
 type Repository interface {
 	GetSource(context.Context) (Config, error)
+	ListSources(context.Context) ([]Config, error)
+	CreateSource(context.Context, string, string, string, string) (Config, error)
+	ActivateSource(context.Context, int64, int) (Config, error)
 	SaveSource(context.Context, int, string, string, string, ...string) (Config, error)
 	SaveSourceCapabilities(context.Context, int, Capabilities, string) error
 }
@@ -79,41 +90,81 @@ func (s *Service) Get(ctx context.Context) (Public, error) {
 	config, err := s.repo.GetSource(ctx)
 	return config.Public, err
 }
-func (s *Service) Save(ctx context.Context, input Input) (Public, error) {
+func (s *Service) List(ctx context.Context) (List, error) {
+	configs, err := s.repo.ListSources(ctx)
+	if err != nil {
+		return List{}, err
+	}
+	result := List{Items: make([]Public, 0, len(configs))}
+	for _, config := range configs {
+		result.Items = append(result.Items, config.Public)
+		if config.Active {
+			id := config.ID
+			result.ActiveSourceID = &id
+		}
+	}
+	return result, nil
+}
+func validateInput(input Input) (Input, error) {
 	if input.Kind == "" {
 		input.Kind = "torznab"
 	}
 	if input.Kind != "torznab" && input.Kind != "1337x" {
-		return Public{}, ErrValidation
+		return Input{}, ErrValidation
 	}
 	input.Name = strings.TrimSpace(input.Name)
 	input.URL = strings.TrimSpace(input.URL)
 	input.APIKey = strings.TrimSpace(input.APIKey)
 	if input.Revision < 0 || !utf8.ValidString(input.Name) || utf8.RuneCountInString(input.Name) < 1 || utf8.RuneCountInString(input.Name) > 100 || len(input.URL) > 2048 || strings.Contains(input.URL, "#") || len(input.APIKey) > 1024 || input.ClearAPIKey && input.APIKey != "" {
-		return Public{}, ErrValidation
+		return Input{}, ErrValidation
 	}
 	for _, r := range input.Name {
 		if unicode.IsControl(r) {
-			return Public{}, ErrValidation
+			return Input{}, ErrValidation
 		}
 	}
 	for _, r := range input.APIKey {
 		if r < 33 || r > 126 {
-			return Public{}, ErrValidation
+			return Input{}, ErrValidation
 		}
 	}
 	endpoint, err := url.Parse(input.URL)
 	if err != nil || endpoint == nil || endpoint.Hostname() == "" || endpoint.User != nil || endpoint.RawQuery != "" || endpoint.ForceQuery || endpoint.Fragment != "" || endpoint.Opaque != "" || (endpoint.Scheme != "http" && endpoint.Scheme != "https") || strings.HasSuffix(endpoint.Host, ":") {
-		return Public{}, ErrValidation
+		return Input{}, ErrValidation
 	}
 	if endpoint.Port() != "" {
 		port, err := strconv.Atoi(endpoint.Port())
 		if err != nil || port < 1 || port > 65535 {
-			return Public{}, ErrValidation
+			return Input{}, ErrValidation
 		}
 	}
 	if input.Kind == "1337x" && (endpoint.Path != "" && endpoint.Path != "/" || endpoint.RawPath != "" || input.APIKey != "") {
+		return Input{}, ErrValidation
+	}
+	return input, nil
+}
+func (s *Service) Create(ctx context.Context, input Input) (Public, error) {
+	if input.ClearAPIKey || input.Revision != 0 {
 		return Public{}, ErrValidation
+	}
+	input, err := validateInput(input)
+	if err != nil {
+		return Public{}, err
+	}
+	created, err := s.repo.CreateSource(ctx, input.Name, input.URL, input.APIKey, input.Kind)
+	return created.Public, err
+}
+func (s *Service) Activate(ctx context.Context, id int64, revision int) (Public, error) {
+	if id < 1 || revision < 1 {
+		return Public{}, ErrValidation
+	}
+	config, err := s.repo.ActivateSource(ctx, id, revision)
+	return config.Public, err
+}
+func (s *Service) Save(ctx context.Context, input Input) (Public, error) {
+	input, err := validateInput(input)
+	if err != nil {
+		return Public{}, err
 	}
 	current, err := s.repo.GetSource(ctx)
 	if err != nil {

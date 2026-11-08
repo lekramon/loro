@@ -7,7 +7,8 @@ import {join} from 'node:path';
 test('direct source selection clears old credentials and explains missing runtime in both locales', async ({ page }) => {
  await page.route('**/api/v1/setup', route => route.fulfill({ json: { completed: true, supportedResolutions: ['1080p'], languages: [] } }));
  await page.route('**/api/v1/settings', route => route.fulfill({ json: { revision: 1, updatedAt: '2026-11-06T00:00:00Z', directories: { downloadDirectory: '/downloads', movieDirectory: '/movies' }, profile: { acceptedResolutions: ['1080p'], preferredResolution: '1080p', acceptedFormats: ['remux'], acceptedContainers: ['mkv'], audioPreferences: ['original'] } } }));
- let saved = { configured: true, kind: 'torznab', revision: 1, name: 'Previous source', url: 'http://localhost:9696/api', hasApiKey: true, capabilities: null, checkedAt: null };
+ let saved = { id: 1, active: true, configured: true, kind: 'torznab' as 'torznab' | '1337x', revision: 1, name: 'Previous source', url: 'http://localhost:9696/api', hasApiKey: true, capabilities: null, checkedAt: null };
+ await page.route('**/api/v1/sources', route => route.fulfill({ json: { activeSourceId: 1, items: [saved] } }));
  await page.route('**/api/v1/source', async route => {
   if (route.request().method() === 'PUT') {
    const body = route.request().postDataJSON();

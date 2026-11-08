@@ -1,11 +1,11 @@
 # Sources and manual release search
 
 Label: ready-for-agent
-State: done
+State: in-progress
 
 ## Sequence
 
-Ticket 01 configures one Torznab-compatible source and discovers capabilities. Ticket 02 implements manual movie release search and candidate/profile explanations. No dependency on Prowlarr/Jackett, tracker scraping, torrent retrieval, qBittorrent submission or automatic acquisition in ticket 01.
+Ticket 01 configures one Torznab-compatible source and discovers capabilities. Ticket 02 implements manual movie release search and candidate/profile explanations. Ticket 05 preserves that active-source contract while allowing multiple saved source configurations. No runtime dependency on Prowlarr/Jackett is introduced; Prowlarr can remain only the user's source of configuration values.
 
 ## Ticket 01 contract
 
@@ -44,6 +44,14 @@ This supersedes REL-002's shared deadline policy. A longer deadline does not gua
 - NAT-004: Persist details references privately as a typed `louro-1337x:` reference. Fetch a same-origin `/torrent/<numeric ID>/...` detail page only during explicit identity preparation; require a single unique magnet and apply existing v1 magnet validation before marking ready. Persist a verified resolved magnet in the existing private acquisition payload for restart/submission; never expose it publicly. Never follow advertised torrent mirrors or submit during search/preparation. Extend only source test and identity-preparation route budgets to 70 seconds/write deadline 75 seconds when needed. A failed browser/details lookup becomes a visible review code; retry remains explicit.
 - NAT-005: Settings explains source kind, origin URL and local browser runtime requirements in en-US/pt-BR. Retain Torznab configuration and shared navigation/preferences. Direct source tests prove current page retrieval/parser compatibility, not future availability or correct movie identity.
 - NAT-006: Validate through disposable SQLite/directories and fixture HTTP pages; cover migration failure/preservation/newer-schema refusal, malformed HTML, empty/paged/mixed results, redirects outside origin, duplicate magnets, timeouts/cancellation with no orphan processes, and selection-to-identity preparation. Verify Windows and non-root Linux browser runtime. Live challenge clearance is environment-dependent evidence, never a universal guarantee.
+
+## Multiple saved sources amendment
+
+- SRC-008: Additive migration 12 rebuilds `source_configuration` as a multi-row table with exactly zero or one active row. Preserve the existing row, credential, kind, capabilities, checked time and revision as the active source. Existing unconfigured installations remain empty. Older binaries reject schema 12; rollback restores a matching stopped-service backup.
+- SRC-009: GET `/api/v1/sources` returns `activeSourceId` and every saved source in stable name/id order without credentials. POST `/api/v1/sources` creates an inactive source using the existing validation and write-only-key rules; duplicate normalized endpoints return 409 `source-exists`. A failed or repeated create cannot create duplicate endpoint rows.
+- SRC-010: PUT `/api/v1/sources/{id}/active` requires that row's current revision and atomically activates it. Every create, edit or activation receives a database-wide monotonically increasing source revision, so switching between rows invalidates stale observations even when their original per-row revisions matched. Missing rows return 404; stale revisions return 409. Existing GET/PUT `/api/v1/source`, test and release routes continue to operate on the active row.
+- SRC-011: Settings presents each saved indexer as its own tab, clearly identifies the active indexer, can add another Torznab or direct source, and requires explicit activation before editing/testing/searching it. The tab is the indexer; source type only selects its connection adapter. Typed keys remain write-only and are cleared after every attempt. Existing setup, localization, diagnostics and active-source controls remain available.
+- SRC-012: Verify migration preservation/failure/newer-schema refusal, duplicate prevention, global revision monotonicity, stale activation, active-source compatibility, credential non-disclosure, restart persistence and localized browser flows using disposable databases and simulated providers.
 
 ## References
 

@@ -192,6 +192,10 @@ func (h *Handler) api(w http.ResponseWriter, r *http.Request) {
 		h.sourceAPI(w, r)
 		return
 	}
+	if r.URL.Path == "/api/v1/sources" || strings.HasPrefix(r.URL.Path, "/api/v1/sources/") {
+		h.sourcesAPI(w, r)
+		return
+	}
 	if r.URL.Path == "/api/v1/metadata/credential" {
 		h.metadataCredential(w, r)
 		return

@@ -87,6 +87,36 @@ func (f *sourceFixture) save(t *testing.T, revision int, key string) sources.Pub
 	}
 	return decodeResponse[sources.Public](t, response, 200)
 }
+func TestMultipleSourcesListCreateAndActivate(t *testing.T) {
+	f := newSourceFixture(t)
+	active := f.save(t, 0, sourceKey)
+	created := decodeResponse[sources.Public](t, f.request(t, "POST", "/api/v1/sources", fmt.Sprintf(`{"name":"Second source","url":%q,"apiKey":%q}`, f.server.URL+"/second/api", sourceKey)), 201)
+	if created.ID == 0 || created.Active || !created.HasAPIKey || created.Revision <= active.Revision {
+		t.Fatal(created)
+	}
+	listResponse := f.request(t, "GET", "/api/v1/sources", "")
+	if strings.Contains(listResponse.Body.String(), sourceKey) {
+		t.Fatal("credential exposed in source list")
+	}
+	list := decodeResponse[sources.List](t, listResponse, 200)
+	if list.ActiveSourceID == nil || *list.ActiveSourceID != active.ID || len(list.Items) != 2 {
+		t.Fatal(list)
+	}
+	if response := f.request(t, "POST", "/api/v1/sources", fmt.Sprintf(`{"name":"Duplicate","url":%q,"apiKey":%q}`, created.URL, sourceKey)); response.Code != 409 || !strings.Contains(response.Body.String(), "source-exists") {
+		t.Fatal(response.Code, response.Body.String())
+	}
+	activated := decodeResponse[sources.Public](t, f.request(t, "PUT", fmt.Sprintf("/api/v1/sources/%d/active", created.ID), fmt.Sprintf(`{"revision":%d}`, created.Revision)), 200)
+	if !activated.Active || activated.Revision <= created.Revision {
+		t.Fatal(activated)
+	}
+	current := decodeResponse[sources.Public](t, f.request(t, "GET", "/api/v1/source", ""), 200)
+	if current.ID != created.ID || current.URL != created.URL || !current.Active {
+		t.Fatal(current)
+	}
+	if response := f.request(t, "PUT", fmt.Sprintf("/api/v1/sources/%d/active", active.ID), fmt.Sprintf(`{"revision":%d}`, active.Revision+1)); response.Code != 409 || !strings.Contains(response.Body.String(), "source-changed") {
+		t.Fatal(response.Code, response.Body.String())
+	}
+}
 func TestSourceSaveCapabilitiesRotationAndRestart(t *testing.T) {
 	f := newSourceFixture(t)
 	initial := decodeResponse[sources.Public](t, f.request(t, "GET", "/api/v1/source", ""), 200)
