@@ -1,7 +1,7 @@
 # Expandable settings and library navigation
 
 Label: ready-for-agent
-State: in-progress
+State: done
 Blocked by: specs/003-search/issues/04-native-1337x.md
 
 Implement NAV-001–NAV-005 in the [feature specification](../spec.md).
@@ -30,6 +30,7 @@ Local checks so far:
 - `python scripts/verify_specs.py`: PASS.
 - `git diff --check`: PASS.
 - Focused browser coverage was added for Settings child routes, inert planned sections, Indexers source tabs and the planned Series view; final browser/Linux/Windows evidence remains pending CI.
+- Final GitHub Actions run `42500358949` for commit `95064f9` passed Verify (Ubuntu), Verify (Windows), Browser journeys and Linux container acceptance.
 
 ## Comments
 

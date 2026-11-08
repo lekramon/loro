@@ -1,7 +1,7 @@
 # Unified settings, communications, media libraries and subtitles
 
 Label: ready-for-agent
-State: in-progress
+State: done
 
 ## Scope and authority
 

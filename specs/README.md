@@ -28,4 +28,4 @@ Ticket 03 of service configuration adds a unified library/settings header, libra
 - [Lôro product identity and compatibility](012-louro-name/spec.md): product branding, current executable/image and preferred LOURO environment variables preserve existing data identities.
 
 
-- [Platform expansion](013-platform-expansion/spec.md): current-ticket communications diagnostics first; then expandable settings/library navigation, acquisition policies, import/recovery gate, series/anime, list adapters, subtitles and opt-in automation. [Research](013-platform-expansion/research.md) and [verification](013-platform-expansion/verification.md) separate reference behavior from observed implementation evidence.
+- [Platform expansion](013-platform-expansion/spec.md): communications diagnostics and expandable settings/library navigation implemented and verified; acquisition policies, import/recovery gate, series/anime catalog, list adapters, subtitles and opt-in automation remain sequenced. [Research](013-platform-expansion/research.md) and [verification](013-platform-expansion/verification.md) separate reference behavior from observed implementation evidence.
