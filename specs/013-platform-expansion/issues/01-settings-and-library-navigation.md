@@ -34,6 +34,8 @@ Local checks so far:
 
 ## Comments
 
+On 2026-11-08 the user clarified that the remaining Settings categories should be presented as separate tabs, in the Radarr style. The Indexers tab remains a single tab containing the saved-indexer list.
+
 Prepared on 2026-11-06 under the user's phased expansion request. No additional product answers are required; needs-triage means wire/migration design remains to be made concrete before claiming.
 
 Claimed by Codex on 2026-11-08 after completing the multi-indexer source tabs. No new backend endpoint or migration is required for this ticket.

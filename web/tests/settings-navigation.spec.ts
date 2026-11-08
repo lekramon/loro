@@ -13,6 +13,7 @@ test('settings tree routes existing controls and keeps planned sections inert', 
   await expect(page.getByRole('heading', { name: 'Quality', exact: true })).toBeVisible();
   await expect(page.getByText('This section is planned and does not change local data yet.', { exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Indexers', exact: true })).toHaveAttribute('href', '/settings/indexers');
+  await expect(page.getByRole('link', { name: 'Quality', exact: true })).toBeVisible();
   expect(external).toEqual([]);
 
   await page.goto('/settings/indexers');
