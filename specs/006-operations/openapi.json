@@ -1,0 +1,8 @@
+{
+  "openapi":"3.1.1",
+  "info":{"title":"Lôro operations read API","version":"0.1.0"},
+  "servers":[{"url":"http://localhost:8080"}],
+  "paths":{
+    "/api/v1/system/operations":{"get":{"operationId":"getOperationsStatus","responses":{"200":{"description":"Sanitized maintenance status"},"403":{"description":"Forbidden"},"503":{"description":"Readiness unavailable"}}}}
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "openapi": "3.1.1",
+  "info": {"title": "Lôro verified import API", "version": "0.1.0"},
+  "servers": [{"url": "http://localhost:8080"}],
+  "paths": {
+    "/api/v1/imports": {
+      "get": {"operationId": "listImports", "responses": {"200": {"description": "Import history"}}},
+      "post": {"operationId": "createImport", "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ImportRequest"}}}}, "responses": {"202": {"description": "Import accepted"}, "400": {"description": "Invalid request"}, "403": {"description": "Forbidden"}, "413": {"description": "Request too large"}, "415": {"description": "Unsupported media type"}, "422": {"description": "Validation failed"}, "503": {"description": "Storage unavailable"}}}
+    },
+    "/api/v1/imports/preview": {
+      "post": {"operationId": "previewImport", "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ImportPreviewRequest"}}}}, "responses": {"200": {"description": "Bounded import candidates"}, "400": {"description": "Invalid request"}, "403": {"description": "Forbidden"}, "413": {"description": "Request too large"}, "415": {"description": "Unsupported media type"}, "422": {"description": "Validation failed"}, "503": {"description": "Storage unavailable"}}}
+    }
+  },
+  "components": {
+    "schemas": {
+      "ImportPreviewRequest": {"type": "object", "additionalProperties": false, "required": ["downloadId", "revision"], "properties": {"downloadId": {"type": "string", "pattern": "^[a-f0-9]{32}$"}, "revision": {"type": "integer", "minimum": 1}}},
+      "ImportRequest": {"type": "object", "additionalProperties": false, "required": ["downloadId", "fileId", "movieId", "revision", "conflictPolicy"], "properties": {"downloadId": {"type": "string", "pattern": "^[a-f0-9]{32}$"}, "fileId": {"type": "string", "maxLength": 256}, "movieId": {"type": "integer", "minimum": 1}, "revision": {"type": "integer", "minimum": 1}, "conflictPolicy": {"type": "string", "enum": ["skip", "keep-both", "replace"]}}}
+    }
+  }
+}

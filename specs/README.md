@@ -9,8 +9,8 @@ Specifications and tickets are the local tracker. Foundation, movie metadata, fi
 | 002-catalog | TMDB movie registration, cached metadata, existing-file scan and manual association | 001 | Metadata/registration, local artwork/offline APIs, inventory and ffprobe association/review implemented; real Movies presentation remains mocked |
 | 003-search | Native source capabilities, manual search, normalized candidates and profile explanations | 002 | Torznab and direct 1337x search implemented; multiple saved source configurations are implemented and verified |
 | 004-acquisition | qBittorrent submission, persistent workers, tracking and uncertain-send reconciliation | 003 | Connection checks, durable selection/override confirmation, v1 identity preparation and restart review implemented; submission jobs/reconciliation, scheduled tracking and provisional file handoff implemented; local validation/import remains the next feature contract |
-| 005-import | ffprobe validation, hardlink/copy, review, replacement and restart recovery | 004 | Deferred specification |
-| 006-operations | Stopped-service backup/restore, installation and upgrade verification | 005 | Deferred specification |
+| 005-import | ffprobe validation, hardlink/copy, review, replacement and restart recovery | 004 | Contract published; implementation ticket open |
+| 006-operations | Stopped-service backup/restore, installation and upgrade verification | 005 | Contract published; implementation ticket open |
 | 007-interface-preferences | Light/dark themes and pt-BR/en-US interface copy | 001 tickets 01–03 | Implemented, including shared rounded PT/EN control; display preferences remain separate from media profiles |
 
 The first usable milestone requires 001–006. Subsequent milestones add automatic movie acquisition/upgrades, series, and broader integrations. Write each feature's concrete contracts and tickets before implementation; the table is not a substitute for those specifications. Implement the foundation first, then specify each next feature using the resulting code and contracts.
@@ -28,4 +28,4 @@ Ticket 03 of service configuration adds a unified library/settings header, libra
 - [Lôro product identity and compatibility](012-louro-name/spec.md): product branding, current executable/image and preferred LOURO environment variables preserve existing data identities.
 
 
-- [Platform expansion](013-platform-expansion/spec.md): communications diagnostics, expandable settings/library navigation and named acquisition policies implemented and verified; import/recovery gate, series/anime catalog, list adapters, subtitles and opt-in automation remain sequenced. [Research](013-platform-expansion/research.md) and [verification](013-platform-expansion/verification.md) separate reference behavior from observed implementation evidence.
+- [Platform expansion](013-platform-expansion/spec.md): communications diagnostics, settings tabs/library navigation and named acquisition policies implemented and verified; the import/recovery gate is specified, while verified imports, operations, series/anime catalog, list adapters, subtitles and opt-in automation remain sequenced. [Research](013-platform-expansion/research.md) and [verification](013-platform-expansion/verification.md) separate reference behavior from observed implementation evidence.

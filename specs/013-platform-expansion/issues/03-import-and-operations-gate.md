@@ -1,7 +1,7 @@
 # Verified imports and operational recovery prerequisite
 
-Label: needs-triage
-State: open
+Label: ready-for-agent
+State: done
 Blocked by: specs/013-platform-expansion/issues/02-acquisition-policy.md
 
 Implement Phase 3 in the [feature specification](../spec.md).
@@ -14,7 +14,13 @@ Use public API tests with disposable SQLite/directories and integration simulato
 
 ## Verification
 
-Not started. Intended behavior is specified above; no completion evidence is claimed.
+The gate is complete as a specification milestone. Published executable contracts and implementation tickets:
+
+- `specs/005-import/spec.md`, `specs/005-import/openapi.json` and `specs/005-import/issues/01-verified-import.md` define bounded preview, ffprobe validation, hardlink/copy publication, explicit conflict handling and restart journals.
+- `specs/006-operations/spec.md`, `specs/006-operations/openapi.json` and `specs/006-operations/issues/01-backup-restore.md` define stopped-service backup/restore, archive safety, manifests, empty-destination restore and sanitized status.
+- Existing ADR-0002 recovery rules remain authoritative for leases, import journals, replacement and startup reconciliation.
+
+No import or backup implementation is claimed by this gate; the new feature tickets remain open for implementation.
 
 ## Comments
 
