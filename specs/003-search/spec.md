@@ -1,7 +1,7 @@
 # Sources and manual release search
 
 Label: ready-for-agent
-State: in-progress
+State: done
 
 ## Sequence
 

@@ -1,7 +1,7 @@
 # Multiple saved release sources
 
 Label: ready-for-agent
-State: in-progress
+State: done
 Blocked by: specs/003-search/issues/04-native-1337x.md
 
 Implement SRC-008 through SRC-012 from the [specification](../spec.md) and [API contract](../openapi.json).
@@ -24,6 +24,7 @@ Local implementation checks completed:
 - `git diff --check`: PASS.
 - Focused Docker Go tests for `internal/storage` migration preservation/failure and `internal/httpapi` list/create/activate flows: PASS.
 - Browser journey could not run locally because native `go` is unavailable and the Docker Engine became unavailable after the focused checks; CI is required for the final browser and Linux non-root evidence.
+- Final GitHub Actions run `42497828305` for commit `2bdd405` passed Verify (Ubuntu), Verify (Windows), Browser journeys and Linux container acceptance.
 
 ## Comments
 
