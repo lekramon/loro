@@ -11,7 +11,7 @@ Implement SRC-008 through SRC-012 from the [specification](../spec.md) and [API 
 - Preserve the currently configured Torrentio source and its private API key while migrating from one active row to multiple saved rows.
 - Store every Prowlarr indexer as a separate Torznab source without making Prowlarr a runtime dependency.
 - Keep one explicit active source for existing search, observation, acquisition and preparation behavior; activation must invalidate stale work through a globally increasing revision.
-- List and create saved sources through the public API and Settings tabs, without exposing credentials or creating duplicate endpoint rows on retries.
+- List and create saved sources through the public API and the single Indexers Settings section, without exposing credentials or creating duplicate endpoint rows on retries.
 - Keep inactive-source editing/testing out of scope: activate a source explicitly before using the existing edit/test/search controls.
 
 ## Verification
@@ -29,3 +29,5 @@ Local implementation checks completed:
 ## Comments
 
 Claimed by Codex on 2026-11-07 after the user requested that all Prowlarr sources be created in Lôro before continuing to platform-expansion ticket 01. Branch `feature/003-05-multiple-sources`.
+
+On 2026-11-08 the user clarified the presentation: saved indexers remain separate backend records, but Settings has one Indexers section with a list; indexers are not represented as individual tabs.

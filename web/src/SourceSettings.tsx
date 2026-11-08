@@ -127,15 +127,15 @@ export function SourceSettings() {
     <h3 id="source-heading" aria-label={t('Release source')}>{t('Release sources')}</h3>
     <p className="hint">{t('Save multiple sources and explicitly choose which one Lôro uses for search.')}</p>
     {error && <p role="alert">{error}</p>}{message && <p role="status">{message}</p>}
-    <nav className="source-tabs" aria-label={t('Saved source')} role="tablist">
-      {sources.map(source => <button key={source.id} type="button" role="tab" aria-selected={selectedId === source.id} className={selectedId === source.id ? 'active' : ''} disabled={!!busy} onClick={() => select(source.id!)}>{source.active && <span aria-hidden="true">● </span>}{source.name}</button>)}
-      <button type="button" role="tab" aria-selected={creating} className={creating ? 'active' : ''} disabled={!!busy} onClick={beginCreate}>{t('Add source')}</button>
-    </nav>
+    <div className="source-list" aria-label={t('Saved source')}>
+      {sources.map(source => <button key={source.id} type="button" aria-pressed={selectedId === source.id} className={selectedId === source.id ? 'active' : ''} disabled={!!busy} onClick={() => select(source.id!)}><span>{source.active && <span aria-hidden="true">● </span>}{source.name}</span><small>{source.kind === '1337x' ? '1337x' : 'Torznab'} · {source.active ? t('Active source') : t('Inactive source')}</small></button>)}
+      <button type="button" aria-pressed={creating} className={creating ? 'active' : ''} disabled={!!busy} onClick={beginCreate}>{t('Add source')}</button>
+    </div>
     {saved && !creating && <p className="hint">{t(saved.active ? 'Active source' : 'Inactive source')} · {t(saved.hasApiKey ? 'API key saved' : 'No API key saved')}</p>}
     <p className="hint">{t(kind === '1337x' ? 'Use the site origin only. Lôro accesses this source directly with its local browser runtime.' : 'Enter a Torznab endpoint without query parameters. Keep its API key in the separate field.')}</p>
     <form onSubmit={event => { event.preventDefault(); void save(); }}>
       <fieldset disabled={!!busy || conflict || (!creating && !active)}>
-        <label htmlFor="source-kind">{t('Source type')}</label><select id="source-kind" value={kind} onChange={event => { setKind(event.target.value as 'torznab' | '1337x'); setKey(''); setClear(!creating); }}><option value="torznab">Torznab</option><option value="1337x">{t('1337x (direct)')}</option></select><p className="hint">{t('The tab is the indexer. Source type only selects its connection adapter.')}</p>
+        <label htmlFor="source-kind">{t('Source type')}</label><select id="source-kind" value={kind} onChange={event => { setKind(event.target.value as 'torznab' | '1337x'); setKey(''); setClear(!creating); }}><option value="torznab">Torznab</option><option value="1337x">{t('1337x (direct)')}</option></select><p className="hint">{t('Each saved item is an indexer. Source type only selects its connection adapter.')}</p>
         <label htmlFor="source-name">{t('Source name')}</label><input id="source-name" value={name} onChange={event => setName(event.target.value)} maxLength={100} required autoComplete="off" />
         <label htmlFor="source-url">{t('Endpoint URL')}</label><input id="source-url" type="url" value={url} onChange={event => setURL(event.target.value)} maxLength={2048} required autoComplete="off" spellCheck={false} />
         <label htmlFor="source-key">{t('Source API key')}</label><input id="source-key" type="password" value={key} disabled={clear || kind === '1337x'} onChange={event => setKey(event.target.value)} maxLength={1024} autoComplete="new-password" spellCheck={false} />

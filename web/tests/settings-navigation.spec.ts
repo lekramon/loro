@@ -17,7 +17,7 @@ test('settings tree routes existing controls and keeps planned sections inert', 
 
   await page.goto('/settings/indexers');
   await expect(page.getByRole('heading', { name: 'Release source', exact: true })).toBeVisible();
-  await expect(page.getByRole('tab', { name: 'Add source', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Add source', exact: true })).toBeVisible();
 
   await page.goto('/preview#/series');
   await expect(page.getByRole('heading', { name: 'Series', exact: true })).toBeVisible();
