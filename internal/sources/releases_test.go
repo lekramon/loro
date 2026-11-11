@@ -1,11 +1,38 @@
 package sources
 
 import (
+	"context"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
 	"github.com/lekramon/piratarr/internal/settings"
 )
+
+type episodeSearchRepository struct {
+	Repository
+	config Config
+}
+
+func (r episodeSearchRepository) GetSource(context.Context) (Config, error) { return r.config, nil }
+
+func TestEpisodeSearchUsesGenericTextSearchAndPreservesIdentity(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Query().Get("t") != "search" || r.URL.Query().Get("q") != "The Pilot" || r.URL.Query().Get("season") != "1" || r.URL.Query().Get("ep") != "2" {
+			t.Fatalf("unexpected query: %s", r.URL.RawQuery)
+		}
+		_, _ = w.Write([]byte(`<rss xmlns:t="http://torznab.com/schemas/2015/feed"><channel><item><title>The Pilot S01E02 1080p</title><guid>episode-result</guid></item></channel></rss>`))
+	}))
+	defer server.Close()
+	service := New(episodeSearchRepository{config: Config{Public: Public{Configured: true, Revision: 4, Name: "Test", URL: server.URL, Capabilities: &Capabilities{Search: SearchCapability{Available: true, SupportedParams: []string{"q"}}}}}})
+	result, err := service.SearchEpisode(context.Background(), EpisodeSearch{EpisodeID: 9, Query: " The Pilot ", SeasonNumber: ptr(1), EpisodeNumber: ptr(2)})
+	if err != nil || result.EpisodeID != 9 || result.Query != "The Pilot" || len(result.Items) != 1 {
+		t.Fatal(result, err)
+	}
+}
+
+func ptr(value int) *int { return &value }
 
 func TestReleaseFeedRejectsUnsafeOrInconsistentDocuments(t *testing.T) {
 	for _, data := range []string{
