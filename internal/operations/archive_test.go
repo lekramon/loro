@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/gofrs/flock"
 )
 
 func TestBackupCheckRestorePreservesPrivateFilesAndExcludesPayloads(t *testing.T) {
@@ -56,4 +58,11 @@ func TestRestoreRefusesNonEmptyDestination(t *testing.T) {
 	destination := filepath.Join(t.TempDir(), "existing"); if err := os.Mkdir(destination, 0700); err != nil { t.Fatal(err) }
 	if err := os.WriteFile(filepath.Join(destination, "keep"), []byte("keep"), 0600); err != nil { t.Fatal(err) }
 	if err := Restore(archive, destination); err == nil { t.Fatal("restore overwrote non-empty destination") }
+}
+
+func TestRestoreRefusesLockedDestination(t *testing.T) {
+	root := t.TempDir(); if err := os.WriteFile(filepath.Join(root, "piratarr.db"), []byte("database"), 0600); err != nil { t.Fatal(err) }
+	archive := filepath.Join(t.TempDir(), "backup.zip"); if err := Backup(root, archive); err != nil { t.Fatal(err) }
+	destination := t.TempDir(); lock := flock.New(filepath.Join(destination, "piratarr.lock")); acquired, err := lock.TryLock(); if err != nil || !acquired { t.Fatal(err) }; defer lock.Unlock()
+	if err = Restore(archive, destination); err == nil { t.Fatal("restore ignored an active data-directory lock") }
 }
