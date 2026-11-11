@@ -34,6 +34,7 @@ const (
 type Observation struct {
 	ID               string
 	MovieID          int64
+	EpisodeID        *int64
 	MovieTitle       string
 	OriginalLanguage string
 	SourceName       string
@@ -58,6 +59,7 @@ type Acquisition struct {
 	Submission        *Submission       `json:"submission,omitempty"`
 	ID                string            `json:"id"`
 	MovieID           int64             `json:"movieId"`
+	EpisodeID         *int64            `json:"episodeId,omitempty"`
 	MovieTitle        string            `json:"movieTitle"`
 	OriginalLanguage  string            `json:"originalLanguage"`
 	SourceName        string            `json:"sourceName"`

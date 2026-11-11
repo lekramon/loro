@@ -49,7 +49,15 @@ func (s *Store) SaveObservations(ctx context.Context, values []acquisitions.Obse
 		if err != nil {
 			return acquisitions.ErrUnavailable
 		}
-		_, err = tx.ExecContext(ctx, `INSERT INTO release_observations(id,movie_id,source_revision,profile_revision,snapshot,source_url,reference,hash_claim,reference_issue,expires_at) VALUES(?,?,?,?,?,?,?,?,?,?)`, value.ID, value.MovieID, value.SourceRevision, value.ProfileRevision, string(payload), value.SourceURL, value.Reference, value.HashClaim, value.ReferenceIssue, instant(value.ExpiresAt))
+		if !s.episodeAcquisitionSchema {
+			_, err = tx.ExecContext(ctx, `INSERT INTO release_observations(id,movie_id,source_revision,profile_revision,snapshot,source_url,reference,hash_claim,reference_issue,expires_at) VALUES(?,?,?,?,?,?,?,?,?,?)`, value.ID, value.MovieID, value.SourceRevision, value.ProfileRevision, string(payload), value.SourceURL, value.Reference, value.HashClaim, value.ReferenceIssue, instant(value.ExpiresAt))
+		} else {
+			var movieID any = value.MovieID
+			if value.MovieID == 0 {
+				movieID = nil
+			}
+			_, err = tx.ExecContext(ctx, `INSERT INTO release_observations(id,movie_id,episode_id,source_revision,profile_revision,snapshot,source_url,reference,hash_claim,reference_issue,expires_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)`, value.ID, movieID, value.EpisodeID, value.SourceRevision, value.ProfileRevision, string(payload), value.SourceURL, value.Reference, value.HashClaim, value.ReferenceIssue, instant(value.ExpiresAt))
+		}
 		if err != nil {
 			return acquisitions.ErrUnavailable
 		}
@@ -172,16 +180,33 @@ func (s *Store) SelectAcquisition(ctx context.Context, input acquisitions.Select
 		return acquisitions.Acquisition{}, false, acquisitions.ErrConfirmation
 	}
 	created := false
-	err = tx.QueryRowContext(ctx, "SELECT id FROM acquisitions WHERE movie_id=? AND candidate_id=? AND state!='cancelled'", observation.MovieID, observation.Candidate.ID).Scan(&previousID)
+	var previousQuery string
+	var previousArgs []any
+	if observation.EpisodeID != nil {
+		previousQuery = "SELECT id FROM acquisitions WHERE episode_id=? AND candidate_id=? AND state!='cancelled'"
+		previousArgs = []any{*observation.EpisodeID, observation.Candidate.ID}
+	} else {
+		previousQuery = "SELECT id FROM acquisitions WHERE movie_id=? AND candidate_id=? AND state!='cancelled'"
+		previousArgs = []any{observation.MovieID, observation.Candidate.ID}
+	}
+	err = tx.QueryRowContext(ctx, previousQuery, previousArgs...).Scan(&previousID)
 	if err == sql.ErrNoRows {
 		previousID = id
 		created = true
-		value := acquisitions.Acquisition{ID: id, MovieID: observation.MovieID, MovieTitle: observation.MovieTitle, OriginalLanguage: observation.OriginalLanguage, SourceName: observation.SourceName, SourceRevision: observation.SourceRevision, ProfileRevision: observation.ProfileRevision, Candidate: observation.Candidate, Profile: observation.Profile, OverrideConfirmed: observation.Candidate.Status != "match", State: "selected", Revision: 1, CreatedAt: now, UpdatedAt: now}
+		value := acquisitions.Acquisition{ID: id, MovieID: observation.MovieID, EpisodeID: observation.EpisodeID, MovieTitle: observation.MovieTitle, OriginalLanguage: observation.OriginalLanguage, SourceName: observation.SourceName, SourceRevision: observation.SourceRevision, ProfileRevision: observation.ProfileRevision, Candidate: observation.Candidate, Profile: observation.Profile, OverrideConfirmed: observation.Candidate.Status != "match", State: "selected", Revision: 1, CreatedAt: now, UpdatedAt: now}
 		data, marshalErr := json.Marshal(value)
 		if marshalErr != nil {
 			return acquisitions.Acquisition{}, false, acquisitions.ErrUnavailable
 		}
-		_, err = tx.ExecContext(ctx, `INSERT INTO acquisitions(id,observation_id,movie_id,candidate_id,snapshot,state,revision,created_at,updated_at) VALUES(?,?,?,?,?,'selected',1,?,?)`, id, input.ObservationID, observation.MovieID, observation.Candidate.ID, string(data), now, now)
+		if !s.episodeAcquisitionSchema {
+			_, err = tx.ExecContext(ctx, `INSERT INTO acquisitions(id,observation_id,movie_id,candidate_id,snapshot,state,revision,created_at,updated_at) VALUES(?,?,?,?,?,'selected',1,?,?)`, id, input.ObservationID, observation.MovieID, observation.Candidate.ID, string(data), now, now)
+		} else {
+			var movieID any = observation.MovieID
+			if observation.MovieID == 0 {
+				movieID = nil
+			}
+			_, err = tx.ExecContext(ctx, `INSERT INTO acquisitions(id,observation_id,movie_id,episode_id,candidate_id,snapshot,state,revision,created_at,updated_at) VALUES(?,?,?,?,?,?,'selected',1,?,?)`, id, input.ObservationID, movieID, observation.EpisodeID, observation.Candidate.ID, string(data), now, now)
+		}
 	}
 	if err != nil {
 		return acquisitions.Acquisition{}, false, acquisitions.ErrUnavailable
