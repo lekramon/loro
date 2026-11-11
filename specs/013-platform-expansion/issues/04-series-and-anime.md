@@ -14,7 +14,11 @@ Use public API tests with disposable SQLite/directories and integration simulato
 
 ## Verification
 
-Not started. Intended behavior is specified above; no completion evidence is claimed.
+Manual episode search slice implemented and verified locally:
+
+- `go test ./internal/sources ./internal/httpapi` — passed on Windows with workspace-local `TMP`/`TEMP` directories.
+- Source search test verifies generic text search, season/episode parameters and episode identity preservation.
+- Full episode acquisition, durable observation selection and download submission remain outstanding for this ticket.
 
 ## Migration design
 

@@ -54,6 +54,88 @@ type ReleasePage struct {
 	Items           []Candidate `json:"items"`
 }
 
+type EpisodeSearch struct {
+	EpisodeID      int64  `json:"episodeId"`
+	Query          string `json:"query"`
+	SeasonNumber   *int   `json:"seasonNumber,omitempty"`
+	EpisodeNumber  *int   `json:"episodeNumber,omitempty"`
+	AbsoluteNumber *int   `json:"absoluteNumber,omitempty"`
+}
+
+type EpisodeSearchResult struct {
+	EpisodeID int64       `json:"episodeId"`
+	Query     string      `json:"query"`
+	Items     []Candidate `json:"items"`
+}
+
+func (s *Service) SearchEpisode(ctx context.Context, input EpisodeSearch) (EpisodeSearchResult, error) {
+	select {
+	case s.gate <- struct{}{}:
+		defer func() { <-s.gate }()
+	default:
+		return EpisodeSearchResult{}, ErrBusy
+	}
+	input.Query = strings.TrimSpace(input.Query)
+	if input.EpisodeID < 1 || input.Query == "" || len(input.Query) > 200 {
+		return EpisodeSearchResult{}, ErrValidation
+	}
+	if input.SeasonNumber != nil && *input.SeasonNumber < 0 || input.EpisodeNumber != nil && *input.EpisodeNumber < 1 || input.AbsoluteNumber != nil && *input.AbsoluteNumber < 1 {
+		return EpisodeSearchResult{}, ErrValidation
+	}
+	config, err := s.repo.GetSource(ctx)
+	if err != nil {
+		return EpisodeSearchResult{}, err
+	}
+	if !config.Configured {
+		return EpisodeSearchResult{}, ErrUnconfigured
+	}
+	if config.Capabilities == nil {
+		return EpisodeSearchResult{}, ErrCapabilities
+	}
+	if !config.Capabilities.Search.Available || !contains(config.Capabilities.Search.SupportedParams, "q") {
+		return EpisodeSearchResult{}, ErrUnsupported
+	}
+	query := url.Values{"t": {"search"}, "q": {input.Query}, "extended": {"1"}, "limit": {"25"}, "offset": {"0"}}
+	if input.SeasonNumber != nil {
+		query.Set("season", strconv.Itoa(*input.SeasonNumber))
+	}
+	if input.EpisodeNumber != nil {
+		query.Set("ep", strconv.Itoa(*input.EpisodeNumber))
+	}
+	if input.AbsoluteNumber != nil {
+		query.Set("ep_abs", strconv.Itoa(*input.AbsoluteNumber))
+	}
+	var page ReleasePage
+	if config.Kind == "1337x" {
+		return EpisodeSearchResult{}, ErrUnsupported
+	}
+	data, err := s.client.request(ctx, config, query)
+	if err != nil {
+		return EpisodeSearchResult{}, err
+	}
+	page, err = parseReleases(data, config, 25, 0)
+	if err != nil {
+		return EpisodeSearchResult{}, err
+	}
+	current, err := s.repo.GetSource(ctx)
+	if err != nil {
+		return EpisodeSearchResult{}, err
+	}
+	if current.Revision != config.Revision {
+		return EpisodeSearchResult{}, ErrChanged
+	}
+	return EpisodeSearchResult{EpisodeID: input.EpisodeID, Query: input.Query, Items: page.Items}, nil
+}
+
+func contains(values []string, target string) bool {
+	for _, value := range values {
+		if value == target {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *Service) Search(ctx context.Context, movie catalog.Movie, profile settings.Settings, limit, offset, category int) (ReleasePage, error) {
 	select {
 	case s.gate <- struct{}{}:
