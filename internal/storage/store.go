@@ -24,23 +24,24 @@ import (
 var migrations embed.FS
 
 type Store struct {
-	multiSourceSchema  bool
-	nativeSourceSchema bool
-	downloadSchema     bool
-	submissionSchema   bool
-	acquisitionSchema  bool
-	catalogSchema      bool
-	inventorySchema    bool
-	reviewSchema       bool
-	sourceSchema       bool
-	clientSchema       bool
-	policySchema       bool
-	importSchema       bool
-	seriesSchema       bool
-	write              *sql.DB
-	read               *sql.DB
-	lock               *flock.Flock
-	path               string
+	multiSourceSchema        bool
+	nativeSourceSchema       bool
+	downloadSchema           bool
+	submissionSchema         bool
+	acquisitionSchema        bool
+	episodeAcquisitionSchema bool
+	catalogSchema            bool
+	inventorySchema          bool
+	reviewSchema             bool
+	sourceSchema             bool
+	clientSchema             bool
+	policySchema             bool
+	importSchema             bool
+	seriesSchema             bool
+	write                    *sql.DB
+	read                     *sql.DB
+	lock                     *flock.Flock
+	path                     string
 }
 
 func Open(ctx context.Context, directory string) (*Store, error) {
@@ -70,6 +71,9 @@ func open(ctx context.Context, directory string, source fs.FS) (_ *Store, result
 	}
 	if _, err := fs.Stat(source, "migrations/00015_series.sql"); err == nil {
 		s.seriesSchema = true
+	}
+	if _, err := fs.Stat(source, "migrations/00016_episode_acquisitions.sql"); err == nil {
+		s.episodeAcquisitionSchema = true
 	}
 	if _, err := fs.Stat(source, "migrations/00011_native_source.sql"); err == nil {
 		s.nativeSourceSchema = true
