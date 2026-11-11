@@ -63,10 +63,25 @@ func Check(input string) (Manifest, error) {
 }
 
 func Restore(input, destination string) error {
-	if _, err := os.Stat(destination); err == nil {
-		entries, readErr := os.ReadDir(destination)
-		if readErr != nil || len(entries) != 0 { return errors.New("restore destination must be empty") }
-	} else if !os.IsNotExist(err) { return err }
+	createdDestination := false
+	if _, err := os.Stat(destination); os.IsNotExist(err) {
+		if err = os.MkdirAll(destination, 0700); err != nil { return err }
+		createdDestination = true
+	} else if err != nil { return err }
+	lock := flock.New(filepath.Join(destination, "piratarr.lock"))
+	locked, err := lock.TryLock()
+	if err != nil { return fmt.Errorf("acquire restore lock: %w", err) }
+	if !locked { return errors.New("service must be stopped before restore") }
+	completed := false
+	defer func() {
+		_ = lock.Unlock()
+		if createdDestination && !completed { _ = os.RemoveAll(destination) }
+	}()
+	entries, readErr := os.ReadDir(destination)
+	if readErr != nil { return readErr }
+	for _, entry := range entries {
+		if entry.Name() != "piratarr.lock" { return errors.New("restore destination must be empty") }
+	}
 	archive, err := zip.OpenReader(input)
 	if err != nil { return ErrInvalidArchive }
 	defer archive.Close()
@@ -81,19 +96,28 @@ func Restore(input, destination string) error {
 	if err = os.Mkdir(stage, 0700); err != nil { return err }
 	defer os.RemoveAll(stage)
 	if err = extractAndVerify(archive.File, stage, manifest); err != nil { return err }
-	if _, statErr := os.Stat(destination); statErr == nil {
-		// The destination was verified empty above. Move it aside so publication
-		// remains a rename and can be rolled back if the second rename fails.
-		emptyBackup := destination + ".louro-empty"
-		if err = os.Rename(destination, emptyBackup); err != nil { return fmt.Errorf("stage restore destination: %w", err) }
-		if err = os.Rename(stage, destination); err != nil {
-			_ = os.Rename(emptyBackup, destination)
-			return fmt.Errorf("publish restore: %w", err)
-		}
-		_ = os.Remove(emptyBackup)
+	if err = publishRestoreStage(stage, destination); err != nil { return err }
+	completed = true
+	return nil
+}
+
+func publishRestoreStage(stage, destination string) error {
+	var moved []string
+	err := filepath.WalkDir(stage, func(path string, entry os.DirEntry, walkErr error) error {
+		if walkErr != nil { return walkErr }
+		if path == stage || entry.IsDir() { return nil }
+		relative, err := filepath.Rel(stage, path); if err != nil { return err }
+		target := filepath.Join(destination, relative)
+		if _, err = os.Stat(target); err == nil { return errors.New("restore would overwrite an existing file") } else if !os.IsNotExist(err) { return err }
+		if err = os.MkdirAll(filepath.Dir(target), 0700); err != nil { return err }
+		if err = os.Rename(path, target); err != nil { return err }
+		moved = append(moved, target)
 		return nil
+	})
+	if err != nil {
+		for _, path := range moved { _ = os.Remove(path) }
+		return fmt.Errorf("publish restore: %w", err)
 	}
-	if err = os.Rename(stage, destination); err != nil { return fmt.Errorf("publish restore: %w", err) }
 	return nil
 }
 
