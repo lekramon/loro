@@ -36,6 +36,7 @@ type Store struct {
 	clientSchema       bool
 	policySchema       bool
 	importSchema       bool
+	seriesSchema       bool
 	write              *sql.DB
 	read               *sql.DB
 	lock               *flock.Flock
@@ -66,6 +67,9 @@ func open(ctx context.Context, directory string, source fs.FS) (_ *Store, result
 	}
 	if _, err := fs.Stat(source, "migrations/00014_imports.sql"); err == nil {
 		s.importSchema = true
+	}
+	if _, err := fs.Stat(source, "migrations/00015_series.sql"); err == nil {
+		s.seriesSchema = true
 	}
 	if _, err := fs.Stat(source, "migrations/00011_native_source.sql"); err == nil {
 		s.nativeSourceSchema = true
@@ -251,6 +255,9 @@ func (s *Store) Ready(ctx context.Context) error {
 	}
 	if s.importSchema {
 		query += " + (SELECT count(*) FROM import_jobs)"
+	}
+	if s.seriesSchema {
+		query += " + (SELECT count(*) FROM series) + (SELECT count(*) FROM seasons) + (SELECT count(*) FROM episodes)"
 	}
 	if s.clientSchema {
 		query += " + (SELECT count(revision)+count(endpoint)+count(username)+count(password)+count(app_version)+count(api_version)+count(checked_at) FROM download_client_configuration)"
