@@ -22,6 +22,7 @@ import (
 	"github.com/lekramon/piratarr/internal/library"
 	"github.com/lekramon/piratarr/internal/policies"
 	"github.com/lekramon/piratarr/internal/settings"
+	"github.com/lekramon/piratarr/internal/series"
 	"github.com/lekramon/piratarr/internal/sources"
 	"github.com/lekramon/piratarr/internal/submissions"
 )
@@ -34,6 +35,7 @@ type Storage interface {
 	UpdateSettings(context.Context, int, settings.Input) (settings.Settings, error)
 	policies.Repository
 	imports.Repository
+	series.Repository
 	DataDirectory() string
 }
 
@@ -53,6 +55,7 @@ type Handler struct {
 	stopping       atomic.Bool
 	settings       settings.Service
 	importService  *imports.Service
+	seriesRepo     series.Repository
 }
 
 type apiError struct {
@@ -88,6 +91,7 @@ func New(storage Storage, assets fs.FS, listen string, services ...*catalog.Serv
 	if repo, ok := storage.(imports.Repository); ok {
 		handler.importService = &imports.Service{Repo: repo, Prober: library.NewProber("ffprobe"), Now: time.Now}
 	}
+	if repo, ok := storage.(series.Repository); ok { handler.seriesRepo = repo }
 	return handler
 }
 
@@ -156,7 +160,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		r.Body = http.MaxBytesReader(w, r.Body, 65536)
 	}
 	if r.URL.Path == "/api" || strings.HasPrefix(r.URL.Path, "/api/") {
-		if r.URL.Path == "/api/v1/system/communications" || strings.HasPrefix(r.URL.Path, "/api/v1/health/") {
+		if r.URL.Path == "/api/v1/system/communications" || strings.HasPrefix(r.URL.Path, "/api/v1/health/") || strings.HasPrefix(r.URL.Path, "/api/v1/series") || strings.HasPrefix(r.URL.Path, "/api/v1/episodes/") {
 			h.api(w, r)
 		} else {
 			h.recordAPI(w, r)
@@ -176,6 +180,7 @@ func methodNotAllowed(w http.ResponseWriter, allow string) {
 }
 
 func (h *Handler) api(w http.ResponseWriter, r *http.Request) {
+	if h.seriesAPI(w,r) { return }
 	if r.URL.Path == "/api/v1/system/communications" {
 		h.communicationsAPI(w, r)
 		return
