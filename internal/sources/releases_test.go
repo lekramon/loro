@@ -26,9 +26,13 @@ func TestEpisodeSearchUsesGenericTextSearchAndPreservesIdentity(t *testing.T) {
 	}))
 	defer server.Close()
 	service := New(episodeSearchRepository{config: Config{Public: Public{Configured: true, Revision: 4, Name: "Test", URL: server.URL, Capabilities: &Capabilities{Search: SearchCapability{Available: true, SupportedParams: []string{"q"}}}}}})
-	result, err := service.SearchEpisode(context.Background(), EpisodeSearch{EpisodeID: 9, Query: " The Pilot ", SeasonNumber: ptr(1), EpisodeNumber: ptr(2)})
+	profile := settings.Settings{Revision: 7, Profile: settings.Profile{AcceptedResolutions: []string{"1080p"}}}
+	result, err := service.SearchEpisode(context.Background(), EpisodeSearch{EpisodeID: 9, Query: " The Pilot ", SeasonNumber: ptr(1), EpisodeNumber: ptr(2)}, profile)
 	if err != nil || result.EpisodeID != 9 || result.Query != "The Pilot" || len(result.Items) != 1 {
 		t.Fatal(result, err)
+	}
+	if result.SourceRevision != 4 || result.ProfileRevision != 7 || result.Items[0].Status == "" {
+		t.Fatal(result)
 	}
 }
 

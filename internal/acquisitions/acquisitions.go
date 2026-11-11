@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/lekramon/piratarr/internal/catalog"
+	"github.com/lekramon/piratarr/internal/series"
 	"github.com/lekramon/piratarr/internal/settings"
 	"github.com/lekramon/piratarr/internal/sources"
 )
@@ -148,6 +149,21 @@ func (s *Service) Remember(ctx context.Context, page sources.ReleasePage, movie 
 		return sources.ReleasePage{}, err
 	}
 	return page, nil
+}
+
+func (s *Service) RememberEpisode(ctx context.Context, result sources.EpisodeSearchResult, episode series.Episode, profile settings.Settings) (sources.EpisodeSearchResult, error) {
+	now := s.Now().UTC()
+	observations := make([]Observation, 0, len(result.Items))
+	for i := range result.Items {
+		candidate := &result.Items[i]
+		candidate.ObservationID = Identifier()
+		episodeID := episode.ID
+		observations = append(observations, Observation{ID: candidate.ObservationID, EpisodeID: &episodeID, MovieTitle: episode.Title, SourceName: result.SourceName, SourceRevision: result.SourceRevision, ProfileRevision: profile.Revision, Candidate: *candidate, Profile: profile.Profile, SourceURL: result.SourceURL, Reference: candidate.DownloadReference, HashClaim: candidate.HashClaim, ReferenceIssue: candidate.ReferenceIssue, ExpiresAt: now.Add(30 * time.Minute).Format(time.RFC3339Nano)})
+	}
+	if err := s.Repo.SaveObservations(ctx, observations, result.SourceRevision, profile.Revision, now.Format(time.RFC3339Nano)); err != nil {
+		return sources.EpisodeSearchResult{}, err
+	}
+	return result, nil
 }
 func (s *Service) Select(ctx context.Context, input Selection) (Acquisition, bool, error) {
 	if !ValidID(input.ObservationID) || !keyPattern.MatchString(input.IdempotencyKey) {

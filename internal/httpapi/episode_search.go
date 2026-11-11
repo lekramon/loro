@@ -16,7 +16,7 @@ func (h *Handler) episodeSearch(w http.ResponseWriter, r *http.Request) {
 		methodNotAllowed(w, "POST")
 		return
 	}
-	if h.stopping.Load() || h.source == nil || h.seriesRepo == nil {
+	if h.stopping.Load() || h.source == nil || h.seriesRepo == nil || h.acquisitions == nil {
 		fail(w, 503, "not-ready", "Episode search is unavailable.")
 		return
 	}
@@ -44,7 +44,8 @@ func (h *Handler) episodeSearch(w http.ResponseWriter, r *http.Request) {
 		fail(w, 409, "setup-required", "Complete setup before searching episodes.")
 		return
 	}
-	if _, err := h.seriesRepo.GetEpisode(ctx, input.EpisodeID); err != nil {
+	episode, err := h.seriesRepo.GetEpisode(ctx, input.EpisodeID)
+	if err != nil {
 		if errors.Is(err, series.ErrNotFound) {
 			fail(w, 404, "episode-not-found", "Episode was not found.")
 		} else {
@@ -52,7 +53,12 @@ func (h *Handler) episodeSearch(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	result, err := h.source.SearchEpisode(ctx, input)
+	profile, err := h.storage.GetSettings(ctx)
+	if err != nil {
+		sourceFailure(w, sources.ErrUnavailable)
+		return
+	}
+	result, err := h.source.SearchEpisode(ctx, input, profile)
 	if err != nil {
 		switch {
 		case errors.Is(err, sources.ErrCapabilities):
@@ -64,6 +70,20 @@ func (h *Handler) episodeSearch(w http.ResponseWriter, r *http.Request) {
 		default:
 			sourceFailure(w, err)
 		}
+		return
+	}
+	current, err := h.storage.GetSettings(ctx)
+	if err != nil {
+		sourceFailure(w, sources.ErrUnavailable)
+		return
+	}
+	if current.Revision != profile.Revision {
+		fail(w, 409, "preferences-changed", "Preferences changed during search. Search again.")
+		return
+	}
+	result, err = h.acquisitions.RememberEpisode(ctx, result, episode, profile)
+	if err != nil {
+		acquisitionFailure(w, err)
 		return
 	}
 	writeJSON(w, 200, result)
