@@ -63,12 +63,16 @@ type EpisodeSearch struct {
 }
 
 type EpisodeSearchResult struct {
-	EpisodeID int64       `json:"episodeId"`
-	Query     string      `json:"query"`
-	Items     []Candidate `json:"items"`
+	SourceURL       string      `json:"-"`
+	EpisodeID       int64       `json:"episodeId"`
+	Query           string      `json:"query"`
+	SourceName      string      `json:"sourceName"`
+	SourceRevision  int         `json:"sourceRevision"`
+	ProfileRevision int         `json:"profileRevision"`
+	Items           []Candidate `json:"items"`
 }
 
-func (s *Service) SearchEpisode(ctx context.Context, input EpisodeSearch) (EpisodeSearchResult, error) {
+func (s *Service) SearchEpisode(ctx context.Context, input EpisodeSearch, profile settings.Settings) (EpisodeSearchResult, error) {
 	select {
 	case s.gate <- struct{}{}:
 		defer func() { <-s.gate }()
@@ -124,7 +128,10 @@ func (s *Service) SearchEpisode(ctx context.Context, input EpisodeSearch) (Episo
 	if current.Revision != config.Revision {
 		return EpisodeSearchResult{}, ErrChanged
 	}
-	return EpisodeSearchResult{EpisodeID: input.EpisodeID, Query: input.Query, Items: page.Items}, nil
+	for i := range page.Items {
+		explain(&page.Items[i], profile.Profile, "")
+	}
+	return EpisodeSearchResult{SourceURL: config.URL, EpisodeID: input.EpisodeID, Query: input.Query, SourceName: config.Name, SourceRevision: config.Revision, ProfileRevision: profile.Revision, Items: page.Items}, nil
 }
 
 func contains(values []string, target string) bool {
