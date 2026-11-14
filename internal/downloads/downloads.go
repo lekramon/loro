@@ -40,7 +40,8 @@ type Handoff struct {
 type Task struct {
 	Metrics
 	AcquisitionID  string   `json:"acquisitionId"`
-	MovieID        int64    `json:"movieId"`
+	MovieID        int64    `json:"movieId,omitempty"`
+	EpisodeID      *int64   `json:"episodeId,omitempty"`
 	MovieTitle     string   `json:"movieTitle"`
 	ReleaseTitle   string   `json:"releaseTitle"`
 	InfoHash       string   `json:"infoHash"`

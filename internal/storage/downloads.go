@@ -30,6 +30,7 @@ func readDownload(row scanner) (downloads.Task, error) {
 		return t, downloads.ErrUnavailable
 	}
 	t.MovieID = a.MovieID
+	t.EpisodeID = a.EpisodeID
 	t.MovieTitle = a.MovieTitle
 	t.ReleaseTitle = a.Candidate.Title
 	if code.Valid {

@@ -6,7 +6,9 @@ import (
 	"time"
 
 	"github.com/lekramon/piratarr/internal/acquisitions"
+	"github.com/lekramon/piratarr/internal/downloads"
 	"github.com/lekramon/piratarr/internal/sources"
+	"github.com/lekramon/piratarr/internal/submissions"
 )
 
 func TestEpisodeObservationCanBeSelectedWithoutMovieIdentity(t *testing.T) {
@@ -62,5 +64,25 @@ func TestEpisodeObservationCanBeSelectedWithoutMovieIdentity(t *testing.T) {
 	queued, err := store.EnqueueSubmission(ctx, ready.ID, ready.Revision, client.Revision, profile.Revision, false)
 	if err != nil || queued.Submission == nil || queued.Submission.State != "queued" || queued.EpisodeID == nil || *queued.EpisodeID != episodeID {
 		t.Fatal(queued, err)
+	}
+	submitNow := time.Now().UTC().Add(time.Second)
+	job, err := store.ClaimSubmission(ctx, "episode-submit-token", submitNow)
+	if err != nil || job == nil {
+		t.Fatal(job, err)
+	}
+	if err = store.FinishSubmission(ctx, *job, submissions.Outcome{State: "succeeded"}, submitNow.Add(time.Second)); err != nil {
+		t.Fatal(err)
+	}
+	poll, err := store.ClaimDownloadPoll(ctx, "episode-poll-token", submitNow.Add(2*time.Second))
+	if err != nil || poll == nil {
+		t.Fatal(poll, err)
+	}
+	completedAt := submitNow.Add(3 * time.Second).Format(time.RFC3339Nano)
+	if err = store.FinishDownloadPoll(ctx, *poll, downloads.Result{State: "completed", CompletedAt: &completedAt, Handoff: &downloads.Handoff{Version: 1, State: "awaiting-validation", File: &downloads.File{Index: 0, RelativePath: "Series/S01E01.mkv", SizeBytes: 1024}}}, submitNow.Add(3*time.Second)); err != nil {
+		t.Fatal(err)
+	}
+	detail, err := store.GetDownload(ctx, selected.ID)
+	if err != nil || detail.Download.EpisodeID == nil || *detail.Download.EpisodeID != episodeID || detail.Download.MovieID != 0 || detail.Download.Handoff == nil || detail.Download.Handoff.State != "awaiting-validation" {
+		t.Fatal(detail, err)
 	}
 }
