@@ -20,7 +20,8 @@ Manual episode search slice implemented and verified locally:
 - Source search test verifies generic text search, season/episode parameters and episode identity preservation.
 - Durable episode observation and selection tests verify `observationId`, episode-only identity, idempotent selection storage and movie compatibility.
 - Episode acquisition preparation and download submission queueing are verified end to end with episode-only identity and a validated magnet hash.
-- Download polling and episode-specific library handoff remain outstanding for this ticket.
+- Download polling and handoff preserve `episodeId` through completed transfer evidence while movie downloads retain `movieId`.
+- Episode-specific import publication remains outstanding for this ticket.
 
 ## Migration design
 

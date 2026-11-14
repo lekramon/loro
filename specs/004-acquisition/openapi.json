@@ -2157,9 +2157,12 @@
       "Download": {
         "type": "object",
         "additionalProperties": false,
+        "oneOf": [
+          {"required": ["movieId"]},
+          {"required": ["episodeId"]}
+        ],
         "required": [
           "acquisitionId",
-          "movieId",
           "movieTitle",
           "releaseTitle",
           "infoHash",
@@ -2186,6 +2189,10 @@
             "pattern": "^[a-f0-9]{32}$"
           },
           "movieId": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "episodeId": {
             "type": "integer",
             "minimum": 1
           },
