@@ -30,6 +30,7 @@ type Store struct {
 	submissionSchema         bool
 	acquisitionSchema        bool
 	episodeAcquisitionSchema bool
+	episodeImportSchema      bool
 	catalogSchema            bool
 	inventorySchema          bool
 	reviewSchema             bool
@@ -74,6 +75,9 @@ func open(ctx context.Context, directory string, source fs.FS) (_ *Store, result
 	}
 	if _, err := fs.Stat(source, "migrations/00016_episode_acquisitions.sql"); err == nil {
 		s.episodeAcquisitionSchema = true
+	}
+	if _, err := fs.Stat(source, "migrations/00017_episode_imports.sql"); err == nil {
+		s.episodeImportSchema = true
 	}
 	if _, err := fs.Stat(source, "migrations/00011_native_source.sql"); err == nil {
 		s.nativeSourceSchema = true

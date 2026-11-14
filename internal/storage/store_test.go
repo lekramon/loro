@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"testing"
@@ -69,18 +70,98 @@ func TestImportJournalIsRecoveredAfterRestart(t *testing.T) {
 	ctx := context.Background()
 	directory := t.TempDir()
 	store, err := Open(ctx, directory)
-	if err != nil { t.Fatal(err) }
-	if _, err = store.write.ExecContext(ctx, "PRAGMA foreign_keys=OFF"); err != nil { t.Fatal(err) }
-	if _, err = store.write.ExecContext(ctx, `INSERT INTO import_jobs(id,download_id,movie_id,source_path,destination_path,relative_path,state,phase,revision,created_at,updated_at) VALUES('import-recovery-000000000000000000000000000000','download-000000000000000000000000000000',1,'source','destination','Movie/file.mkv','staging','publishing',1,'now','now')`); err != nil { t.Fatal(err) }
-	if _, err = store.write.ExecContext(ctx, "PRAGMA foreign_keys=ON"); err != nil { t.Fatal(err) }
-	if err = store.Close(); err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = store.write.ExecContext(ctx, "PRAGMA foreign_keys=OFF"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = store.write.ExecContext(ctx, `INSERT INTO import_jobs(id,download_id,movie_id,source_path,destination_path,relative_path,state,phase,revision,created_at,updated_at) VALUES('import-recovery-000000000000000000000000000000','download-000000000000000000000000000000',1,'source','destination','Movie/file.mkv','staging','publishing',1,'now','now')`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = store.write.ExecContext(ctx, "PRAGMA foreign_keys=ON"); err != nil {
+		t.Fatal(err)
+	}
+	if err = store.Close(); err != nil {
+		t.Fatal(err)
+	}
 	store, err = Open(ctx, directory)
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer store.Close()
 	var state, phase, code string
 	var revision int
-	if err = store.read.QueryRowContext(ctx, "SELECT state,phase,error_code,revision FROM import_jobs WHERE id=?", "import-recovery-000000000000000000000000000000").Scan(&state, &phase, &code, &revision); err != nil { t.Fatal(err) }
-	if state != "needs-review" || phase != "needs-review" || code != "import-interrupted" || revision != 2 { t.Fatalf("unexpected recovery: %s %s %s %d", state, phase, code, revision) }
+	if err = store.read.QueryRowContext(ctx, "SELECT state,phase,error_code,revision FROM import_jobs WHERE id=?", "import-recovery-000000000000000000000000000000").Scan(&state, &phase, &code, &revision); err != nil {
+		t.Fatal(err)
+	}
+	if state != "needs-review" || phase != "needs-review" || code != "import-interrupted" || revision != 2 {
+		t.Fatalf("unexpected recovery: %s %s %s %d", state, phase, code, revision)
+	}
+}
+
+func TestEpisodeImportMigrationPreservesMovieImports(t *testing.T) {
+	ctx := context.Background()
+	directory := t.TempDir()
+	legacy := fstest.MapFS{}
+	entries, err := fs.ReadDir(migrations, "migrations")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, entry := range entries {
+		if entry.Name() == "00017_episode_imports.sql" {
+			continue
+		}
+		data, readErr := fs.ReadFile(migrations, "migrations/"+entry.Name())
+		if readErr != nil {
+			t.Fatal(readErr)
+		}
+		legacy["migrations/"+entry.Name()] = &fstest.MapFile{Data: data}
+	}
+	store, err := open(ctx, directory, legacy)
+	if err != nil {
+		t.Fatal(err)
+	}
+	const importID = "import-migration-0000000000000000000000000000"
+	const downloadID = "download-migration"
+	statements := []string{
+		`INSERT INTO movies(id,tmdb_id,title,metadata,added_at) VALUES(42,42,'Preserved Movie','{}','created')`,
+		`INSERT INTO release_observations(id,movie_id,episode_id,source_revision,profile_revision,snapshot,source_url,reference,hash_claim,reference_issue,expires_at) VALUES('observation-migration',42,NULL,1,1,'{}','','','','',1)`,
+		`INSERT INTO acquisitions(id,observation_id,movie_id,episode_id,candidate_id,snapshot,state,revision,created_at,updated_at) VALUES('download-migration','observation-migration',42,NULL,'candidate','{}','ready',1,'created','updated')`,
+		`INSERT INTO submission_jobs(acquisition_id,info_hash,client_revision,settings_revision,download_directory,state,due_at,updated_at) VALUES('download-migration','0123456789abcdef0123456789abcdef01234567',1,1,'downloads','succeeded',1,'updated')`,
+		`INSERT INTO download_tasks(acquisition_id,state,updated_at) VALUES('download-migration','completed','updated')`,
+	}
+	for _, statement := range statements {
+		if _, err = store.write.ExecContext(ctx, statement); err != nil {
+			t.Fatal(err)
+		}
+	}
+	// Migration 00016 left the legacy import table referencing its temporary
+	// download_tasks name. Existing installations could only contain rows that
+	// predated that migration, so emulate one while foreign-key checks are off.
+	if _, err = store.write.ExecContext(ctx, "PRAGMA foreign_keys=OFF"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = store.write.ExecContext(ctx, `INSERT INTO import_jobs(id,download_id,movie_id,source_path,destination_path,relative_path,state,phase,revision,created_at,updated_at) VALUES(?, ?, 42, 'source', 'destination', 'Movie/file.mkv', 'committed', 'committed', 3, 'created', 'updated')`, importID, downloadID); err != nil {
+		t.Fatal(err)
+	}
+	if err = store.Close(); err != nil {
+		t.Fatal(err)
+	}
+	store, err = Open(ctx, directory)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	var movieID int64
+	var episodeID sql.NullInt64
+	var revision int
+	if err = store.read.QueryRowContext(ctx, "SELECT movie_id,episode_id,revision FROM import_jobs WHERE id=?", importID).Scan(&movieID, &episodeID, &revision); err != nil {
+		t.Fatal(err)
+	}
+	if movieID != 42 || episodeID.Valid || revision != 3 {
+		t.Fatalf("movie import changed during migration: movie=%d episode=%v revision=%d", movieID, episodeID, revision)
+	}
 }
 
 func TestUnsupportedHistoryIsNotModified(t *testing.T) {
