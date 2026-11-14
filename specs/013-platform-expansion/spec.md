@@ -22,7 +22,7 @@ The user requested this expansion on 2026-11-06: inspect the current Cloudflare 
 | 6 | [Subtitles](issues/06-native-subtitles.md) | Owned subtitle assets per movie/episode file, local/provider search and verified sidecar download; optional automatic policies follow manual validation. |
 | 7 | [Monitoring and upgrades](issues/07-opt-in-automation.md) | Explicit opt-in monitoring, upgrades and subtitle synchronization after recovery/file guarantees pass. |
 
-Finish, verify, commit, push and fast-forward each ticket into main before starting the next. The current native source branch remains incomplete until its Windows/Linux checks pass. Future tickets labeled needs-triage need their concrete wire contracts and migration designs before claiming; the roadmap alone is not implementation evidence.
+Finish, verify, commit and push each ticket on its own feature branch, then integrate it into `develop`. Promote tested release candidates from `develop` to `main`; ordinary feature branches do not target `main`. Future tickets labeled needs-triage need their concrete wire contracts and migration designs before claiming; the roadmap alone is not implementation evidence.
 
 ## Phase 0: communication diagnostics
 
