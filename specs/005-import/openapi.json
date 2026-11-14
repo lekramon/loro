@@ -14,7 +14,7 @@
   "components": {
     "schemas": {
       "ImportPreviewRequest": {"type": "object", "additionalProperties": false, "required": ["downloadId", "revision"], "properties": {"downloadId": {"type": "string", "pattern": "^[a-f0-9]{32}$"}, "revision": {"type": "integer", "minimum": 1}}},
-      "ImportRequest": {"type": "object", "additionalProperties": false, "required": ["downloadId", "fileId", "movieId", "revision", "conflictPolicy"], "properties": {"downloadId": {"type": "string", "pattern": "^[a-f0-9]{32}$"}, "fileId": {"type": "string", "maxLength": 256}, "movieId": {"type": "integer", "minimum": 1}, "revision": {"type": "integer", "minimum": 1}, "conflictPolicy": {"type": "string", "enum": ["skip", "keep-both", "replace"]}}}
+      "ImportRequest": {"type": "object", "additionalProperties": false, "required": ["downloadId", "fileId", "revision", "conflictPolicy"], "oneOf": [{"required": ["movieId"], "properties": {"movieId": {"type": "integer", "minimum": 1}, "episodeId": false}}, {"required": ["episodeId"], "properties": {"movieId": false, "episodeId": {"type": "integer", "minimum": 1}}}], "properties": {"downloadId": {"type": "string", "pattern": "^[a-f0-9]{32}$"}, "fileId": {"type": "string", "maxLength": 256}, "movieId": {"type": "integer", "minimum": 1}, "episodeId": {"type": "integer", "minimum": 1}, "revision": {"type": "integer", "minimum": 1}, "conflictPolicy": {"type": "string", "enum": ["skip", "keep-both", "replace"]}}}
     }
   }
 }

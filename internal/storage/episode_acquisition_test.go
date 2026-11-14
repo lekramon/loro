@@ -2,11 +2,14 @@ package storage
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/lekramon/piratarr/internal/acquisitions"
 	"github.com/lekramon/piratarr/internal/downloads"
+	mediaimports "github.com/lekramon/piratarr/internal/imports"
 	"github.com/lekramon/piratarr/internal/sources"
 	"github.com/lekramon/piratarr/internal/submissions"
 )
@@ -84,5 +87,30 @@ func TestEpisodeObservationCanBeSelectedWithoutMovieIdentity(t *testing.T) {
 	detail, err := store.GetDownload(ctx, selected.ID)
 	if err != nil || detail.Download.EpisodeID == nil || *detail.Download.EpisodeID != episodeID || detail.Download.MovieID != 0 || detail.Download.Handoff == nil || detail.Download.Handoff.State != "awaiting-validation" {
 		t.Fatal(detail, err)
+	}
+	downloadPath := filepath.Join(profile.Directories.DownloadDirectory, "Series", "S01E01.mkv")
+	if err = os.MkdirAll(filepath.Dir(downloadPath), 0750); err != nil {
+		t.Fatal(err)
+	}
+	if err = os.WriteFile(downloadPath, make([]byte, 1024), 0640); err != nil {
+		t.Fatal(err)
+	}
+	importService := mediaimports.Service{Repo: store}
+	preview, err := importService.PreviewFile(ctx, mediaimports.PreviewInput{DownloadID: selected.ID, Revision: detail.Download.Revision})
+	expectedDestination := filepath.Join(profile.Directories.MovieDirectory, "Series", "Season 01", "S01E01.mkv")
+	if err != nil || preview.EpisodeID == nil || *preview.EpisodeID != episodeID || preview.MovieID != 0 || preview.Destination != expectedDestination {
+		t.Fatal(preview, err)
+	}
+	imported, err := importService.Create(ctx, mediaimports.Input{DownloadID: selected.ID, FileID: preview.RelativePath, EpisodeID: &episodeID, Revision: preview.Revision, ConflictPolicy: "skip"})
+	if err != nil || imported.State != "committed" || imported.EpisodeID == nil || *imported.EpisodeID != episodeID || imported.MovieID != 0 {
+		t.Fatal(imported, err)
+	}
+	if info, statErr := os.Stat(expectedDestination); statErr != nil || info.Size() != 1024 {
+		t.Fatal(info, statErr)
+	}
+	var linkedEpisodeID, linkedMovieCount int64
+	err = store.read.QueryRowContext(ctx, `SELECT elf.episode_id,COUNT(lf.movie_id) FROM library_files lf JOIN episode_library_files elf ON elf.library_file_id=lf.id WHERE lf.root_key=? AND lf.relative_path=? GROUP BY elf.episode_id`, profile.Directories.MovieDirectory, filepath.ToSlash(filepath.Join("Series", "Season 01", "S01E01.mkv"))).Scan(&linkedEpisodeID, &linkedMovieCount)
+	if err != nil || linkedEpisodeID != episodeID || linkedMovieCount != 0 {
+		t.Fatal(linkedEpisodeID, linkedMovieCount, err)
 	}
 }

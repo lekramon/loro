@@ -1,7 +1,7 @@
 # Series, episode catalog and anime classification
 
 Label: ready-for-agent
-State: in-progress
+State: done
 Blocked by: specs/013-platform-expansion/issues/03-import-and-operations-gate.md
 
 Implement MED-001–MED-003 in the [feature specification](../spec.md).
@@ -21,11 +21,16 @@ Manual episode search slice implemented and verified locally:
 - Durable episode observation and selection tests verify `observationId`, episode-only identity, idempotent selection storage and movie compatibility.
 - Episode acquisition preparation and download submission queueing are verified end to end with episode-only identity and a validated magnet hash.
 - Download polling and handoff preserve `episodeId` through completed transfer evidence while movie downloads retain `movieId`.
-- Episode-specific import publication remains outstanding for this ticket.
+- Episode import preview and publication preserve `episodeId`, publish below `Series/Season NN/` in the configured library root and persist the `episode_library_files` association without assigning a movie.
+- Migration 00017 preserves existing movie import IDs/revisions and repairs the legacy import foreign key left by the migration-00016 table rebuild.
+- The public import API requires exactly one of `movieId` or `episodeId`; movie imports remain compatible.
+- `go test -p 2 ./...` — passed on Windows with workspace-local `TMP`, `TEMP`, `GOCACHE` and `GOMODCACHE`.
+- `go vet -p 2 ./...` and `go build ./cmd/louro` — passed on Windows.
+- `pnpm run build`, `pnpm run check:api` and `python scripts/verify_specs.py` — passed without API lint warnings or specification graph errors.
 
 ## Migration design
 
-The next additive migration will add `series`, `seasons` and `episodes` tables and a nullable `series_id`/`anime` classification on the existing media-title model without rewriting movie rows or IDs. Series provider identity is unique by provider and provider ID. Seasons belong to one series; episodes belong to one season and use nullable season/episode numbering plus optional absolute numbering. A media file association points to either an existing movie or an episode, never both. The rollback path is migration down before any new rows are created; no movie table or existing movie identifier is dropped or rewritten.
+Migration 00015 added `series`, `seasons`, `episodes`, anime classification and `episode_library_files` without rewriting movie rows or IDs. Migrations 00016 and 00017 expanded acquisition/import identity to exactly one movie or episode while copying existing movie rows unchanged. Series provider identity is unique by provider and provider ID. Seasons belong to one series; episodes belong to one season and use nullable episode numbering plus optional absolute numbering. A media-file association points to either an existing movie or an episode, never both. Destructive schema downgrade is unsupported; rollback uses a stopped-service backup from the preceding schema version.
 
 ## Comments
 
