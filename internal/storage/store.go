@@ -31,6 +31,7 @@ type Store struct {
 	acquisitionSchema        bool
 	episodeAcquisitionSchema bool
 	episodeImportSchema      bool
+	importListSchema         bool
 	catalogSchema            bool
 	inventorySchema          bool
 	reviewSchema             bool
@@ -78,6 +79,9 @@ func open(ctx context.Context, directory string, source fs.FS) (_ *Store, result
 	}
 	if _, err := fs.Stat(source, "migrations/00017_episode_imports.sql"); err == nil {
 		s.episodeImportSchema = true
+	}
+	if _, err := fs.Stat(source, "migrations/00018_import_lists.sql"); err == nil {
+		s.importListSchema = true
 	}
 	if _, err := fs.Stat(source, "migrations/00011_native_source.sql"); err == nil {
 		s.nativeSourceSchema = true
@@ -266,6 +270,9 @@ func (s *Store) Ready(ctx context.Context) error {
 	}
 	if s.seriesSchema {
 		query += " + (SELECT count(*) FROM series) + (SELECT count(*) FROM seasons) + (SELECT count(*) FROM episodes)"
+	}
+	if s.importListSchema {
+		query += " + (SELECT count(*) FROM import_list_previews) + (SELECT count(*) FROM import_list_preview_rows) + (SELECT count(*) FROM import_lists) + (SELECT count(*) FROM import_list_items)"
 	}
 	if s.clientSchema {
 		query += " + (SELECT count(revision)+count(endpoint)+count(username)+count(password)+count(app_version)+count(api_version)+count(checked_at) FROM download_client_configuration)"

@@ -18,6 +18,7 @@ import (
 	"github.com/lekramon/piratarr/internal/communications"
 	"github.com/lekramon/piratarr/internal/downloadclient"
 	"github.com/lekramon/piratarr/internal/downloads"
+	"github.com/lekramon/piratarr/internal/importlists"
 	"github.com/lekramon/piratarr/internal/imports"
 	"github.com/lekramon/piratarr/internal/library"
 	"github.com/lekramon/piratarr/internal/policies"
@@ -55,6 +56,7 @@ type Handler struct {
 	stopping       atomic.Bool
 	settings       settings.Service
 	importService  *imports.Service
+	importLists    *importlists.Service
 	seriesRepo     series.Repository
 }
 
@@ -69,6 +71,9 @@ func New(storage Storage, assets fs.FS, listen string, services ...*catalog.Serv
 	handler := &Handler{communications: communications.New(storage.DataDirectory()), storage: storage, assets: assets, port: port, settings: settings.Service{Repository: storage, DataDirectory: storage.DataDirectory()}}
 	if len(services) > 0 {
 		handler.catalog = services[0]
+	}
+	if repo, ok := storage.(importlists.Repository); ok && handler.catalog != nil {
+		handler.importLists = &importlists.Service{Repo: repo, Catalog: handler.catalog, Now: time.Now}
 	}
 	if repo, ok := storage.(library.Repository); ok {
 		handler.library = library.New(repo, storage.DataDirectory())
@@ -203,6 +208,10 @@ func (h *Handler) api(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.URL.Path == "/api/v1/imports" || r.URL.Path == "/api/v1/imports/preview" {
 		h.importAPI(w, r)
+		return
+	}
+	if r.URL.Path == "/api/v1/import-lists" || strings.HasPrefix(r.URL.Path, "/api/v1/import-lists/") {
+		h.importListAPI(w, r)
 		return
 	}
 	if r.URL.Path == "/api/v1/acquisitions" || strings.HasPrefix(r.URL.Path, "/api/v1/acquisitions/") {

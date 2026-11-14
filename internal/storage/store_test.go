@@ -109,7 +109,7 @@ func TestEpisodeImportMigrationPreservesMovieImports(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, entry := range entries {
-		if entry.Name() == "00017_episode_imports.sql" {
+		if entry.Name() == "00017_episode_imports.sql" || entry.Name() == "00018_import_lists.sql" {
 			continue
 		}
 		data, readErr := fs.ReadFile(migrations, "migrations/"+entry.Name())

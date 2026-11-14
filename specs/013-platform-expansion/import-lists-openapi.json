@@ -1,0 +1,52 @@
+{
+  "openapi": "3.1.1",
+  "info": {"title": "Lôro import list API", "version": "0.1.0"},
+  "servers": [{"url": "http://localhost:8080"}],
+  "paths": {
+    "/api/v1/import-lists/preview": {
+      "post": {
+        "operationId": "previewImportList",
+        "summary": "Parse a bounded user-exported CSV and preview catalog changes",
+        "parameters": [{"$ref": "#/components/parameters/MutationHeader"}],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"$ref": "#/components/schemas/PreviewRequest"}}}},
+        "responses": {"200": {"description": "Immutable preview", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Preview"}}}}, "400": {"description": "Malformed request"}, "403": {"description": "Forbidden"}, "413": {"description": "Input too large"}, "415": {"description": "JSON required"}, "422": {"description": "Unsupported or invalid export"}, "503": {"description": "Metadata or storage unavailable"}}
+      }
+    },
+    "/api/v1/import-lists/previews/{previewId}/commit": {
+      "post": {
+        "operationId": "commitImportListPreview",
+        "summary": "Register unambiguous preview matches and preserve list provenance",
+        "parameters": [{"$ref": "#/components/parameters/MutationHeader"}, {"name": "previewId", "in": "path", "required": true, "schema": {"type": "string", "pattern": "^[a-f0-9]{32}$"}}],
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "additionalProperties": false, "required": ["revision"], "properties": {"revision": {"type": "integer", "minimum": 1}}}}}},
+        "responses": {"200": {"description": "Idempotent commit result", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/CommitResult"}}}}, "400": {"description": "Malformed request"}, "403": {"description": "Forbidden"}, "404": {"description": "Preview not found"}, "409": {"description": "Preview changed"}, "413": {"description": "Input too large"}, "415": {"description": "JSON required"}, "422": {"description": "Invalid revision"}, "503": {"description": "Metadata or storage unavailable"}}
+      }
+    },
+    "/api/v1/import-lists": {
+      "get": {"operationId": "listImportLists", "summary": "List persisted import-list provenance", "responses": {"200": {"description": "Configured import lists", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ImportListPage"}}}}, "503": {"description": "Storage unavailable"}}}
+    }
+  },
+  "components": {
+    "parameters": {
+      "MutationHeader": {"name": "X-Piratarr-Request", "in": "header", "required": true, "schema": {"type": "string", "const": "1"}}
+    },
+    "schemas": {
+      "PreviewRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source", "listKey", "name", "csv"],
+        "properties": {
+          "source": {"type": "string", "enum": ["letterboxd-csv", "imdb-csv"]},
+          "listKey": {"type": "string", "minLength": 1, "maxLength": 128},
+          "name": {"type": "string", "minLength": 1, "maxLength": 200},
+          "csv": {"type": "string", "minLength": 1, "maxLength": 60000, "writeOnly": true},
+          "language": {"type": "string", "enum": ["en-US", "pt-BR"], "default": "en-US"}
+        }
+      },
+      "PreviewRow": {"type": "object", "additionalProperties": false, "required": ["rowNumber", "sourceItemKey", "title", "status"], "properties": {"rowNumber": {"type": "integer", "minimum": 2}, "sourceItemKey": {"type": "string", "maxLength": 512}, "title": {"type": "string", "maxLength": 300}, "year": {"type": "integer", "minimum": 1870, "maximum": 2100}, "tmdbId": {"type": "integer", "minimum": 1}, "status": {"type": "string", "enum": ["addition", "duplicate", "ambiguous", "missing", "invalid"]}, "errorCode": {"type": "string"}}},
+      "Preview": {"type": "object", "additionalProperties": false, "required": ["id", "source", "listKey", "name", "language", "state", "revision", "createdAt", "rows"], "properties": {"id": {"type": "string", "pattern": "^[a-f0-9]{32}$"}, "source": {"type": "string", "enum": ["letterboxd-csv", "imdb-csv"]}, "listKey": {"type": "string"}, "name": {"type": "string"}, "language": {"type": "string", "enum": ["en-US", "pt-BR"]}, "state": {"type": "string", "const": "preview"}, "revision": {"type": "integer", "minimum": 1}, "createdAt": {"type": "string", "format": "date-time"}, "rows": {"type": "array", "maxItems": 200, "items": {"$ref": "#/components/schemas/PreviewRow"}}}},
+      "CommitResult": {"type": "object", "additionalProperties": false, "required": ["previewId", "listId", "revision", "linked", "created", "duplicates", "state"], "properties": {"previewId": {"type": "string", "pattern": "^[a-f0-9]{32}$"}, "listId": {"type": "integer", "minimum": 1}, "revision": {"type": "integer", "minimum": 2}, "linked": {"type": "integer", "minimum": 0}, "created": {"type": "integer", "minimum": 0}, "duplicates": {"type": "integer", "minimum": 0}, "state": {"type": "string", "const": "committed"}}},
+      "ImportList": {"type": "object", "additionalProperties": false, "required": ["id", "source", "listKey", "name", "revision", "items", "updatedAt"], "properties": {"id": {"type": "integer", "minimum": 1}, "source": {"type": "string", "enum": ["letterboxd-csv", "imdb-csv"]}, "listKey": {"type": "string"}, "name": {"type": "string"}, "revision": {"type": "integer", "minimum": 1}, "items": {"type": "integer", "minimum": 0}, "updatedAt": {"type": "string", "format": "date-time"}}},
+      "ImportListPage": {"type": "object", "additionalProperties": false, "required": ["items"], "properties": {"items": {"type": "array", "maxItems": 100, "items": {"$ref": "#/components/schemas/ImportList"}}}}
+    }
+  }
+}
