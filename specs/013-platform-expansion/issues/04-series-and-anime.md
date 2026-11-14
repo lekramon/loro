@@ -19,7 +19,8 @@ Manual episode search slice implemented and verified locally:
 - `go test ./internal/sources ./internal/httpapi` — passed on Windows with workspace-local `TMP`/`TEMP` directories.
 - Source search test verifies generic text search, season/episode parameters and episode identity preservation.
 - Durable episode observation and selection tests verify `observationId`, episode-only identity, idempotent selection storage and movie compatibility.
-- Episode download submission remains outstanding for this ticket.
+- Episode acquisition preparation and download submission queueing are verified end to end with episode-only identity and a validated magnet hash.
+- Download polling and episode-specific library handoff remain outstanding for this ticket.
 
 ## Migration design
 
